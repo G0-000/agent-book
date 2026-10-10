@@ -1,11 +1,11 @@
-// 构建后生成 sitemap.xml + robots.txt（GitHub Pages 项目站，base=/atguigu-note/）
+// 构建后生成 sitemap.xml + robots.txt（GitHub Pages 项目站，base=/agent-book/）
 // 用法：pnpm docs:build（自动执行），或单独 node scripts/gen-sitemap.mjs
 import { readdirSync, writeFileSync } from 'node:fs'
 import { join, relative } from 'node:path'
 
 const DIST = '.vitepress/dist'
-const SITE = 'https://xbsheng.github.io'
-const BASE = '/atguigu-note'
+const SITE = 'https://G0-000.github.io'
+const BASE = '/agent-book'
 
 function walk(dir) {
   return readdirSync(dir, { withFileTypes: true }).flatMap((e) => {

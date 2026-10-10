@@ -21,10 +21,12 @@ function renderGiscus() {
   script.src = 'https://giscus.app/client.js'
   script.async = true
   script.crossOrigin = 'anonymous'
-  script.setAttribute('data-repo', 'xbsheng/atguigu-note')
-  script.setAttribute('data-repo-id', 'R_kgDOTptRHw')
+  // 启用评论区时，将下方 data-repo / data-repo-id / data-category-id
+  // 改为自己仓库的值（https://giscus.app 按引导配置后复制）
+  script.setAttribute('data-repo', 'G0-000/agent-book')
+  script.setAttribute('data-repo-id', 'REPLACE_WITH_YOUR_REPO_ID')
   script.setAttribute('data-category', 'Announcements')
-  script.setAttribute('data-category-id', 'DIC_kwDOTptRH84DCceJ')
+  script.setAttribute('data-category-id', 'REPLACE_WITH_YOUR_CATEGORY_ID')
   // specific + strict：标题为解码后的可读路径；strict 按正文 SHA-1 精确定位
   script.setAttribute('data-mapping', 'specific')
   script.setAttribute('data-term', getTerm())

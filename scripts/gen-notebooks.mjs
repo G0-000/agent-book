@@ -3,10 +3,10 @@
 import { readdirSync, writeFileSync } from 'node:fs'
 import { join, relative, sep } from 'node:path'
 
-const BASE = 'https://github.com/xbsheng/atguigu-note/blob/main'
+const BASE = 'https://github.com/G0-000/agent-book/blob/main'
 const HEADER = [
   '无需下载、无需本地环境，点击链接即在浏览器中打开对应 Jupyter Notebook。',
-  '代码文件本身在仓库 [`代码/`](https://github.com/xbsheng/atguigu-note/tree/main/代码) 目录下。',
+  '代码文件本身在仓库 [`代码/`](https://github.com/G0-000/agent-book/tree/main/代码) 目录下。',
 ]
 
 const courses = [

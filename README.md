@@ -1,15 +1,14 @@
-# 尚硅谷 AI 课程笔记
+# Agent Book
 
-[![Deploy](https://github.com/xbsheng/atguigu-note/actions/workflows/deploy.yml/badge.svg)](https://github.com/xbsheng/atguigu-note/actions/workflows/deploy.yml)
-[![GitHub Pages](https://img.shields.io/website?label=website&url=https%3A%2F%2Fxbsheng.github.io%2Fatguigu-note%2F)](https://xbsheng.github.io/atguigu-note/)
-[![Stars](https://img.shields.io/github/stars/xbsheng/atguigu-note)](https://github.com/xbsheng/atguigu-note)
-[![作者关注](https://img.shields.io/github/followers/xbsheng?label=follow)](https://github.com/xbsheng)
+[![Deploy](https://github.com/G0-000/agent-book/actions/workflows/deploy.yml/badge.svg)](https://github.com/G0-000/agent-book/actions/workflows/deploy.yml)
+[![GitHub Pages](https://img.shields.io/website?label=website&url=https%3A%2F%2FG0-000.github.io%2Fagent-book%2F)](https://G0-000.github.io/agent-book/)
+[![Stars](https://img.shields.io/github/stars/G0-000/agent-book)](https://github.com/G0-000/agent-book)
 
-尚硅谷 Python / LangChain / LangGraph / AI Coding 课程配套课件与代码整理
+Python / LangChain / LangGraph / AI Coding 学习笔记与课件整理
 
 ## 在线站点
 
-https://xbsheng.github.io/atguigu-note/
+https://G0-000.github.io/agent-book/
 
 本地预览：
 
@@ -27,14 +26,10 @@ pnpm docs:dev
 | [LangGraph](./langgraph/) | LangGraph 入门到智能体部署实战                | [BV1z3NY66EY1](https://www.bilibili.com/video/BV1z3NY66EY1) | [README](./langgraph/README.md) |
 | [AI Coding](./vibe_coding/) | Vibe Coding 零基础实战（Claude Code / Skills / Codex） | [BV1RPET6tEp2](https://www.bilibili.com/video/BV1RPET6tEp2) | [README](./vibe_coding/README.md) |
 
-## 推荐项目
-
-**[PyBridge](https://pybridge.quarkcode.cn)** · 写给 Java / JS / Go 开发者的 Python 速查卡 —— 52 条概念映射词典（HashMap → dict、goroutine → asyncio）、三条来源语言的对照式课程、浏览器内直接运行 Python，无需安装环境。有其他语言基础的话，配合本站 Python 课程食用效率翻倍。（[GitHub 仓库](https://github.com/xbsheng/pybridge)）
-
 ## 仓库结构
 
 ```text
-atguigu-note/
+agent-book/
 ├── index.md              # 站点首页
 ├── .vitepress/           # VitePress 配置
 ├── .github/workflows/    # GitHub Pages 自动部署

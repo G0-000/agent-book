@@ -2,8 +2,8 @@ import { defineConfig } from 'vitepress'
 import type { HeadConfig } from 'vitepress'
 import { langchainSidebar, langgraphSidebar, vibeSidebar, pythonSidebar } from './sidebars'
 
-const site = 'https://xbsheng.github.io'
-const homeUrl = site + '/atguigu-note/'
+const site = 'https://G0-000.github.io'
+const homeUrl = site + '/agent-book/'
 
 function jsonLd(schema: object): HeadConfig {
   return ['script', { type: 'application/ld+json' }, JSON.stringify(schema)]
@@ -23,40 +23,29 @@ function breadcrumb(pageUrl: string, crumbs: { name: string; url?: string }[]): 
 }
 
 export default defineConfig({
-  title: '尚硅谷 AI 课程笔记',
-  description: '尚硅谷 Python / LangChain / LangGraph 课程配套课件与代码整理',
+  title: '我的 AI 学习笔记',
+  description: 'Python / LangChain / LangGraph 学习笔记与课件整理',
   lang: 'zh-CN',
 
   head: [
-    ['link', { rel: 'icon', href: '/atguigu-note/favicon.ico' }],
+    ['link', { rel: 'icon', href: '/agent-book/favicon.ico' }],
     jsonLd({
       '@context': 'https://schema.org',
       '@type': 'WebSite',
-      name: '尚硅谷 AI 课程笔记',
+      name: '我的 AI 学习笔记',
       url: homeUrl,
       inLanguage: 'zh-CN',
-      description: '尚硅谷 Python / LangChain / LangGraph 课程配套课件与代码整理',
+      description: 'Python / LangChain / LangGraph 学习笔记与课件整理',
     }),
-    [
-      'script',
-      {},
-      `var _hmt = _hmt || [];
-(function() {
-  var hm = document.createElement("script");
-  hm.src = "https://hm.baidu.com/hm.js?7a1e6eb3ba3fbae26e9f64cd365ee357";
-  var s = document.getElementsByTagName("script")[0];
-  s.parentNode.insertBefore(hm, s);
-})();`,
-    ],
   ],
 
-  // GitHub Pages 项目站：https://xbsheng.github.io/atguigu-note/
-  base: '/atguigu-note/',
+  // GitHub Pages 项目站：https://G0-000.github.io/agent-book/
+  base: '/agent-book/',
 
   transformHead(ctx) {
     const isHome = ctx.pageData.relativePath === 'index.md'
     const rel = ctx.pageData.relativePath.replace(/\.md$/, '')
-    const pageUrl = isHome ? homeUrl : site + '/atguigu-note/' + rel
+    const pageUrl = isHome ? homeUrl : site + '/agent-book/' + rel
     const head: HeadConfig[] = [['link', { rel: 'canonical', href: pageUrl }]]
 
     const course = rel.split('/')[0]
@@ -69,7 +58,7 @@ export default defineConfig({
     if (labels[course]) {
       head.push(
         breadcrumb(pageUrl, [
-          { name: '尚硅谷 AI 课程笔记', url: homeUrl },
+          { name: '我的 AI 学习笔记', url: homeUrl },
           { name: labels[course], url: homeUrl + course + '/' },
           { name: ctx.pageData.title },
         ]),
@@ -91,7 +80,7 @@ export default defineConfig({
   cleanUrls: true,
 
   themeConfig: {
-    siteTitle: '尚硅谷 AI 笔记',
+    siteTitle: '我的 AI 笔记',
 
     logo: '/atguigu-logo.png',
 
@@ -131,7 +120,6 @@ export default defineConfig({
           { text: 'B 站视频', link: 'https://www.bilibili.com/video/BV1RPET6tEp2' },
         ],
       },
-      { text: '速通 Python', link: 'https://pybridge.quarkcode.cn' },
     ],
 
     sidebar: {
@@ -141,7 +129,7 @@ export default defineConfig({
       '/vibe_coding/': vibeSidebar,
     },
 
-    socialLinks: [{ icon: 'github', link: 'https://github.com/xbsheng/atguigu-note' }],
+    socialLinks: [{ icon: 'github', link: 'https://github.com/G0-000/agent-book' }],
 
     search: {
       provider: 'local',

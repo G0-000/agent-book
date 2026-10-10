@@ -4,27 +4,19 @@ import { useRouter } from 'vitepress'
 import { NProgress } from 'nprogress-v2'
 import 'nprogress-v2/dist/index.css'
 import './style.css'
-import Giscus from './components/Giscus.vue'
 
 NProgress.configure({ showSpinner: false })
 import { inBrowser } from 'vitepress'
 
-declare global {
-  interface Window {
-    _hmt?: string[][]
-  }
-}
-
 // 构建期由 vite define 注入，本地构建显示 dev
 declare const __COMMIT_SHA__: string
-console.log('[atguigu-note] commit:', __COMMIT_SHA__)
+console.log('[agent-book] commit:', __COMMIT_SHA__)
 
 const router = useRouter()
 // SSR 下 window 不存在，只在浏览器端注册
 if (inBrowser) {
   router.onBeforeRouteChange = to => {
     NProgress.start()
-    window._hmt?.push(['_trackPageview', to])
   }
 
   router.onAfterRouteChange = () => {
@@ -36,9 +28,5 @@ const { Layout } = DefaultTheme
 </script>
 
 <template>
-  <Layout>
-    <template #doc-after>
-      <Giscus />
-    </template>
-  </Layout>
+  <Layout />
 </template>
