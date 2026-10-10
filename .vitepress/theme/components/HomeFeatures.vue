@@ -21,6 +21,11 @@ const agentItems = [
     desc: '自然语言指挥 AI 构建真实项目，基于 Claude Code 深度实践，覆盖 Skills 与 Codex。',
     link: '/vibe_coding/README',
   },
+  {
+    title: '从零开始学 Agent',
+    desc: '全书 31 章系统笔记：LLM 基础、工具调用、记忆规划、Harness、多 Agent、生产化部署。',
+    link: '/agent-learning/index',
+  },
 ]
 
 const projectItems = [
@@ -127,7 +132,7 @@ const projectItems = [
 }
 
 .grid-4 {
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
 }
 
 @media (max-width: 960px) {

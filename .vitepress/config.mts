@@ -1,6 +1,6 @@
 import { defineConfig } from 'vitepress'
 import type { HeadConfig } from 'vitepress'
-import { langchainSidebar, langgraphSidebar, vibeSidebar, pythonSidebar, agentFlowSidebar } from './sidebars'
+import { langchainSidebar, langgraphSidebar, vibeSidebar, pythonSidebar, agentFlowSidebar, agentLearningSidebar } from './sidebars'
 
 const site = 'https://G0-000.github.io'
 const homeUrl = site + '/agent-book/'
@@ -96,6 +96,7 @@ export default defineConfig({
           { text: 'LangChain', link: '/langchain/README' },
           { text: 'LangGraph', link: '/langgraph/README' },
           { text: 'AI Coding', link: '/vibe_coding/README' },
+          { text: '从零开始学 Agent', link: '/agent-learning/index' },
         ],
       },
       {
@@ -112,6 +113,7 @@ export default defineConfig({
       '/langgraph/': langgraphSidebar,
       '/vibe_coding/': vibeSidebar,
       '/agent-flow/': agentFlowSidebar,
+      '/agent-learning/': agentLearningSidebar,
     },
 
     socialLinks: [{ icon: 'github', link: 'https://github.com/G0-000/agent-book' }],
@@ -170,6 +172,16 @@ export default defineConfig({
     lineNumbers: true,
     image: {
       lazyLoading: true,
+    },
+    config(md) {
+      // agent_learning 笔记正文/内联代码中大量使用 {{...}}（Vue 模板插值语法），
+      // 直接编译会报 "Did not expect a type annotation"。构建时把渲染结果中的
+      // 花括号转成 HTML 实体，浏览器显示不变且不触发 Vue 解析
+      const render = md.render.bind(md)
+      md.render = (src: string, env?: any) =>
+        render(src, env)
+          .replace(/{{/g, '&#123;&#123;')
+          .replace(/}}/g, '&#125;&#125;')
     },
   },
 
