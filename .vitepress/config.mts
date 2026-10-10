@@ -90,13 +90,25 @@ export default defineConfig({
     nav: [
       { text: '首页', link: '/' },
       {
-        text: 'Agent',
+        text: 'Notes',
         items: [
           { text: 'Python', link: '/python/README' },
           { text: 'LangChain', link: '/langchain/README' },
           { text: 'LangGraph', link: '/langgraph/README' },
           { text: 'AI Coding', link: '/vibe_coding/README' },
-          { text: '从零开始学 Agent', link: '/agent-learning/index' },
+        ],
+      },
+      {
+        text: 'Agent',
+        items: [
+          { text: '从零开始学 Agent（总览）', link: '/agent-learning/index' },
+          { text: '前言', link: '/agent-learning/preface' },
+          { text: '第一部分 · 入门篇', link: '/agent-learning/part1' },
+          { text: '第二部分 · 核心能力篇', link: '/agent-learning/part2' },
+          { text: '第三部分 · 框架实战篇', link: '/agent-learning/part3' },
+          { text: '第四部分 · 多 Agent 系统篇', link: '/agent-learning/part4' },
+          { text: '第五部分 · 生产化篇', link: '/agent-learning/part5' },
+          { text: '第六部分 · 综合项目篇', link: '/agent-learning/part6' },
         ],
       },
       {

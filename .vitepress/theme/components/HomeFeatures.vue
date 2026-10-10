@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { withBase } from 'vitepress'
 
-// 首页分类卡片区：Agent（基础学习笔记）+ Harness（实战项目）
-const agentItems = [
+// 首页分类卡片区：Notes（基础课程）+ Agent（按篇阅读）+ Harness（实战项目）
+const notesItems = [
   {
     title: 'Python',
     desc: '零基础入门到进阶：语法、流程控制、函数、数据容器、面向对象、异常、模块、进程线程与协程。',
@@ -23,10 +23,38 @@ const agentItems = [
     desc: '自然语言指挥 AI 构建真实项目，基于 Claude Code 深度实践，覆盖 Skills 与 Codex。',
     link: '/vibe_coding/README',
   },
+]
+
+const agentPartItems = [
   {
-    title: '从零开始学 Agent',
-    desc: '全书 31 章系统笔记：LLM 基础、工具调用、记忆规划、Harness、多 Agent、生产化部署。',
-    link: '/agent-learning/index',
+    title: '入门篇',
+    desc: 'Agent 概念、架构与传统程序的区别，LLM 基础（第 1–2 章）。',
+    link: '/agent-learning/part1',
+  },
+  {
+    title: '核心能力篇',
+    desc: '工具调用、记忆、规划、RAG、上下文工程、Harness、Skill、Agentic-RL（第 3–11 章）。',
+    link: '/agent-learning/part2',
+  },
+  {
+    title: '框架实战篇',
+    desc: 'LangChain、LangGraph、OpenClaw、Hermes、Claude Code、DeepSeek Harness（第 12–17 章）。',
+    link: '/agent-learning/part3',
+  },
+  {
+    title: '多 Agent 系统篇',
+    desc: '多 Agent 协作模式，MCP / A2A / ANP 通信协议（第 18–19 章）。',
+    link: '/agent-learning/part4',
+  },
+  {
+    title: '生产化篇',
+    desc: '评估与优化、安全可靠性、部署与生产化（第 20–22 章）。',
+    link: '/agent-learning/part5',
+  },
+  {
+    title: '综合项目篇',
+    desc: 'AI 编程助手、数据分析 Agent、多模态 Agent 三个实战项目（第 23–25 章）。',
+    link: '/agent-learning/part6',
   },
 ]
 
@@ -41,14 +69,14 @@ const projectItems = [
 
 <template>
   <div class="home-sections">
-    <!-- 分类一：Agent 基础学习笔记 -->
+    <!-- 分类一：Agent 从零开始学 Agent（按篇阅读） -->
     <section class="home-section">
       <div class="section-head">
         <h2 class="section-title">Agent</h2>
-        <p class="section-sub">基础学习笔记 · 四门课程</p>
+        <p class="section-sub">从零开始学 Agent · 按篇阅读</p>
       </div>
       <div class="card-grid grid-4">
-        <a v-for="item in agentItems" :key="item.title" class="card" :href="withBase(item.link)">
+        <a v-for="item in agentPartItems" :key="item.title" class="card" :href="withBase(item.link)">
           <div class="card-body">
             <h3 class="card-title">{{ item.title }}</h3>
             <p class="card-desc">{{ item.desc }}</p>
@@ -61,7 +89,27 @@ const projectItems = [
       </div>
     </section>
 
-    <!-- 分类二：Harness 实战项目 -->
+    <!-- 分类二：Notes 基础课程笔记 -->
+    <section class="home-section">
+      <div class="section-head">
+        <h2 class="section-title">Notes</h2>
+        <p class="section-sub">基础课程笔记</p>
+      </div>
+      <div class="card-grid grid-4">
+        <a v-for="item in notesItems" :key="item.title" class="card" :href="withBase(item.link)">
+          <div class="card-body">
+            <h3 class="card-title">{{ item.title }}</h3>
+            <p class="card-desc">{{ item.desc }}</p>
+          </div>
+          <div class="card-foot">
+            <span class="card-link">进入笔记</span>
+            <span class="card-arrow">→</span>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <!-- 分类三：Harness 实战项目 -->
     <section class="home-section">
       <div class="section-head">
         <h2 class="section-title">Harness</h2>
