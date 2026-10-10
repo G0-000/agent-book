@@ -23,19 +23,19 @@ function breadcrumb(pageUrl: string, crumbs: { name: string; url?: string }[]): 
 }
 
 export default defineConfig({
-  title: '我的 AI 学习笔记',
-  description: 'Python / LangChain / LangGraph 学习笔记与课件整理',
+  title: 'Agent-Book 学习笔记',
+  description: 'Python / LangChain / LangGraph / AI Coding 学习笔记，以及实战项目文档',
   lang: 'zh-CN',
 
   head: [
-    ['link', { rel: 'icon', href: '/agent-book/favicon.ico' }],
+    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/agent-book/logo.svg' }],
     jsonLd({
       '@context': 'https://schema.org',
       '@type': 'WebSite',
-      name: '我的 AI 学习笔记',
+      name: 'Agent-Book 学习笔记',
       url: homeUrl,
       inLanguage: 'zh-CN',
-      description: 'Python / LangChain / LangGraph 学习笔记与课件整理',
+      description: 'Python / LangChain / LangGraph / AI Coding 学习笔记，以及实战项目文档',
     }),
   ],
 
@@ -59,7 +59,7 @@ export default defineConfig({
     if (labels[course]) {
       head.push(
         breadcrumb(pageUrl, [
-          { name: '我的 AI 学习笔记', url: homeUrl },
+          { name: 'Agent-Book 学习笔记', url: homeUrl },
           { name: labels[course], url: homeUrl + course + '/' },
           { name: ctx.pageData.title },
         ]),
@@ -83,53 +83,25 @@ export default defineConfig({
   cleanUrls: true,
 
   themeConfig: {
-    siteTitle: '我的 AI 笔记',
+    siteTitle: 'Agent-Book',
 
-    logo: '/atguigu-logo.png',
+    logo: '/agent-book/logo.svg',
 
     nav: [
       { text: '首页', link: '/' },
       {
-        text: 'Python',
+        text: 'Agent-Book',
         items: [
-          { text: '课件目录', link: '/python/课件/01-必备基础知识' },
-          { text: '视频分 P', link: '/python/README' },
-          { text: 'B 站视频', link: 'https://www.bilibili.com/video/BV1tDsgzxECr' },
+          { text: 'Python', link: '/python/README' },
+          { text: 'LangChain', link: '/langchain/README' },
+          { text: 'LangGraph', link: '/langgraph/README' },
+          { text: 'AI Coding', link: '/vibe_coding/README' },
         ],
       },
       {
-        text: 'LangChain',
+        text: 'Project',
         items: [
-          { text: '课件目录', link: '/langchain/课件/01-LangChain概述' },
-          { text: 'Notebook', link: '/langchain/notebooks' },
-          { text: '视频分 P', link: '/langchain/README' },
-          { text: 'B 站视频', link: 'https://www.bilibili.com/video/BV1rv7A6oEeP' },
-        ],
-      },
-      {
-        text: 'LangGraph',
-        items: [
-          { text: '课件目录', link: '/langgraph/课件/00-环境配置' },
-          { text: 'Notebook', link: '/langgraph/notebooks' },
-          { text: '视频分 P', link: '/langgraph/README' },
-          { text: 'B 站视频', link: 'https://www.bilibili.com/video/BV1z3NY66EY1' },
-        ],
-      },
-      {
-        text: 'AI Coding',
-        items: [
-          { text: '课件目录', link: '/vibe_coding/课件/00-课程介绍与环境准备' },
-          { text: '视频分 P', link: '/vibe_coding/README' },
-          { text: 'B 站视频', link: 'https://www.bilibili.com/video/BV1RPET6tEp2' },
-        ],
-      },
-      {
-        text: '项目 agent-flow',
-        items: [
-          { text: '项目说明', link: '/agent-flow/index' },
-          { text: '文档库总入口', link: '/agent-flow/README' },
-          { text: '开发文档 doc-dev', link: '/agent-flow/doc-dev/README' },
-          { text: '代码文档 doc-code', link: '/agent-flow/doc-code/agents/__init__' },
+          { text: '项目 agent-flow', link: '/agent-flow/index' },
         ],
       },
     ],
@@ -149,8 +121,8 @@ export default defineConfig({
       options: {
         translations: {
           button: {
-            buttonText: '搜索课件',
-            buttonAriaLabel: '搜索课件',
+            buttonText: '搜索',
+            buttonAriaLabel: '搜索',
           },
           modal: {
             noResultsText: '没有找到相关结果',

@@ -2,7 +2,7 @@ import type { DefaultTheme } from 'vitepress'
 
 export const langchainSidebar: DefaultTheme.SidebarItem[] = [
   {
-    text: 'LangChain 课件',
+    text: 'LangChain',
     items: [
       { text: '01 · LangChain 概述', link: '/langchain/课件/01-LangChain概述' },
       { text: '02 · 模型的创建与调用', link: '/langchain/课件/02-模型的创建与调用' },
@@ -19,17 +19,13 @@ export const langchainSidebar: DefaultTheme.SidebarItem[] = [
   },
   {
     text: '相关链接',
-    items: [
-      { text: 'Notebook 在线阅读', link: '/langchain/notebooks' },
-      { text: '视频分 P 目录', link: '/langchain/README' },
-      { text: 'B 站在线观看', link: 'https://www.bilibili.com/video/BV1rv7A6oEeP' },
-    ],
+    items: [{ text: 'Notebook 在线阅读', link: '/langchain/notebooks' }],
   },
 ]
 
 export const langgraphSidebar: DefaultTheme.SidebarItem[] = [
   {
-    text: 'LangGraph 课件',
+    text: 'LangGraph',
     items: [
       { text: '00 · 环境配置', link: '/langgraph/课件/00-环境配置' },
       { text: '01 · LangGraph 基础入门', link: '/langgraph/课件/01-LangGraph基础入门' },
@@ -41,17 +37,13 @@ export const langgraphSidebar: DefaultTheme.SidebarItem[] = [
   },
   {
     text: '相关链接',
-    items: [
-      { text: 'Notebook 在线阅读', link: '/langgraph/notebooks' },
-      { text: '视频分 P 目录', link: '/langgraph/README' },
-      { text: 'B 站在线观看', link: 'https://www.bilibili.com/video/BV1z3NY66EY1' },
-    ],
+    items: [{ text: 'Notebook 在线阅读', link: '/langgraph/notebooks' }],
   },
 ]
 
 export const vibeSidebar: DefaultTheme.SidebarItem[] = [
   {
-    text: 'AI Coding 课件',
+    text: 'AI Coding',
     items: [
       { text: '00 · 课程介绍与环境准备', link: '/vibe_coding/课件/00-课程介绍与环境准备' },
       { text: '01 · AI 编程基础理论', link: '/vibe_coding/课件/01-AI编程基础理论' },
@@ -64,18 +56,11 @@ export const vibeSidebar: DefaultTheme.SidebarItem[] = [
       { text: '08 · 附录', link: '/vibe_coding/课件/08-附录' },
     ],
   },
-  {
-    text: '相关链接',
-    items: [
-      { text: '视频分 P 目录', link: '/vibe_coding/README' },
-      { text: 'B 站在线观看', link: 'https://www.bilibili.com/video/BV1RPET6tEp2' },
-    ],
-  },
 ]
 
 export const pythonSidebar: DefaultTheme.SidebarItem[] = [
   {
-    text: 'Python 课件',
+    text: 'Python',
     items: [
       { text: '01 · 必备基础知识', link: '/python/课件/01-必备基础知识' },
       { text: '02 · 初识 Python', link: '/python/课件/02-初识Python' },
@@ -91,13 +76,6 @@ export const pythonSidebar: DefaultTheme.SidebarItem[] = [
       { text: '12 · 文件操作', link: '/python/课件/12-文件操作' },
       { text: '13 · 进程与线程', link: '/python/课件/13-进程与线程' },
       { text: '14 · 协程', link: '/python/课件/14-协程' },
-    ],
-  },
-  {
-    text: '相关链接',
-    items: [
-      { text: '视频分 P 目录', link: '/python/README' },
-      { text: 'B 站在线观看', link: 'https://www.bilibili.com/video/BV1tDsgzxECr' },
     ],
   },
 ]
