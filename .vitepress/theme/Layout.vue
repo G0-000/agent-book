@@ -4,6 +4,7 @@ import { useRouter } from 'vitepress'
 import { NProgress } from 'nprogress-v2'
 import 'nprogress-v2/dist/index.css'
 import './style.css'
+import HomeFeatures from './components/HomeFeatures.vue'
 
 NProgress.configure({ showSpinner: false })
 import { inBrowser } from 'vitepress'
@@ -28,5 +29,9 @@ const { Layout } = DefaultTheme
 </script>
 
 <template>
-  <Layout />
+  <Layout>
+    <template #home-features>
+      <HomeFeatures />
+    </template>
+  </Layout>
 </template>
