@@ -1,6 +1,6 @@
-# 项目 agent-flow
+# agent-flow
 
-> 本站《项目 agent-flow》目录：AgentFlow 项目的**在线文档镜像**。
+> 本站《agent-flow》目录：AgentFlow 项目的**在线文档镜像**。
 > 项目本身位于本机 `/Users/main/AgentFlow`，代码与文档分开存放。
 
 ## 文档位置

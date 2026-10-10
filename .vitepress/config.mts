@@ -54,7 +54,7 @@ export default defineConfig({
       langchain: 'LangChain',
       langgraph: 'LangGraph',
       vibe_coding: 'AI Coding',
-      'agent-flow': '项目 agent-flow',
+      'agent-flow': 'agent-flow',
     }
     if (labels[course]) {
       head.push(
@@ -100,9 +100,9 @@ export default defineConfig({
         ],
       },
       {
-        text: 'Project',
+        text: 'Harness',
         items: [
-          { text: '项目 agent-flow', link: '/agent-flow/index' },
+          { text: 'agent-flow', link: '/agent-flow/index' },
         ],
       },
     ],

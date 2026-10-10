@@ -1,5 +1,7 @@
 <script setup lang="ts">
-// 首页分类卡片区：Agent（基础学习笔记）+ Project（实战项目）
+import { withBase } from 'vitepress'
+
+// 首页分类卡片区：Agent（基础学习笔记）+ Harness（实战项目）
 const agentItems = [
   {
     title: 'Python',
@@ -30,7 +32,7 @@ const agentItems = [
 
 const projectItems = [
   {
-    title: '项目 agent-flow',
+    title: 'agent-flow',
     desc: 'AgentFlow 项目文档：开发过程（doc-dev）+ 代码结构（doc-code），代码与文档分开维护。',
     link: '/agent-flow/index',
   },
@@ -46,7 +48,7 @@ const projectItems = [
         <p class="section-sub">基础学习笔记 · 四门课程</p>
       </div>
       <div class="card-grid grid-4">
-        <a v-for="item in agentItems" :key="item.title" class="card" :href="item.link">
+        <a v-for="item in agentItems" :key="item.title" class="card" :href="withBase(item.link)">
           <div class="card-body">
             <h3 class="card-title">{{ item.title }}</h3>
             <p class="card-desc">{{ item.desc }}</p>
@@ -59,10 +61,10 @@ const projectItems = [
       </div>
     </section>
 
-    <!-- 分类二：Project 实战项目 -->
+    <!-- 分类二：Harness 实战项目 -->
     <section class="home-section">
       <div class="section-head">
-        <h2 class="section-title">Project</h2>
+        <h2 class="section-title">Harness</h2>
         <p class="section-sub">实战项目文档</p>
       </div>
       <div class="card-grid grid-4">
@@ -70,7 +72,7 @@ const projectItems = [
           v-for="item in projectItems"
           :key="item.title"
           class="card"
-          :href="item.link"
+          :href="withBase(item.link)"
         >
           <div class="card-body">
             <h3 class="card-title">{{ item.title }}</h3>

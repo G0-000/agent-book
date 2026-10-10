@@ -84,7 +84,7 @@ export const agentFlowSidebar: DefaultTheme.SidebarItem[] = [
   {
     text: '项目说明',
     items: [
-      { text: '项目 agent-flow 说明', link: '/agent-flow/index' },
+      { text: 'agent-flow 说明', link: '/agent-flow/index' },
       { text: '文档库总入口', link: '/agent-flow/README' },
     ],
   },
