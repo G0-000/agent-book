@@ -90,7 +90,7 @@ export default defineConfig({
     nav: [
       { text: '首页', link: '/' },
       {
-        text: 'Agent-Book',
+        text: 'Agent',
         items: [
           { text: 'Python', link: '/python/README' },
           { text: 'LangChain', link: '/langchain/README' },
@@ -158,8 +158,8 @@ export default defineConfig({
     darkModeSwitchTitle: '切换到深色模式',
 
     footer: {
-      message: '课程版权归尚硅谷所有，本站仅供学习交流',
-      copyright: 'Copyright © 尚硅谷 · 笔记整理',
+      message: '笔记参考 Github 多个项目以及学习后并修改，本站仅供学习交流',
+      copyright: 'Copyright © Yo · 笔记整理',
     },
   },
 
