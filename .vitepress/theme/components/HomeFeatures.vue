@@ -69,12 +69,13 @@ const projectItems = [
 
 <template>
   <div class="home-sections">
-    <!-- 自定义 Hero：名称 + 两行标语 -->
+    <!-- 自定义 Hero：名称 + 三行标语（Harness 在前） -->
     <section class="home-hero">
       <h1 class="hero-name">Agent-Book</h1>
       <p class="hero-text">学习笔记</p>
       <p class="hero-tagline">从零开始学 Agent（六篇系统笔记）</p>
-      <p class="hero-tagline">Notes 基础课程 · Harness 实战项目</p>
+      <p class="hero-tagline">Harness 实战项目</p>
+      <p class="hero-tagline">Notes 基础课程</p>
     </section>
 
     <!-- 分类一：Agent 从零开始学 Agent（按篇阅读） -->
