@@ -30,7 +30,7 @@ const { Layout } = DefaultTheme
 
 <template>
   <Layout>
-    <template #home-features>
+    <template #home-features-after>
       <HomeFeatures />
     </template>
   </Layout>
