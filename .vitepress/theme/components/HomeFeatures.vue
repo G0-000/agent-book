@@ -89,26 +89,6 @@ const projectItems = [
       </div>
     </section>
 
-    <!-- 分类二：Notes 基础课程笔记 -->
-    <section class="home-section">
-      <div class="section-head">
-        <h2 class="section-title">Notes</h2>
-        <p class="section-sub">基础课程笔记</p>
-      </div>
-      <div class="card-grid grid-4">
-        <a v-for="item in notesItems" :key="item.title" class="card" :href="withBase(item.link)">
-          <div class="card-body">
-            <h3 class="card-title">{{ item.title }}</h3>
-            <p class="card-desc">{{ item.desc }}</p>
-          </div>
-          <div class="card-foot">
-            <span class="card-link">进入笔记</span>
-            <span class="card-arrow">→</span>
-          </div>
-        </a>
-      </div>
-    </section>
-
     <!-- 分类三：Harness 实战项目 -->
     <section class="home-section">
       <div class="section-head">
@@ -140,6 +120,26 @@ const projectItems = [
             <span class="card-link card-link-dim">预留位置</span>
           </div>
         </div>
+      </div>
+    </section>
+
+    <!-- 分类二：Notes 基础课程笔记 -->
+    <section class="home-section">
+      <div class="section-head">
+        <h2 class="section-title">Notes</h2>
+        <p class="section-sub">基础课程笔记</p>
+      </div>
+      <div class="card-grid grid-4">
+        <a v-for="item in notesItems" :key="item.title" class="card" :href="withBase(item.link)">
+          <div class="card-body">
+            <h3 class="card-title">{{ item.title }}</h3>
+            <p class="card-desc">{{ item.desc }}</p>
+          </div>
+          <div class="card-foot">
+            <span class="card-link">进入笔记</span>
+            <span class="card-arrow">→</span>
+          </div>
+        </a>
       </div>
     </section>
   </div>

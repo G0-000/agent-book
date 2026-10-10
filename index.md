@@ -3,6 +3,6 @@ layout: home
 
 hero:
   name: Agent-Book
-  text: 学习笔记 · 实战项目
-  tagline: Python / LangChain / LangGraph / AI Coding 基础学习笔记，以及实战项目文档
+  text: 学习笔记
+  tagline: 从零开始学 Agent（六篇系统笔记）· Notes 基础课程 · Harness 实战项目
 ---

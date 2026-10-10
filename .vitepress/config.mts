@@ -90,15 +90,6 @@ export default defineConfig({
     nav: [
       { text: '首页', link: '/' },
       {
-        text: 'Notes',
-        items: [
-          { text: 'Python', link: '/python/README' },
-          { text: 'LangChain', link: '/langchain/README' },
-          { text: 'LangGraph', link: '/langgraph/README' },
-          { text: 'AI Coding', link: '/vibe_coding/README' },
-        ],
-      },
-      {
         text: 'Agent',
         items: [
           { text: '从零开始学 Agent（总览）', link: '/agent-learning/index' },
@@ -115,6 +106,15 @@ export default defineConfig({
         text: 'Harness',
         items: [
           { text: 'agent-flow', link: '/agent-flow/index' },
+        ],
+      },
+      {
+        text: 'Notes',
+        items: [
+          { text: 'Python', link: '/python/README' },
+          { text: 'LangChain', link: '/langchain/README' },
+          { text: 'LangGraph', link: '/langgraph/README' },
+          { text: 'AI Coding', link: '/vibe_coding/README' },
         ],
       },
     ],
