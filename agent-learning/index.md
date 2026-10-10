@@ -4,9 +4,8 @@
 
 ## 本书信息
 
-- **本地文档源**：`/Users/main/agent_learning`（mdbook 项目，`src/zh/` 为中文全书）
-- **同步机制**：本目录为手动镜像。本地修改后需手动 rsync 回站点目录并推送：
-  `rsync -a --include='*/' --include='*.md' --exclude='*' ~/agent_learning/src/zh/ ~/atguigu-note/agent-learning/`
+- **来源**：`agent_learning` 项目（mdbook 格式的《从零开始学 Agent》中文全书）
+- **归档方式**：本目录为**独立副本**（209 篇 md + 全部引用图已复制进本站仓库），不依赖本地源；即使删除本地 `agent_learning`，本站内容不受影响
 - **结构**：全书共 6 部分、31 章、170 小节，另有附录与前言
 
 ## 目录结构
@@ -33,6 +32,7 @@
 
 ## 注意事项
 
-- 本目录只镜像 **md 文档与被引用的图**（`../svg/`），mdbook 的 html 交互页（animations 等）未纳入站点
+- 本目录收录 **md 文档与被引用的图**（`../svg/`），mdbook 的 html 交互页（animations 等）未纳入站点
 - 请勿在文档中写入真实密钥（API Key 等）
-- 文中相对链接基于目录结构保持有效；若在本地整理时移动文件，注意同步更新互相引用
+- 文中相对链接基于目录结构保持有效；若在本目录内移动文件，注意同步更新互相引用
+- 以后想在本地继续编辑：直接修改本目录内文件并提交推送即可，无需依赖原 `agent_learning` 项目
