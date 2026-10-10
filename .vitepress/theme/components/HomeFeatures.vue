@@ -69,11 +69,11 @@ const projectItems = [
 
 <template>
   <div class="home-sections">
-    <!-- 自定义 Hero：名称 + 三行标语（Harness 在前） -->
+    <!-- 自定义 Hero：徽章 + 渐变标题 + 三行标语（Harness 在前） -->
     <section class="home-hero">
+      <span class="hero-badge">学习笔记</span>
       <h1 class="hero-name">Agent-Book</h1>
-      <p class="hero-text">学习笔记</p>
-      <p class="hero-tagline">从零开始学 Agent（六篇系统笔记）</p>
+      <p class="hero-tagline hero-main">从零开始学 Agent（六篇系统笔记）</p>
       <p class="hero-tagline">Harness 实战项目</p>
       <p class="hero-tagline">Notes 基础课程</p>
     </section>
@@ -162,35 +162,66 @@ const projectItems = [
 }
 
 .home-hero {
-  margin: 64px 0 16px;
+  position: relative;
+  margin: 56px 0 16px;
+  padding: 48px 28px;
   text-align: center;
+  border-radius: 20px;
+  border: 1px solid var(--vp-c-divider);
+  overflow: hidden;
+  background:
+    radial-gradient(900px 360px at 15% -10%, rgba(37, 99, 235, 0.16), transparent 60%),
+    radial-gradient(760px 320px at 95% 0%, rgba(14, 165, 233, 0.14), transparent 55%),
+    var(--vp-c-bg-soft);
+}
+
+.home-hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--vp-c-brand-1), transparent);
+  opacity: 0.8;
+}
+
+.hero-badge {
+  display: inline-block;
+  padding: 4px 14px;
+  margin-bottom: 18px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--vp-c-brand-1);
+  background: var(--vp-c-brand-soft);
+  border: 1px solid color-mix(in srgb, var(--vp-c-brand-1) 28%, transparent);
 }
 
 .hero-name {
-  font-size: 48px;
-  font-weight: 700;
-  line-height: 1.2;
-  color: var(--vp-c-brand-1);
   margin: 0;
+  font-size: 52px;
+  font-weight: 800;
+  line-height: 1.2;
   letter-spacing: 0.5px;
-}
-
-.hero-text {
-  margin: 12px 0 0;
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--vp-c-text-1);
+  background: linear-gradient(120deg, var(--vp-c-brand-1), #0ea5e9);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .hero-tagline {
-  margin: 6px 0 0;
+  margin: 8px 0 0;
   font-size: 15px;
   line-height: 1.6;
   color: var(--vp-c-text-2);
 }
 
-.hero-tagline:first-of-type {
-  margin-top: 16px;
+.hero-tagline.hero-main {
+  margin-top: 14px;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--vp-c-text-1);
 }
 
 .home-section {
@@ -204,11 +235,25 @@ const projectItems = [
 }
 
 .section-title {
+  position: relative;
+  padding-left: 12px;
   font-size: 24px;
   font-weight: 700;
   line-height: 1.2;
   color: var(--vp-c-text-1);
   margin: 0;
+}
+
+.section-title::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 20px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, var(--vp-c-brand-1), #0ea5e9);
 }
 
 .section-sub {
@@ -236,6 +281,10 @@ const projectItems = [
   .grid-4 {
     grid-template-columns: 1fr;
   }
+
+  .home-hero {
+    padding: 36px 20px;
+  }
 }
 
 .card {
@@ -253,8 +302,8 @@ const projectItems = [
 
 .card:hover {
   border-color: var(--vp-c-brand-1);
-  transform: translateY(-3px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(37, 99, 235, 0.12);
   text-decoration: none;
 }
 
@@ -288,6 +337,11 @@ const projectItems = [
 .card-arrow {
   color: var(--vp-c-brand-1);
   font-size: 15px;
+  transition: transform 0.2s;
+}
+
+.card:hover .card-arrow {
+  transform: translateX(3px);
 }
 
 .card-link-dim {

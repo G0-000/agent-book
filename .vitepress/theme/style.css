@@ -1,13 +1,66 @@
-/* 修复移动端"本页目录"弹层滑动穿透
- *
- * VitePress 默认主题 VPLocalNavOutlineDropdown.vue 打开弹层时未锁定 body 滚动,
- * 弹层内部滚动到边界后继续滑动会把滚动传递给背景页面(滚动链/滑动穿透)。
- * 对比:移动端侧边栏 VPSidebar.vue 用 useScrollLock + overscroll-behavior: contain 做了处理,
- * 本页目录弹层遗漏了。
- * 该问题在 VitePress 1.6.x 及最新 main 分支(2.x)中均存在。
- *
- * 注:overscroll-behavior 需要 Safari >= 16(2022-09),更老版本浏览器上仍可能穿透。
- */
+/* ============================================================
+   Agent-Book 全局主题（VitePress 默认主题之上）
+   只改站点外观，不影响任何文档内容
+   ============================================================ */
+
+:root {
+  /* 品牌色：科技蓝 */
+  --vp-c-brand-1: #2563eb;
+  --vp-c-brand-2: #1d4ed8;
+  --vp-c-brand-3: #1e40af;
+  --vp-c-brand-soft: rgba(37, 99, 235, 0.14);
+
+  /* 字体栈：中文优先系统字体 */
+  --vp-font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC',
+    'HarmonyOS Sans SC', 'Microsoft YaHei', 'Helvetica Neue', Arial, sans-serif;
+  --vp-font-family-mono: ui-monospace, SFMono-Regular, Menlo, Consolas,
+    'JetBrains Mono', 'Courier New', monospace;
+}
+
+.dark {
+  --vp-c-brand-1: #60a5fa;
+  --vp-c-brand-2: #93c5fd;
+  --vp-c-brand-3: #3b82f6;
+  --vp-c-brand-soft: rgba(96, 165, 250, 0.16);
+}
+
+/* ---- 正文排版 ---- */
+.vp-doc {
+  letter-spacing: 0.005em;
+}
+
+.vp-doc h1,
+.vp-doc h2,
+.vp-doc h3 {
+  letter-spacing: 0.01em;
+}
+
+.vp-doc table {
+  font-size: 0.92em;
+}
+
+/* ---- 代码块 ---- */
+.vp-doc div[class*='language-'] {
+  border-radius: 10px;
+}
+
+/* ---- 侧边栏分组标题 ---- */
+.VPSidebarItem.level-0 > .item {
+  font-weight: 600;
+}
+
+/* ---- 主按钮 ---- */
+.VPButton.brand {
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.VPButton.brand:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.32);
+}
+
+/* ---- 移动端 outline 弹层滚动修复（保留原修复） ---- */
 .VPLocalNavOutlineDropdown .items {
   overscroll-behavior: contain;
 }
