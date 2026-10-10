@@ -36,4 +36,8 @@ features:
     details: 从零开始用自然语言指挥 AI 构建真实项目，基于 Claude Code 深度实践，覆盖模型配置、Skills、项目实战与 Codex。
     link: /vibe_coding/课件/00-课程介绍与环境准备
     linkText: 进入课件
+  - title: 项目 agent-flow
+    details: AgentFlow 项目文档（开发过程 + 代码结构），代码与文档分开维护，文档在线镜像可读。
+    link: /agent-flow/index
+    linkText: 进入文档
 ---

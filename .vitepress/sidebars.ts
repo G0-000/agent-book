@@ -101,3 +101,116 @@ export const pythonSidebar: DefaultTheme.SidebarItem[] = [
     ],
   },
 ]
+
+export const agentFlowSidebar: DefaultTheme.SidebarItem[] = [
+  {
+    text: '项目说明',
+    items: [
+      { text: '项目 agent-flow 说明', link: '/agent-flow/index' },
+      { text: '文档库总入口', link: '/agent-flow/README' },
+    ],
+  },
+  {
+    text: '开发文档 doc-dev',
+    items: [
+      {
+        text: '00 · 快速上手',
+        items: [{ text: 'AI 接管指南', link: '/agent-flow/doc-dev/00-快速上手/AI接管指南' }],
+      },
+      {
+        text: '01 · 里程碑',
+        items: [
+          { text: '学习路线', link: '/agent-flow/doc-dev/01-里程碑/00-学习路线' },
+          { text: 'M0 · 环境搭建', link: '/agent-flow/doc-dev/01-里程碑/M0-环境搭建' },
+          { text: 'M1 · 思考与规划', link: '/agent-flow/doc-dev/01-里程碑/M1-思考与规划' },
+          { text: 'M1 · 最小 Agent', link: '/agent-flow/doc-dev/01-里程碑/M1-最小Agent' },
+          { text: 'M2 · 工具与中间件', link: '/agent-flow/doc-dev/01-里程碑/M2-工具与中间件' },
+          { text: 'M3 · 记忆与知识', link: '/agent-flow/doc-dev/01-里程碑/M3-记忆与知识' },
+          { text: 'M4 · 子代理与沙箱', link: '/agent-flow/doc-dev/01-里程碑/M4-子代理与沙箱' },
+          { text: 'M5 · 长任务与协作', link: '/agent-flow/doc-dev/01-里程碑/M5-长任务与协作' },
+          { text: 'M6 · 扩展与治理', link: '/agent-flow/doc-dev/01-里程碑/M6-扩展与治理' },
+        ],
+      },
+      {
+        text: '02 · 架构设计',
+        items: [
+          { text: '总体设计', link: '/agent-flow/doc-dev/02-架构设计/总体设计' },
+          { text: '目录结构', link: '/agent-flow/doc-dev/02-架构设计/目录结构' },
+        ],
+      },
+      {
+        text: '03 · 决策记录',
+        items: [
+          { text: 'ADR-001 · workspace 双包', link: '/agent-flow/doc-dev/03-决策记录/ADR-001-workspace双包' },
+          { text: 'ADR-002 · 依赖版本对齐原版', link: '/agent-flow/doc-dev/03-决策记录/ADR-002-依赖版本对齐原版' },
+          { text: 'ADR-003 · 配置与模型工厂', link: '/agent-flow/doc-dev/03-决策记录/ADR-003-配置与模型工厂' },
+          { text: 'ADR-004 · 持久化与检查点', link: '/agent-flow/doc-dev/03-决策记录/ADR-004-持久化与检查点' },
+        ],
+      },
+      {
+        text: '04 · 模块实现',
+        items: [
+          { text: 'agents 域', link: '/agent-flow/doc-dev/04-模块实现/agents域' },
+          { text: 'config-models 域', link: '/agent-flow/doc-dev/04-模块实现/config-models域' },
+          { text: 'persistence 域', link: '/agent-flow/doc-dev/04-模块实现/persistence域' },
+          { text: 'tools-cli 域', link: '/agent-flow/doc-dev/04-模块实现/tools-cli域' },
+        ],
+      },
+      {
+        text: '05 · 验收体系',
+        items: [
+          { text: '验收体系总览', link: '/agent-flow/doc-dev/05-验收体系/README' },
+          { text: '验收例子', link: '/agent-flow/doc-dev/05-验收体系/验收例子' },
+          { text: 'M0 · 验收清单', link: '/agent-flow/doc-dev/05-验收体系/M0-验收清单' },
+          { text: 'M0-M6 · 全面审计报告', link: '/agent-flow/doc-dev/05-验收体系/M0-M6-全面审计报告' },
+          { text: 'M1 · 验收清单', link: '/agent-flow/doc-dev/05-验收体系/M1-验收清单' },
+          { text: 'M1 · 验证记录', link: '/agent-flow/doc-dev/05-验收体系/M1-验证记录' },
+          { text: 'M2 · 验收清单', link: '/agent-flow/doc-dev/05-验收体系/M2-验收清单' },
+          { text: 'M2 · 验证记录', link: '/agent-flow/doc-dev/05-验收体系/M2-验证记录' },
+          { text: 'M3 · 验收清单', link: '/agent-flow/doc-dev/05-验收体系/M3-验收清单' },
+          { text: 'M3 · 验证记录', link: '/agent-flow/doc-dev/05-验收体系/M3-验证记录' },
+          { text: 'M4 · 验收清单', link: '/agent-flow/doc-dev/05-验收体系/M4-验收清单' },
+          { text: 'M5 · 验收清单', link: '/agent-flow/doc-dev/05-验收体系/M5-验收清单' },
+          { text: 'M6 · 验收清单', link: '/agent-flow/doc-dev/05-验收体系/M6-验收清单' },
+          { text: 'M7 · 验收清单', link: '/agent-flow/doc-dev/05-验收体系/M7-验收清单' },
+          { text: 'M8 · 验收清单', link: '/agent-flow/doc-dev/05-验收体系/M8-验收清单' },
+        ],
+      },
+      { text: '06 · 问题日志', link: '/agent-flow/doc-dev/06-问题日志/问题日志' },
+      {
+        text: '07 · 开发规范',
+        items: [
+          { text: '开发指南', link: '/agent-flow/doc-dev/07-开发规范/开发指南' },
+          { text: '全流程步骤', link: '/agent-flow/doc-dev/07-开发规范/全流程步骤' },
+          { text: 'M2 · 开发规范', link: '/agent-flow/doc-dev/07-开发规范/M2-开发规范' },
+        ],
+      },
+      { text: 'doc-dev 总览', link: '/agent-flow/doc-dev/README' },
+    ],
+  },
+  {
+    text: '代码文档 doc-code',
+    items: [
+      { text: 'agents', link: '/agent-flow/doc-code/agents/__init__' },
+      { text: 'authz', link: '/agent-flow/doc-code/authz/__init__' },
+      { text: 'cli', link: '/agent-flow/doc-code/cli/__init__' },
+      { text: 'collab', link: '/agent-flow/doc-code/collab/__init__' },
+      { text: 'community', link: '/agent-flow/doc-code/community/__init__' },
+      { text: 'config', link: '/agent-flow/doc-code/config/__init__' },
+      { text: 'knowledge', link: '/agent-flow/doc-code/knowledge/__init__' },
+      { text: 'mcp', link: '/agent-flow/doc-code/mcp/__init__' },
+      { text: 'memory', link: '/agent-flow/doc-code/memory/__init__' },
+      { text: 'models', link: '/agent-flow/doc-code/models/__init__' },
+      { text: 'observability', link: '/agent-flow/doc-code/observability/__init__' },
+      { text: 'persistence', link: '/agent-flow/doc-code/persistence/__init__' },
+      { text: 'plans', link: '/agent-flow/doc-code/plans/__init__' },
+      { text: 'sandbox', link: '/agent-flow/doc-code/sandbox/__init__' },
+      { text: 'scheduler', link: '/agent-flow/doc-code/scheduler/__init__' },
+      { text: 'skills', link: '/agent-flow/doc-code/skills/__init__' },
+      { text: 'subagents', link: '/agent-flow/doc-code/subagents/__init__' },
+      { text: 'tests', link: '/agent-flow/doc-code/tests/__init__' },
+      { text: 'tools', link: '/agent-flow/doc-code/tools/__init__' },
+      { text: 'webui', link: '/agent-flow/doc-code/webui/__init__' },
+    ],
+  },
+]

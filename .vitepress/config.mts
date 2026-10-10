@@ -1,6 +1,6 @@
 import { defineConfig } from 'vitepress'
 import type { HeadConfig } from 'vitepress'
-import { langchainSidebar, langgraphSidebar, vibeSidebar, pythonSidebar } from './sidebars'
+import { langchainSidebar, langgraphSidebar, vibeSidebar, pythonSidebar, agentFlowSidebar } from './sidebars'
 
 const site = 'https://G0-000.github.io'
 const homeUrl = site + '/agent-book/'
@@ -54,6 +54,7 @@ export default defineConfig({
       langchain: 'LangChain',
       langgraph: 'LangGraph',
       vibe_coding: 'AI Coding',
+      'agent-flow': '项目 agent-flow',
     }
     if (labels[course]) {
       head.push(
@@ -71,11 +72,13 @@ export default defineConfig({
   srcDir: '.',
   srcExclude: ['**/代码/**', '**/code/**', '**/.venv/**', '**/node_modules/**', '**/langgraph-runtime-viz/**'],
 
-  // 死链检查保持开启，仅忽略两类“刻意排除”导致的预期失效链接：
+  // 死链检查保持开启，仅忽略“刻意排除/目录导航”导致的预期失效链接：
   // 1. 指向 代码/ 目录的链接：源码目录在站点构建中被 srcExclude 排除，
   //    这些链接用于 GitHub 仓库内导航（README 分章表格中的代码列）
   // 2. langgraph-runtime-viz：独立 HTML 应用，未纳入站点构建
-  ignoreDeadLinks: [/代码|%E4%BB%A3%E7%A0%81/, /langgraph-runtime-viz/],
+  // 3. agent-flow 文档中的“目录 index”链接（如 00-快速上手/index、./doc-dev/index）：
+  //    GitHub 仓库中可打开目录页，VitePress 站点中无对应 index.md，属文档原有导航写法
+  ignoreDeadLinks: [/代码|%E4%BB%A3%E7%A0%81/, /langgraph-runtime-viz/, /\/index$/],
 
   cleanUrls: true,
 
@@ -120,6 +123,15 @@ export default defineConfig({
           { text: 'B 站视频', link: 'https://www.bilibili.com/video/BV1RPET6tEp2' },
         ],
       },
+      {
+        text: '项目 agent-flow',
+        items: [
+          { text: '项目说明', link: '/agent-flow/index' },
+          { text: '文档库总入口', link: '/agent-flow/README' },
+          { text: '开发文档 doc-dev', link: '/agent-flow/doc-dev/README' },
+          { text: '代码文档 doc-code', link: '/agent-flow/doc-code/agents/__init__' },
+        ],
+      },
     ],
 
     sidebar: {
@@ -127,6 +139,7 @@ export default defineConfig({
       '/langchain/': langchainSidebar,
       '/langgraph/': langgraphSidebar,
       '/vibe_coding/': vibeSidebar,
+      '/agent-flow/': agentFlowSidebar,
     },
 
     socialLinks: [{ icon: 'github', link: 'https://github.com/G0-000/agent-book' }],
