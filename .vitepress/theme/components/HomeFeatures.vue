@@ -78,8 +78,8 @@ const projectItems = [
       <p class="hero-tagline">Notes 基础课程</p>
     </section>
 
-    <!-- 分类一：Agent 从零开始学 Agent（按篇阅读） -->
-    <section class="home-section">
+    <!-- 分类一：Agent（科技蓝） -->
+    <section class="home-section section-agent">
       <div class="section-head">
         <h2 class="section-title">Agent</h2>
         <p class="section-sub">从零开始学 Agent · 按篇阅读</p>
@@ -98,8 +98,8 @@ const projectItems = [
       </div>
     </section>
 
-    <!-- 分类三：Harness 实战项目 -->
-    <section class="home-section">
+    <!-- 分类三：Harness（青绿） -->
+    <section class="home-section section-harness">
       <div class="section-head">
         <h2 class="section-title">Harness</h2>
         <p class="section-sub">实战项目文档</p>
@@ -132,8 +132,8 @@ const projectItems = [
       </div>
     </section>
 
-    <!-- 分类二：Notes 基础课程笔记 -->
-    <section class="home-section">
+    <!-- 分类二：Notes（琥珀橙） -->
+    <section class="home-section section-notes">
       <div class="section-head">
         <h2 class="section-title">Notes</h2>
         <p class="section-sub">基础课程笔记</p>
@@ -172,7 +172,10 @@ const projectItems = [
   background:
     radial-gradient(900px 360px at 15% -10%, rgba(37, 99, 235, 0.16), transparent 60%),
     radial-gradient(760px 320px at 95% 0%, rgba(14, 165, 233, 0.14), transparent 55%),
+    linear-gradient(rgba(37, 99, 235, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(37, 99, 235, 0.05) 1px, transparent 1px),
     var(--vp-c-bg-soft);
+  background-size: auto, auto, 28px 28px, 28px 28px, auto;
 }
 
 .home-hero::before {
@@ -194,8 +197,8 @@ const projectItems = [
   font-size: 13px;
   font-weight: 500;
   color: var(--vp-c-brand-1);
-  background: var(--vp-c-brand-soft);
-  border: 1px solid color-mix(in srgb, var(--vp-c-brand-1) 28%, transparent);
+  background: linear-gradient(120deg, rgba(37, 99, 235, 0.12), rgba(14, 165, 233, 0.12));
+  border: 1px solid color-mix(in srgb, var(--vp-c-brand-1) 30%, transparent);
 }
 
 .hero-name {
@@ -204,7 +207,7 @@ const projectItems = [
   font-weight: 800;
   line-height: 1.2;
   letter-spacing: 0.5px;
-  background: linear-gradient(120deg, var(--vp-c-brand-1), #0ea5e9);
+  background: linear-gradient(120deg, #2563eb, #0ea5e9 55%, #14b8a6);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -224,8 +227,32 @@ const projectItems = [
   color: var(--vp-c-text-1);
 }
 
+/* 后两行标语按分类色调：Harness 青绿 / Notes 琥珀 */
+.home-hero p:nth-of-type(2) {
+  color: #0d9488;
+}
+
+.home-hero p:nth-of-type(3) {
+  color: #f59e0b;
+}
+
 .home-section {
+  /* 分类主色，默认 Agent：科技蓝 */
+  --sec-a: #2563eb;
+  --sec-b: #0ea5e9;
   margin-top: 48px;
+}
+
+/* Harness：青绿 */
+.section-harness {
+  --sec-a: #0d9488;
+  --sec-b: #22d3ee;
+}
+
+/* Notes：琥珀橙 */
+.section-notes {
+  --sec-a: #f59e0b;
+  --sec-b: #f97316;
 }
 
 .section-head {
@@ -240,8 +267,11 @@ const projectItems = [
   font-size: 24px;
   font-weight: 700;
   line-height: 1.2;
-  color: var(--vp-c-text-1);
   margin: 0;
+  background: linear-gradient(120deg, var(--sec-a), var(--sec-b));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .section-title::before {
@@ -253,7 +283,7 @@ const projectItems = [
   width: 4px;
   height: 20px;
   border-radius: 2px;
-  background: linear-gradient(180deg, var(--vp-c-brand-1), #0ea5e9);
+  background: linear-gradient(180deg, var(--sec-a), var(--sec-b));
 }
 
 .section-sub {
@@ -301,9 +331,9 @@ const projectItems = [
 }
 
 .card:hover {
-  border-color: var(--vp-c-brand-1);
+  border-color: var(--sec-a);
   transform: translateY(-4px);
-  box-shadow: 0 12px 28px rgba(37, 99, 235, 0.12);
+  box-shadow: 0 12px 28px color-mix(in srgb, var(--sec-a) 18%, transparent);
   text-decoration: none;
 }
 
