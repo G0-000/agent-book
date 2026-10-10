@@ -132,10 +132,12 @@ export const agentFlowSidebar: DefaultTheme.SidebarItem[] = [
     items: [
       {
         text: '00 · 快速上手',
+        collapsed: true,
         items: [{ text: 'AI 接管指南', link: '/agent-flow/doc-dev/00-快速上手/AI接管指南' }],
       },
       {
         text: '01 · 里程碑',
+        collapsed: true,
         items: [
           { text: '学习路线', link: '/agent-flow/doc-dev/01-里程碑/00-学习路线' },
           { text: 'M0 · 环境搭建', link: '/agent-flow/doc-dev/01-里程碑/M0-环境搭建' },
@@ -150,6 +152,7 @@ export const agentFlowSidebar: DefaultTheme.SidebarItem[] = [
       },
       {
         text: '02 · 架构设计',
+        collapsed: true,
         items: [
           { text: '总体设计', link: '/agent-flow/doc-dev/02-架构设计/总体设计' },
           { text: '目录结构', link: '/agent-flow/doc-dev/02-架构设计/目录结构' },
@@ -157,6 +160,7 @@ export const agentFlowSidebar: DefaultTheme.SidebarItem[] = [
       },
       {
         text: '03 · 决策记录',
+        collapsed: true,
         items: [
           { text: 'ADR-001 · workspace 双包', link: '/agent-flow/doc-dev/03-决策记录/ADR-001-workspace双包' },
           { text: 'ADR-002 · 依赖版本对齐原版', link: '/agent-flow/doc-dev/03-决策记录/ADR-002-依赖版本对齐原版' },
@@ -166,6 +170,7 @@ export const agentFlowSidebar: DefaultTheme.SidebarItem[] = [
       },
       {
         text: '04 · 模块实现',
+        collapsed: true,
         items: [
           { text: 'agents 域', link: '/agent-flow/doc-dev/04-模块实现/agents域' },
           { text: 'config-models 域', link: '/agent-flow/doc-dev/04-模块实现/config-models域' },
@@ -175,6 +180,7 @@ export const agentFlowSidebar: DefaultTheme.SidebarItem[] = [
       },
       {
         text: '05 · 验收体系',
+        collapsed: true,
         items: [
           { text: '验收体系总览', link: '/agent-flow/doc-dev/05-验收体系/README' },
           { text: '验收例子', link: '/agent-flow/doc-dev/05-验收体系/验收例子' },
@@ -196,6 +202,7 @@ export const agentFlowSidebar: DefaultTheme.SidebarItem[] = [
       { text: '06 · 问题日志', link: '/agent-flow/doc-dev/06-问题日志/问题日志' },
       {
         text: '07 · 开发规范',
+        collapsed: true,
         items: [
           { text: '开发指南', link: '/agent-flow/doc-dev/07-开发规范/开发指南' },
           { text: '全流程步骤', link: '/agent-flow/doc-dev/07-开发规范/全流程步骤' },
