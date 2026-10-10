@@ -7,11 +7,12 @@
 ## 📋 结构图
 
 ```text
-（无复杂调用图）
-
-scheduler/
-  ├─ cron.py   手写 5 字段 cron 匹配（无第三方依赖）
-  └─ loop.py   AutomationScheduler（daemon tick 线程，只入队不碰模型）
+┌───────────────────────────────────┐
+│ scheduler/__init__.py —— 包入口   │
+│ 子模块:                           │
+│   ├─ cron.py                      │
+│   ├─ loop.py                      │
+└───────────────────────────────────┘
 ```
 
 ## 📤 关键导出

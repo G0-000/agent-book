@@ -7,7 +7,21 @@
 ## 📋 结构图
 
 ```text
-（无复杂调用图）
+┌──────────────────────────────────────┐
+│ persistence/__init__.py —— 包入口    │
+│ 子模块:                              │
+│   ├─ automation_repositories.py      │
+│   ├─ bootstrap.py                    │
+│   ├─ db.py                           │
+│   ├─ goal_repositories.py            │
+│   ├─ knowledge_repositories.py       │
+│   ├─ memory_repositories.py          │
+│   ├─ repositories.py                 │
+│   ├─ sandbox_audit_repositories.py   │
+│   ├─ schema.py                       │
+│   ├─ session_repositories.py         │
+│   ├─ timestamps.py                   │
+└──────────────────────────────────────┘
 ```
 
 ## 📤 关键导出

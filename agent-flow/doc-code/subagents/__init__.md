@@ -7,12 +7,14 @@
 ## 📋 结构图
 
 ```text
-（无复杂调用图）
-subagents/ 对外导出:
-  config.py     → SubagentConfig
-  executor.py    → SubagentStatus / SubagentResult / SubagentExecutor
-                 → get/list/cleanup_background_task
-  registry.py   → get_subagent_config / list_subagents / get_subagent_names
+┌───────────────────────────────────┐
+│ subagents/__init__.py —— 包入口   │
+│ 子模块:                           │
+│   ├─ builtins/                    │
+│   ├─ config.py                    │
+│   ├─ executor.py                  │
+│   ├─ registry.py                  │
+└───────────────────────────────────┘
 ```
 
 ## 📤 关键导出

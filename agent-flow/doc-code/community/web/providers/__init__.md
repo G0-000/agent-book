@@ -7,12 +7,11 @@
 ## 📋 结构图
 
 ```text
-community/web/providers/                 ← 具体搜索后端实现目录
-│
-├── __init__.py                          ← 本文件（包入口，仅声明，无业务逻辑）
-│
-└── ddgs.py                              ← DDGSWebSearchProvider（免费无 key，auto→bing 双后端兜底）
-                                          → 见 doc-code/community/web/providers/ddgs.md
+┌───────────────────────────────────┐
+│ providers/__init__.py —— 包入口   │
+│ 子模块:                           │
+│   ├─ ddgs.py                      │
+└───────────────────────────────────┘
 ```
 
 ## 📤 关键导出
