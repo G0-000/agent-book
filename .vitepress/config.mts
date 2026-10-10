@@ -224,6 +224,16 @@ export default defineConfig({
       lazyLoading: true,
     },
     config(md) {
+      // doc-dev 里程碑架构图：```archify M0 代码块 → 内嵌自包含 HTML 交互图
+      const defaultFence = md.renderer.rules.fence!.bind(md.renderer.rules)
+      md.renderer.rules.fence = (tokens, idx, options, env, self) => {
+        const parts = tokens[idx].info.trim().split(/\s+/)
+        if (parts[0] === 'archify') {
+          const name = parts[1] || 'M0'
+          return `<div class="vp-diagram-embed"><iframe src="/agent-book/agent-flow/doc-dev/01-里程碑/diagrams/${name}.html" title="${name} 架构图（Archify）" loading="lazy"></iframe></div>`
+        }
+        return defaultFence(tokens, idx, options, env, self)
+      }
       // agent_learning 笔记正文/内联代码中大量使用 {{...}}（Vue 模板插值语法），
       // 直接编译会报 "Did not expect a type annotation"。构建时把渲染结果中的
       // 花括号转成 HTML 实体，浏览器显示不变且不触发 Vue 解析

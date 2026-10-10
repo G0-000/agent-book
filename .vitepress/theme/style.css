@@ -64,6 +64,28 @@
   font-weight: 600;
 }
 
+/* ---- Archify 架构图嵌入 ---- */
+.vp-diagram-embed {
+  margin: 20px 0;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.vp-diagram-embed iframe {
+  display: block;
+  width: 100%;
+  height: 720px;
+  border: 0;
+  background: #0b0f19;
+}
+
+@media (max-width: 640px) {
+  .vp-diagram-embed iframe {
+    height: 480px;
+  }
+}
+
 /* ---- 顶部导航：底部品牌色渐变细线 ---- */
 .VPNavBar {
   border-bottom: 1px solid color-mix(in srgb, var(--vp-c-brand-1) 22%, transparent);
