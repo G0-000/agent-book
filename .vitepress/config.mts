@@ -1,6 +1,6 @@
 import { defineConfig } from 'vitepress'
 import type { HeadConfig } from 'vitepress'
-import { langchainSidebar, langgraphSidebar, vibeSidebar, pythonSidebar, agentFlowSidebar, agentLearningSidebar } from './sidebars'
+import { langchainSidebar, langgraphSidebar, vibeSidebar, pythonSidebar, agentFlowSidebar, agentLearningSidebar, agentPart1Sidebar, agentPart2Sidebar, agentPart3Sidebar, agentPart4Sidebar, agentPart5Sidebar, agentPart6Sidebar } from './sidebars'
 
 const site = 'https://G0-000.github.io'
 const homeUrl = site + '/agent-book/'
@@ -125,7 +125,45 @@ export default defineConfig({
       '/langgraph/': langgraphSidebar,
       '/vibe_coding/': vibeSidebar,
       '/agent-flow/': agentFlowSidebar,
-      '/agent-learning/': agentLearningSidebar,
+      // 从零开始学 Agent：总览/前言/附录显示全书目录；各篇与章节只显示对应篇（键按段数排序匹配，用精确页键+目录前缀键）
+      '/agent-learning/SUMMARY': agentLearningSidebar,
+      '/agent-learning/index': agentLearningSidebar,
+      '/agent-learning/preface': agentLearningSidebar,
+      '/agent-learning/appendix/': agentLearningSidebar,
+      '/agent-learning/animations/': agentLearningSidebar,
+      '/agent-learning/svg/': agentLearningSidebar,
+      '/agent-learning/part1': agentPart1Sidebar,
+      '/agent-learning/chapter_intro/': agentPart1Sidebar,
+      '/agent-learning/chapter_llm/': agentPart1Sidebar,
+      '/agent-learning/part2': agentPart2Sidebar,
+      '/agent-learning/chapter_tools/': agentPart2Sidebar,
+      '/agent-learning/chapter_memory/': agentPart2Sidebar,
+      '/agent-learning/chapter_planning/': agentPart2Sidebar,
+      '/agent-learning/chapter_rag/': agentPart2Sidebar,
+      '/agent-learning/chapter_context_engineering/': agentPart2Sidebar,
+      '/agent-learning/chapter_harness/': agentPart2Sidebar,
+      '/agent-learning/chapter_skill/': agentPart2Sidebar,
+      '/agent-learning/chapter_agentic_rl/': agentPart2Sidebar,
+      '/agent-learning/chapter_self_evolving/': agentPart2Sidebar,
+      '/agent-learning/part3': agentPart3Sidebar,
+      '/agent-learning/chapter_langchain/': agentPart3Sidebar,
+      '/agent-learning/chapter_langgraph/': agentPart3Sidebar,
+      '/agent-learning/chapter_openclaw/': agentPart3Sidebar,
+      '/agent-learning/chapter_hermes/': agentPart3Sidebar,
+      '/agent-learning/chapter_claude_code/': agentPart3Sidebar,
+      '/agent-learning/chapter_deepseek_harness/': agentPart3Sidebar,
+      '/agent-learning/part4': agentPart4Sidebar,
+      '/agent-learning/chapter_18_multi_agent/': agentPart4Sidebar,
+      '/agent-learning/chapter_19_protocol/': agentPart4Sidebar,
+      '/agent-learning/part5': agentPart5Sidebar,
+      '/agent-learning/chapter_20_evaluation/': agentPart5Sidebar,
+      '/agent-learning/chapter_21_security/': agentPart5Sidebar,
+      '/agent-learning/chapter_22_deployment/': agentPart5Sidebar,
+      '/agent-learning/part6': agentPart6Sidebar,
+      '/agent-learning/chapter_23_coding_agent/': agentPart6Sidebar,
+      '/agent-learning/chapter_24_data_agent/': agentPart6Sidebar,
+      '/agent-learning/chapter_25_multimodal/': agentPart6Sidebar,
+      '/agent-learning/chapter_setup/': agentPart6Sidebar,
     },
 
     socialLinks: [{ icon: 'github', link: 'https://github.com/G0-000/agent-book' }],
