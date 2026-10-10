@@ -69,6 +69,14 @@ const projectItems = [
 
 <template>
   <div class="home-sections">
+    <!-- 自定义 Hero：名称 + 两行标语 -->
+    <section class="home-hero">
+      <h1 class="hero-name">Agent-Book</h1>
+      <p class="hero-text">学习笔记</p>
+      <p class="hero-tagline">从零开始学 Agent（六篇系统笔记）</p>
+      <p class="hero-tagline">Notes 基础课程 · Harness 实战项目</p>
+    </section>
+
     <!-- 分类一：Agent 从零开始学 Agent（按篇阅读） -->
     <section class="home-section">
       <div class="section-head">
@@ -150,6 +158,38 @@ const projectItems = [
   max-width: 1152px;
   margin: 0 auto;
   padding: 0 24px 48px;
+}
+
+.home-hero {
+  margin: 64px 0 16px;
+  text-align: center;
+}
+
+.hero-name {
+  font-size: 48px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--vp-c-brand-1);
+  margin: 0;
+  letter-spacing: 0.5px;
+}
+
+.hero-text {
+  margin: 12px 0 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--vp-c-text-1);
+}
+
+.hero-tagline {
+  margin: 6px 0 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--vp-c-text-2);
+}
+
+.hero-tagline:first-of-type {
+  margin-top: 16px;
 }
 
 .home-section {
