@@ -1,4 +1,43 @@
 import type { DefaultTheme } from 'vitepress'
+import { readdirSync, statSync, existsSync } from 'node:fs'
+import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+// doc-code 侧边栏：直接扫描 agent-flow/doc-code 目录生成，
+// 与本地项目（AgentFlow/doc/doc-code）的 md 文件层级一一对应，避免手工列表漂移。
+const docCodeRoot = fileURLToPath(new URL('../agent-flow/doc-code', import.meta.url))
+
+function docCodeTree(dir: string, linkPrefix: string): DefaultTheme.SidebarItem[] {
+  return readdirSync(dir)
+    .sort()
+    .flatMap((entry) => {
+      const abs = join(dir, entry)
+      // cleanUrls 开启，链接不带 .md 后缀；目录名保持原样
+      const link = `${linkPrefix}/${entry.endsWith('.md') ? entry.slice(0, -3) : entry}`
+      if (statSync(abs).isDirectory()) {
+        const item: DefaultTheme.SidebarItem = {
+          text: entry,
+          collapsed: true,
+          items: docCodeTree(abs, link),
+        }
+        // 目录入口页取包内 __init__.md（tests/ 等无入口文件时只作分组，不生成死链接）
+        if (existsSync(join(abs, '__init__.md'))) {
+          item.link = `${link}/__init__`
+        }
+        return [item]
+      }
+      if (entry.endsWith('.md') && entry !== '__init__.md' && entry !== 'README.md') {
+        return [{ text: entry.slice(0, -3), link }]
+      }
+      return []
+    })
+}
+
+export const agentFlowDocCodeSidebar: DefaultTheme.SidebarItem[] = [
+  { text: 'doc-code 总览', link: '/agent-flow/doc-code/README' },
+  { text: 'doc-code 包入口', link: '/agent-flow/doc-code/__init__' },
+  ...docCodeTree(docCodeRoot, '/agent-flow/doc-code'),
+]
 
 export const langchainSidebar: DefaultTheme.SidebarItem[] = [
   {
@@ -168,28 +207,7 @@ export const agentFlowSidebar: DefaultTheme.SidebarItem[] = [
   },
   {
     text: '代码文档 doc-code',
-    items: [
-      { text: 'agents', link: '/agent-flow/doc-code/agents/__init__' },
-      { text: 'authz', link: '/agent-flow/doc-code/authz/__init__' },
-      { text: 'cli', link: '/agent-flow/doc-code/cli/__init__' },
-      { text: 'collab', link: '/agent-flow/doc-code/collab/__init__' },
-      { text: 'community', link: '/agent-flow/doc-code/community/__init__' },
-      { text: 'config', link: '/agent-flow/doc-code/config/__init__' },
-      { text: 'knowledge', link: '/agent-flow/doc-code/knowledge/__init__' },
-      { text: 'mcp', link: '/agent-flow/doc-code/mcp/__init__' },
-      { text: 'memory', link: '/agent-flow/doc-code/memory/__init__' },
-      { text: 'models', link: '/agent-flow/doc-code/models/__init__' },
-      { text: 'observability', link: '/agent-flow/doc-code/observability/__init__' },
-      { text: 'persistence', link: '/agent-flow/doc-code/persistence/__init__' },
-      { text: 'plans', link: '/agent-flow/doc-code/plans/__init__' },
-      { text: 'sandbox', link: '/agent-flow/doc-code/sandbox/__init__' },
-      { text: 'scheduler', link: '/agent-flow/doc-code/scheduler/__init__' },
-      { text: 'skills', link: '/agent-flow/doc-code/skills/__init__' },
-      { text: 'subagents', link: '/agent-flow/doc-code/subagents/__init__' },
-      { text: 'tests', link: '/agent-flow/doc-code/tests/__init__' },
-      { text: 'tools', link: '/agent-flow/doc-code/tools/__init__' },
-      { text: 'webui', link: '/agent-flow/doc-code/webui/__init__' },
-    ],
+    items: agentFlowDocCodeSidebar,
   },
 ]
 // 从零开始学 Agent 全书侧边栏（来源：/Users/main/agent_learning，手动 rsync 同步）
