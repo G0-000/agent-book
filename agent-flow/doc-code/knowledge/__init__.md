@@ -7,13 +7,14 @@
 ## 📋 结构图
 
 ```text
-┌───────────────────────────────────┐
-│ knowledge/__init__.py —— 包入口   │
-│ 子模块:                           │
-│   ├─ chunker.py                   │
-│   ├─ embedding/                   │
-│   ├─ service.py                   │
-└───────────────────────────────────┘
+（无复杂调用图）
+
+knowledge/
+├── chunker.py                 文本分块（chunk_text）
+├── service.py                  知识库总入口（KnowledgeService）
+└── embedding/
+    ├── base.py                 抽象基类 + 常量 + 异常
+    └── registry.py             云端/本地 provider 选择 + 向量化公共 API
 ```
 
 ## 📤 关键导出

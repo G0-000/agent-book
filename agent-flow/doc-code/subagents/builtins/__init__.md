@@ -7,12 +7,11 @@
 ## 📋 结构图
 
 ```text
-┌──────────────────────────────────┐
-│ builtins/__init__.py —— 包入口   │
-│ 子模块:                          │
-│   ├─ bash_agent.py               │
-│   ├─ general_purpose.py          │
-└──────────────────────────────────┘
+（无复杂调用图）
+BUILTIN_SUBAGENTS: dict[str, object]
+  "general-purpose" → GENERAL_PURPOSE_CONFIG（general_purpose.py）
+  "bash"            → BASH_AGENT_CONFIG（bash_agent.py）
+  registry 查表键 = 子代理 name
 ```
 
 ## 📤 关键导出

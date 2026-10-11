@@ -7,14 +7,13 @@
 ## 📋 结构图
 
 ```text
-┌──────────────────────────────┐
-│ goal/__init__.py —— 包入口   │
-│ 子模块:                      │
-│   ├─ goal_judge.py           │
-│   ├─ goal_loop.py            │
-│   ├─ goal_prompts.py         │
-│   ├─ goal_state.py           │
-└──────────────────────────────┘
+（无复杂调用图，仅包声明；子模块业务见各自文档）
+
+agents/goal/
+├── goal_state.py   状态常量 + GoalRow 内存镜像
+├── goal_prompts.py preamble 规划引导词 / continue nudge
+├── goal_judge.py   judge_last_reply 完成判定（两路）
+└── goal_loop.py    GoalEngine 外部 while 闭环引擎
 ```
 
 ## 📤 关键导出

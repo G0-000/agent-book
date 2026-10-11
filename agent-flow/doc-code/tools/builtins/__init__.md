@@ -7,18 +7,7 @@
 ## 📋 结构图
 
 ```text
-┌──────────────────────────────────┐
-│ builtins/__init__.py —— 包入口   │
-│ 子模块:                          │
-│   ├─ clarification_tool.py       │
-│   ├─ dispatch_tool.py            │
-│   ├─ fetch_url_tool.py           │
-│   ├─ file_tools.py               │
-│   ├─ knowledge_tool.py           │
-│   ├─ plan_tool.py                │
-│   ├─ terminal_tool.py            │
-│   ├─ todo_tool.py                │
-└──────────────────────────────────┘
+（无复杂调用图）
 ```
 
 ## 📤 关键导出

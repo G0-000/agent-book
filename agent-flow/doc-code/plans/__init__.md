@@ -7,13 +7,12 @@
 ## 📋 结构图
 
 ```text
-┌───────────────────────────────┐
-│ plans/__init__.py —— 包入口   │
-│ 子模块:                       │
-│   ├─ resolver.py              │
-│   ├─ service.py               │
-│   ├─ types.py                 │
-└───────────────────────────────┘
+（无复杂调用图，仅包声明；子模块业务见各自文档）
+
+plans/
+├── types.py     PlanStep + parse_steps_json（JSON 容错解析）
+├── resolver.py  topo_sort / next_ready_step（Kahn 拓扑）
+└── service.py   GoalStateService（goal 状态迁移守卫）
 ```
 
 ## 📤 关键导出

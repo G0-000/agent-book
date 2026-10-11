@@ -7,13 +7,20 @@
 ## 📋 结构图
 
 ```text
-┌─────────────────────────────┐
-│ web/__init__.py —— 包入口   │
-│ 子模块:                     │
-│   ├─ provider.py            │
-│   ├─ providers/             │
-│   ├─ registry.py            │
-└─────────────────────────────┘
+agentflow/community/                     ← community/ 顶层包
+│
+└── web/                                 ← community/web/ 网页搜索子包
+    │
+    ├── __init__.py                      ← 本文件（包入口，仅声明，无业务逻辑）
+    ├── provider.py                      ← WebSearchProvider 抽象基类 + 统一契约
+    │                                     → 见 doc-code/community/web/provider.md
+    ├── registry.py                      ← Provider 注册中心（懒加载 + RLock + 后端解析）
+    │                                     → 见 doc-code/community/web/registry.md
+    │
+    └── providers/                       ← community/web/providers/ 具体后端实现目录
+        ├── __init__.py
+        └── ddgs.py                      ← DDGSWebSearchProvider（免费无 key，双后端兜底）
+                                         → 见 doc-code/community/web/providers/ddgs.md
 ```
 
 ## 📤 关键导出

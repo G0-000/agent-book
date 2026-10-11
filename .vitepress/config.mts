@@ -78,7 +78,7 @@ export default defineConfig({
   // 2. langgraph-runtime-viz：独立 HTML 应用，未纳入站点构建
   // 3. agent-flow 文档中的“目录 index”链接（如 00-快速上手/index、./doc-dev/index）：
   //    GitHub 仓库中可打开目录页，VitePress 站点中无对应 index.md，属文档原有导航写法
-  ignoreDeadLinks: [/代码|%E4%BB%A3%E7%A0%81/, /langgraph-runtime-viz/, /\/index$/],
+  ignoreDeadLinks: [/代码|%E4%BB%A3%E7%A0%81/, /langgraph-runtime-viz/, /\/index$/, /diagrams\//],
 
   cleanUrls: true,
 

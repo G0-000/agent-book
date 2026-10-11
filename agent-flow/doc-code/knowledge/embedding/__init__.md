@@ -7,12 +7,11 @@
 ## 📋 结构图
 
 ```text
-┌───────────────────────────────────┐
-│ embedding/__init__.py —— 包入口   │
-│ 子模块:                           │
-│   ├─ base.py                      │
-│   ├─ registry.py                  │
-└───────────────────────────────────┘
+（无复杂调用图）
+
+knowledge/embedding/
+├── base.py        抽象基类 EmbeddingProvider + 常量 + 异常
+└── registry.py    Cloud/Local provider 实现 + get_embedding(s) + 维度探测
 ```
 
 ## 📤 关键导出

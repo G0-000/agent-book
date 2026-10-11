@@ -7,29 +7,7 @@
 ## 📋 结构图
 
 ```text
-┌───────────────────────────────────┐
-│ agentflow/__init__.py —— 包入口   │
-│ 子模块:                           │
-│   ├─ agents/                      │
-│   ├─ authz/                       │
-│   ├─ cli/                         │
-│   ├─ collab/                      │
-│   ├─ community/                   │
-│   ├─ config/                      │
-│   ├─ knowledge/                   │
-│   ├─ mcp/                         │
-│   ├─ memory/                      │
-│   ├─ models/                      │
-│   ├─ observability/               │
-│   ├─ persistence/                 │
-│   ├─ plans/                       │
-│   ├─ sandbox/                     │
-│   ├─ scheduler/                   │
-│   ├─ skills/                      │
-│   ├─ subagents/                   │
-│   ├─ tools/                       │
-│   ├─ webui/                       │
-└───────────────────────────────────┘
+（无复杂调用图）
 ```
 
 ## 📤 关键导出
