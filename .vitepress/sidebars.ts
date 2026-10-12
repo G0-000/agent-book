@@ -148,6 +148,7 @@ export const agentFlowSidebar: DefaultTheme.SidebarItem[] = [
           { text: 'M4 · 子代理与沙箱', link: '/agent-flow/doc-dev/01-里程碑/M4-子代理与沙箱' },
           { text: 'M5 · 长任务与协作', link: '/agent-flow/doc-dev/01-里程碑/M5-长任务与协作' },
           { text: 'M6 · 扩展与治理', link: '/agent-flow/doc-dev/01-里程碑/M6-扩展与治理' },
+          { text: 'M7 · 应用层', link: '/agent-flow/doc-dev/01-里程碑/M7-应用层' },
         ],
       },
       {
