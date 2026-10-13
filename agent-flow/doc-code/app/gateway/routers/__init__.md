@@ -1,6 +1,6 @@
 # gateway/routers/__init__.py — __init__.py
 
-> **文件路径**: `backend/packages/harness/agentflow/gateway/routers/__init__.py`
+> **文件路径**: `backend/app/gateway/routers/__init__.py`
 > **目录位置**: gateway/routers → __init__.py
 > **职责**: 路由包子入口（models / runs / threads 三个 router）
 

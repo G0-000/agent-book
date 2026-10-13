@@ -1,6 +1,6 @@
 # gateway/model_store.py — model_store.py
 
-> **文件路径**: `backend/packages/harness/agentflow/gateway/model_store.py`
+> **文件路径**: `backend/app/gateway/model_store.py`
 > **目录位置**: gateway → model_store.py
 > **职责**: 模型配置 SQLite 存储（增删改查 + 主模型标记 + yaml 迁移）
 

@@ -1,6 +1,6 @@
 # gateway/routers/models.py — models.py
 
-> **文件路径**: `backend/packages/harness/agentflow/gateway/routers/models.py`
+> **文件路径**: `backend/app/gateway/routers/models.py`
 > **目录位置**: gateway/routers → models.py
 > **职责**: 模型管理 API（列表/创建/详情/PATCH/删除）
 

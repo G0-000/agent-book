@@ -1,6 +1,6 @@
 # channels/__init__.py —— IM 渠道包入口
 
-> **文件路径**: `backend/packages/harness/agentflow/channels/__init__.py`
+> **文件路径**: `backend/app/channels/__init__.py`
 > **目录位置**: channels → __init__.py
 > **职责**: 渠道包统一导出，外部 `from agentflow.channels import FeishuChannel, handle_challenge, ...`
 

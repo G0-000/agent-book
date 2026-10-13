@@ -1,6 +1,6 @@
 # channels/base.py — IM 渠道抽象基类
 
-> **文件路径**: `backend/packages/harness/agentflow/channels/base.py`
+> **文件路径**: `backend/app/channels/base.py`
 > **目录位置**: channels → base.py
 > **职责**: 定义所有 IM 渠道的抽象基类 `Channel` + 归一化入站消息 `InboundMessage`（裁剪自 EvoFlow `app/channels/base.py`）
 

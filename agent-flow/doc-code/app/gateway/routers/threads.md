@@ -1,6 +1,6 @@
 # gateway/routers/threads.py — threads.py
 
-> **文件路径**: `backend/packages/harness/agentflow/gateway/routers/threads.py`
+> **文件路径**: `backend/app/gateway/routers/threads.py`
 > **目录位置**: gateway/routers → threads.py
 > **职责**: 会话(threads) CRUD API（创建/列表/删除）
 

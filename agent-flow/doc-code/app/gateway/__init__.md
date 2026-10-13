@@ -1,6 +1,6 @@
 # gateway/__init__.py — __init__.py
 
-> **文件路径**: `backend/packages/harness/agentflow/gateway/__init__.py`
+> **文件路径**: `backend/app/gateway/__init__.py`
 > **目录位置**: gateway → __init__.py
 > **职责**: 应用层网关包入口（REST/SSE API + 模型 SQLite 管理）
 

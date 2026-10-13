@@ -1,6 +1,6 @@
 # gateway/app.py — app.py
 
-> **文件路径**: `backend/packages/harness/agentflow/gateway/app.py`
+> **文件路径**: `backend/app/gateway/app.py`
 > **目录位置**: gateway → app.py
 > **职责**: FastAPI 应用装配（create_app 工厂 + lifespan 初始化 + 挂 3 个 router）
 

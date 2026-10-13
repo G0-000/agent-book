@@ -1,6 +1,6 @@
 # gateway/routers/runs.py — runs.py
 
-> **文件路径**: `backend/packages/harness/agentflow/gateway/routers/runs.py`
+> **文件路径**: `backend/app/gateway/routers/runs.py`
 > **目录位置**: gateway/routers → runs.py
 > **职责**: 对话运行 API + SSE 流式（发起 run / 查状态 / 流式取回复）
 

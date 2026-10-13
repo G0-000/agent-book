@@ -1,6 +1,6 @@
 # channels/feishu.py —— 飞书 IM 渠道
 
-> **文件路径**: `backend/packages/harness/agentflow/channels/feishu.py`
+> **文件路径**: `backend/app/channels/feishu.py`
 > **目录位置**: channels → feishu.py
 > **职责**: 飞书消息 → 去重 → 跑 Agent → 回发（M7 验收点 5：飞书发消息给机器人 → 收到 Agent 回复）
 

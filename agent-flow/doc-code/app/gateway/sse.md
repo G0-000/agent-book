@@ -1,6 +1,6 @@
 # gateway/sse.py — sse.py
 
-> **文件路径**: `backend/packages/harness/agentflow/gateway/sse.py`
+> **文件路径**: `backend/app/gateway/sse.py`
 > **目录位置**: gateway → sse.py
 > **职责**: SSE 流式输出（裁剪版：delta / done / error 三类事件）
 
