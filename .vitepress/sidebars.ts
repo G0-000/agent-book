@@ -149,6 +149,8 @@ export const agentFlowSidebar: DefaultTheme.SidebarItem[] = [
           { text: 'M5 · 长任务与协作', link: '/agent-flow/doc-dev/01-里程碑/M5-长任务与协作' },
           { text: 'M6 · 扩展与治理', link: '/agent-flow/doc-dev/01-里程碑/M6-扩展与治理' },
           { text: 'M7 · 应用层', link: '/agent-flow/doc-dev/01-里程碑/M7-应用层' },
+          { text: 'M8 · 前端界面', link: '/agent-flow/doc-dev/01-里程碑/M8-前端界面' },
+          { text: '学习步骤 M0-M8（逐里程碑执行手册）', link: '/agent-flow/doc-dev/01-里程碑/01-学习步骤-M0-M8' },
         ],
       },
       {

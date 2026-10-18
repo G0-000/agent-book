@@ -61,13 +61,13 @@ evopanel/
 
 ## 🎯 实用场景
 
-1. `pnpm dev` → 浏览器打开 http://localhost:5173，admin/admin123 登录 → 聊天页发消息看流式回复 → 模型设置页增改模型/设默认（不重启代码下次对话生效）。
+1. `pnpm dev` → 浏览器打开 localhost:5173，admin/admin123 登录 → 聊天页发消息看流式回复 → 模型设置页增改模型/设默认（不重启代码下次对话生效）。
 2. 学习对接"前端页面 ↔ gateway 路由"的接缝：api-client 是唯一请求通道，页面不直接 fetch。
 
 ## 🧩 顺序执行链
 
 ```text
-浏览器 http://localhost:5173
+浏览器 localhost:5173
   ──> main.js boot()
       ├─ 有 token → buildShell() → switchTab('chat') → renderChat()
       └─ 无 token → renderLogin()
