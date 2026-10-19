@@ -44,7 +44,7 @@ message_bus.py（对齐原版 295 行的最小骨架）
 1. **对齐原版归属（2026-10-18 补位）**：`InboundMessage` 定义从 base.py 迁回 message_bus.py（原版就在这）；base.py 只留 Channel ABC + re-export，旧 `from app.channels.base import InboundMessage` 路径不变。
 2. **解耦三环节**：渠道 publish_inbound 入队 → dispatcher get_inbound 消费 → dispatcher publish_outbound → 渠道按槽位回调回发。「收/跑/发」三方互不直接持有对方。
 3. **account_id 键控**：多账号同渠道（主机器人 + 员工机器人同名 "wecom"）各占 `(channel_name, account_id)` 槽位——重启一个实例只替换自己的槽，不覆盖兄弟实例（对齐原版注释语义）。
-4. **裁剪**：`ResolvedAttachment` 保留纯数据结构对齐形状；文件上传/日志钩子（channel_io_log）不搬——M8+ 多渠道实装时按原版补。
+4. **裁剪**：`ResolvedAttachment` 保留纯数据结构对齐形状；文件上传/日志钩子（channel_io_log）不搬——M8.1 多渠道实装时按原版补。
 
 ## 🎯 实用场景
 
@@ -126,7 +126,7 @@ def subscribe_outbound(self, callback, *, channel_name=None, account_id=""):
 ## ❓ Q&A
 
 **Q: MessageBus 现在有用吗？feishu 不是还走内联路径？**
-A: 代码已就位但**尚未接线**——当前 FeishuChannel 仍走 parse_inbound → 去重 → 回发内联路径（M7 验收行为不变）。MessageBus 是「架构位置先行」：M8+ 多渠道实装时渠道 publish_inbound → dispatcher 消费 → publish_outbound 回发，不用重构。
+A: 代码已就位但**尚未接线**——当前 FeishuChannel 仍走 parse_inbound → 去重 → 回发内联路径（M7 验收行为不变）。MessageBus 是「架构位置先行」：M8.1 多渠道实装时渠道 publish_inbound → dispatcher 消费 → publish_outbound 回发，不用重构。
 
 **Q: 为什么 InboundMessage 的 msg_id/reply_to 被移走了？**
 A: 对齐原版字段集（原版 InboundMessage 没有这两个字段）。它们是飞书平台专用概念，保留在 feishu.py 的 `ParsedInbound`（平台层归一化输出）——总线契约保持平台无关，才能容纳企微/Slack 各自的消息结构。

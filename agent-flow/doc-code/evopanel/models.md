@@ -62,12 +62,12 @@ A: 后端 `to_dict` 返回打码 api_key（`****WrF8`）；编辑时若留空，
 A: 新增勾选 → POST body 带 `is_primary:true`（创建即主）；行内"设默认" → PATCH `{is_primary:true}`（后端事务翻转：旧主降级 + 新主升级）。语义都是"设为唯一主模型"。
 
 **Q: 为什么 provider 默认 `openai-compatible`？**
-A: 学习版最小：绝大多数本地/云模型走 OpenAI 兼容接口；原版有完整服务商管理（zhipu/qwen/...），M8+ 精读方向。
+A: 学习版最小：绝大多数本地/云模型走 OpenAI 兼容接口；原版有完整服务商管理（zhipu/qwen/...），M8.1 精读方向。
 
 ## ⚠️ 风险点
 
 1. 表单 HTML 用字符串拼接 + escapeAttr 转义——若引入第三方 HTML 片段需审计注入面
-2. 编辑保存后 `alert()` 错误且 `throw err` 保持模态打开——用户需先关弹窗再改，交互略粗糙（M8+ 可改表单内联错误）
+2. 编辑保存后 `alert()` 错误且 `throw err` 保持模态打开——用户需先关弹窗再改，交互略粗糙（M8.1 可改表单内联错误）
 3. 温度字段 `Number(input.value || 0.3)`——空输入兜底 0.3，非数字输入得 NaN（后端校验温度范围兜底）
 4. 删除无二次确认的"输入名字"强化（学习版仅 showConfirm）
 

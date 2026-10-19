@@ -69,13 +69,13 @@ A: EventSource 只能 GET；虽然流式端点本身是 GET，但两段式第一
 A: 调用方需要区分"401 未登录 / 503 未配置 / 404 不存在"做 UI 分支——`err.status = resp.status` 保留 HTTP 状态，`err.message` 是后端 detail（或 `HTTP x` 兜底）。
 
 **Q: token 存 localStorage 安全吗？**
-A: 学习版最小实现。生产 XSS 可窃取 localStorage token；M8+ 若做 JWT 校验中间件，应改用 HttpOnly cookie 或短期 token + 刷新。
+A: 学习版最小实现。生产 XSS 可窃取 localStorage token；M8.1 若做 JWT 校验中间件，应改用 HttpOnly cookie 或短期 token + 刷新。
 
 ## ⚠️ 风险点
 
 1. SSE 帧解析按 `\n\n` 分隔——后端若发送单 `\n` 分隔帧会漏帧（当前 sse.py 由 sse-starlette 保证双换行）
 2. `import.meta.env.DEV` 判定：生产构建走同源 `/api`，需反代/同源部署（学习版以 dev 为主）
 3. 并发流：聊天页用 `isStreaming` 防重入，但 streamSSE 本身不防——调用方负责
-4. token 过期（7 天 exp）后 API 仍可用（无校验中间件），属 M8+ 增强范围
+4. token 过期（7 天 exp）后 API 仍可用（无校验中间件），属 M8.1 增强范围
 
 > 页脚：2026-10-17 · M8 前端核心 · 对标 `EvoFlow/evopanel/src/lib/api-client.js`（裁剪）

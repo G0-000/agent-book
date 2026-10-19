@@ -35,7 +35,7 @@
 **两个关键修饰语的精确含义**：
 
 - **"幂等"**：`register_runtime_adapters()` 内部有模块级 `_registered` 标志——测试里反复 `create_app()` 也只真正注册一次，防重复装配/重复副作用。
-- **"当前无真实适配器，仅占位"**：注册函数体目前是空实现 + 分域注释（只挂 events / automation 两个代表访问器），没有真实广播器——M8+ 出现真实应用层实现（SSE broadcaster、channels、speech 等）时按注释补 `ports.register(...)` 即可。
+- **"当前无真实适配器，仅占位"**：注册函数体目前是空实现 + 分域注释（只挂 events / automation 两个代表访问器），没有真实广播器——M8.1 出现真实应用层实现（SSE broadcaster、channels、speech 等）时按注释补 `ports.register(...)` 即可。
 
 > 端口 key 是稳定契约：`events.broadcaster`、`automation.outer_rules` 这类字符串改名 = 跨进程契约变更，必须同步注册端（runtime_adapters.py）与本文档。
 
@@ -210,7 +210,7 @@ broadcaster = _BroadcasterProxy()
 1. 本文件严禁 `import app.*`——这是 R1 的物理保证，一旦破例分层即失效。
 2. 访问器一律 `try/降级` 包裹，禁止让异常冒泡进核心主循环。
 3. 端口 key 字符串（`events.broadcaster` 等）改名 = 跨进程契约变更，需同步 `runtime_adapters.py` 与基线文档。
-4. 当前骨架只移植了 events / automation 代表访问器；stream_inject/middle_layer/proxy/reconcile/snapshot/defer/mirror/kb_citations/channels/speech/diagnostics/logs/goal/unattended 待 M8+ 出现真实应用层实现后按原版同构补齐。
+4. 当前骨架只移植了 events / automation 代表访问器；stream_inject/middle_layer/proxy/reconcile/snapshot/defer/mirror/kb_citations/channels/speech/diagnostics/logs/goal/unattended 待 M8.1 出现真实应用层实现后按原版同构补齐。
 
 ---
 _移植对齐 EvoFlow 端口机制（差异 #1），2026-10-13。2026-10-18 补开篇「R1 是什么」（依赖规则定义 + 反向桥 + 幂等/占位解释）。_

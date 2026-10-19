@@ -103,7 +103,7 @@ class ChannelManager:
 ## ❓ Q&A
 
 **Q: ChannelManager 现在被谁调用？**
-A: 目前**无调用方**（feishu serve 仍独立启动单渠道）。与 MessageBus 一样是「架构位置先行」：M8+ 多渠道实装时作为统一装配入口接入。
+A: 目前**无调用方**（feishu serve 仍独立启动单渠道）。与 MessageBus 一样是「架构位置先行」：M8.1 多渠道实装时作为统一装配入口接入。
 
 **Q: 为什么不直接持有 MessageBus？**
 A: 最小耦合——manager 只做注册 + 路由；总线、dispatcher、渠道之间的协作由装配层编排。原版 manager 与 bus 是 async 协奏，AgentFlow 单渠道同步阶段没必要提前绑死。
@@ -117,7 +117,7 @@ A: 入站路由是"尽力分发"语义：未注册渠道（如测试误发）告
 ## ⚠️ 风险点
 
 1. **无调用方**：当前是备用架构件，别误以为多渠道已生效
-2. `route_inbound` 是**同步分发**（对齐 M7 渠道 on_message 同步回调）；原版 manager/bus 是 async 协奏——M8+ 多渠道实装时需异步化改造
+2. `route_inbound` 是**同步分发**（对齐 M7 渠道 on_message 同步回调）；原版 manager/bus 是 async 协奏——M8.1 多渠道实装时需异步化改造
 3. 同名注册覆盖：装配时渠道名必须唯一（重复名 = 后者覆盖前者 + 告警）
 4. 渠道 start 阻塞型实现（如 WS 长连接）会让 start_all 卡在第一个渠道——生产用 start 起后台线程（feishu serve 已如此）
 

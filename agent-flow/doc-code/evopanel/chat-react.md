@@ -20,7 +20,7 @@
 renderChat(container) → 左栏会话列表 + 右栏消息区 + 输入行
 
 refreshThreads()   GET /api/threads → 列表渲染（active 高亮 + 删除按钮）
-switchThread(id)   切换会话：清空消息区 + 提示"历史恢复为 M8+"
+switchThread(id)   切换会话：清空消息区 + 提示"历史恢复为 M8.1"
 send()             streamSSE({message, threadId, onCreated/onDelta/onDone/onError})
 new-thread         清空 currentThreadId + 消息区（后端自动生成新 thread）
 ```
@@ -32,7 +32,7 @@ new-thread         清空 currentThreadId + 消息区（后端自动生成新 th
 ## 💡 设计思想
 
 1. **数据流对应 M7 gateway 两段式 runs**：发消息 → `streamSSE` 内部 POST /api/runs → GET stream → onDelta 逐块追加 / onDone 落全文。
-2. **多会话最小语义**：后端 threads 只存会话壳（消息历史走 checkpointer），学习版以"切换会话后新消息进对应 thread_id"为最小语义；历史逐条恢复标注为 M8+ 增强。
+2. **多会话最小语义**：后端 threads 只存会话壳（消息历史走 checkpointer），学习版以"切换会话后新消息进对应 thread_id"为最小语义；历史逐条恢复标注为 M8.1 增强。
 3. **onCreated 回填会话 id**：首次发消息（无会话）时 POST /runs 响应带 thread_id → 立即回填 `currentThreadId` + 刷新列表——解决"新会话从哪里记住 id"。
 4. **防重入**：`isStreaming` 标志 + 发送按钮禁用，同一时刻只允许一个流。
 
@@ -59,7 +59,7 @@ new-thread         清空 currentThreadId + 消息区（后端自动生成新 th
 ## ❓ Q&A / 知识点
 
 **Q: 切换会话为什么不恢复历史消息？**
-A: 后端 threads 表只存会话壳（thread_id/title/时间），消息历史在 langgraph checkpointer（按 thread_id 存）。恢复需要新端点（如 GET /api/threads/{id}/messages）——标注为 M8+ 增强，本期切换会话只保证"新消息进对会话"。
+A: 后端 threads 表只存会话壳（thread_id/title/时间），消息历史在 langgraph checkpointer（按 thread_id 存）。恢复需要新端点（如 GET /api/threads/{id}/messages）——标注为 M8.1 增强，本期切换会话只保证"新消息进对会话"。
 
 **Q: 删除当前会话后为什么清空消息区？**
 A: 删除的会话 thread_id 失效，`currentThreadId` 置 null 回到"新会话"状态——避免后续消息发到已删除的 thread。
@@ -69,8 +69,8 @@ A: 模型输出不可信，textContent 天然防 XSS；会话标题等用户数�
 
 ## ⚠️ 风险点
 
-1. 历史恢复缺失（M8+）——验收清单已标注
-2. 同一时刻单流（防重入）——多流并发为 M8+ 能力
+1. 历史恢复缺失（M8.1）——验收清单已标注
+2. 同一时刻单流（防重入）——多流并发为 M8.1 能力
 3. 会话列表删除无确认框——学习版最小化；models 页有 showConfirm 可复用
 4. escapeHtml 在文件底部定义（函数声明提升）——勿改成 const 箭头函数，否则提升失效
 

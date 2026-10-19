@@ -62,8 +62,8 @@ A: 后端 detail 已是面向用户的文案（"用户名或密码错误"、"后
 
 ## ⚠️ 风险点
 
-1. 无 JWT 校验中间件（M8+）——登录只是"前端有 token"，接口本身全开放
-2. localStorage 存储 token——生产 XSS 面（M8+ 可换 HttpOnly cookie）
+1. 无 JWT 校验中间件（M8.1）——登录只是"前端有 token"，接口本身全开放
+2. localStorage 存储 token——生产 XSS 面（M8.1 可换 HttpOnly cookie）
 3. 密码输入无前端校验（空密码也提交，后端 401 兜底）
 
 > 页脚：2026-10-17 · M8 登录页 · 对标 `EvoFlow/evopanel/src/pages/login.js`（学习版裁剪）

@@ -358,11 +358,11 @@ run 的语义是一次执行的生命周期：GET 查状态、SSE 推流结束�
 
 ### 3. 默认 runner 为什么是"缓冲式"？真流式怎么做？
 
-`_invoke()` 用 `agent.invoke` **同步等整段回复**，`anyio.to_thread.run_sync` 只是"不阻塞事件循环"，不是"逐 token 流"。所以前端收到的是 `delta_event(整段)` + `done`。真正的逐 token 流需要：LangGraph `.astream` + asyncio.Queue 桥接线程 → 路由逐块 yield。M7 先保证"链路通 + 语义对"（fake runner 已能验证逐块推送），真流式列 M8+（`_build_default_runner` 内增强，接口不变）。
+`_invoke()` 用 `agent.invoke` **同步等整段回复**，`anyio.to_thread.run_sync` 只是"不阻塞事件循环"，不是"逐 token 流"。所以前端收到的是 `delta_event(整段)` + `done`。真正的逐 token 流需要：LangGraph `.astream` + asyncio.Queue 桥接线程 → 路由逐块 yield。M7 先保证"链路通 + 语义对"（fake runner 已能验证逐块推送），真流式列 M8.1（`_build_default_runner` 内增强，接口不变）。
 
 ### 4. `seed_primary` 为什么只种子 `config.models.chat`？
 
-M7 的对话链路只支持一个"主对话模型"（`get_primary()` 单行语义）。`config.yaml` 里 models 域可能有多个配置（chat/embedding 等），M7 只把 `chat` 种子为主模型，embedding 等 M8+ 再扩展——`to_chat_config` 也只转对话模型字段（provider/base_url/model/api_key/temperature）。
+M7 的对话链路只支持一个"主对话模型"（`get_primary()` 单行语义）。`config.yaml` 里 models 域可能有多个配置（chat/embedding 等），M7 只把 `chat` 种子为主模型，embedding 等 M8.1 再扩展——`to_chat_config` 也只转对话模型字段（provider/base_url/model/api_key/temperature）。
 
 ### 5. 测试为什么能全程离线、不调真实模型？
 

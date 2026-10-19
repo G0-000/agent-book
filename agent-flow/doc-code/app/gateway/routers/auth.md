@@ -41,7 +41,7 @@ config.yaml auth 段 ──> create_default_app() 的 _load_auth_config()
 1. **复用核心层组件**：校验用 M6 `webui/auth.py` 的 `verify_password`（PBKDF2 恒定时间比较）+ `generate_jwt`（HS256，7 天 exp）——应用层只做编排，符合 R1（核心层被应用层合法 import）。
 2. **统一 401 防枚举**：用户名错误和密码错误返回同一句"用户名或密码错误"，不泄漏"用户是否存在"。
 3. **503 诚实报错**：`auth_config is None`（config.yaml 缺 auth 段）时登录不可用，显式 503 而不是假装成功——对齐项目"诚实原则"（声明位置已就位、真实实现后置时如实说明）。
-4. **学习版教学选择**：⚠️ 原版 v1.1.0 是 **API token 体系**（`POST /api/auth/token` 直发 token + `GET /api/auth/whoami` 验证，无用户名密码登录）；AgentFlow 用 login/JWT 落地"登录/会话保持"验收点，原版 token 体系列 M8+ 对齐方向。
+4. **学习版教学选择**：⚠️ 原版 v1.1.0 是 **API token 体系**（`POST /api/auth/token` 直发 token + `GET /api/auth/whoami` 验证，无用户名密码登录）；AgentFlow 用 login/JWT 落地"登录/会话保持"验收点，原版 token 体系列 M8.1 对齐方向。
 
 ## 🎯 实用场景
 
@@ -72,7 +72,7 @@ A: `==` 在字符不匹配时立刻返回，攻击者可利用耗时差异枚举
 A: 学习版明文、启动时 `hash_password` 一次（不落盘哈希）。生产做法：预先把 `hash_password('密码')` 的结果填进 password 字段、删除明文行——config.yaml 注释里已写明替换命令。
 
 **Q: 为什么没有 JWT 校验中间件？**
-A: M8 验收点只要求"登录/会话保持"成立（登录后 token 存在），"登录后接口强制校验 JWT"是 M8+ 增强——当前所有 API 端点仍未鉴权，文档如实标注。
+A: M8 验收点只要求"登录/会话保持"成立（登录后 token 存在），"登录后接口强制校验 JWT"是 M8.1 增强——当前所有 API 端点仍未鉴权，文档如实标注。
 
 **Q: 401 和 503 分别表示什么？**
 A: 401 = 凭证错（用户名或密码）；503 = 服务端未配置登录能力（auth 段缺失/格式错），属于"能力缺失"而非"凭证被拒"。
@@ -81,7 +81,7 @@ A: 401 = 凭证错（用户名或密码）；503 = 服务端未配置登录能�
 
 1. 明文密码在 config.yaml——生产必须换哈希（文件内注释有命令）
 2. `jwt_secret` 默认值 `agentflow-m8-dev-secret`——生产必须显式配置，否则 token 可被伪造
-3. 无 JWT 校验中间件（M8+ 增强），当前接口全部开放
+3. 无 JWT 校验中间件（M8.1 增强），当前接口全部开放
 4. 503 语义依赖 `auth_config` 装配正确——`_load_auth_config` 异常被吞掉时（`except Exception` → None），登录表现为 503 而非崩溃（符合"诚实"但排查时看 gateway 日志的 warning）
 
 > 页脚：2026-10-17 · M8 前端配套 · 对齐 `evoflow/app/gateway/routers/auth.py`（原版为 API token 体系，学习版裁剪为 login/JWT）

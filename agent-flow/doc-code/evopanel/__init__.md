@@ -56,8 +56,8 @@ evopanel/
 1. **"每页一个 render(container)"路由约定**：对齐原版 router.js 形态——页面模块只导出 `render(container)`（把自己画进容器）并返回 cleanup；`main.js` 持有全局布局（顶栏/tabs），切标签时先调旧页 cleanup 再挂新页，防事件泄漏。
 2. **前端永远写相对路径 `/api/*`**：vite dev 由 proxy 转发到 gateway（对齐原版 api-client.js 的 apiUrl 逻辑，页面代码不写死 gateway 地址）。
 3. **两段式 SSE 流式**：`POST /api/runs`（拿 run_id + thread_id）→ `GET /api/runs/{id}/stream`（消费 delta/done/error 事件）——onCreated 回填会话 id，onDelta 逐块追加，onDone 落全文。
-4. **登录态 = localStorage token**：学习版最小会话保持；后端 JWT 校验中间件为 M8+ 增强。
-5. **学习版边界（用户既定接受）**：不照搬原版 ChatApp.tsx（16879 行）与 zcode 组件体系；"薄壳 + 单页 React + SSE 流式"最小闭环覆盖 5 个验收点，zcode 体系为 M8+ 精读方向。
+4. **登录态 = localStorage token**：学习版最小会话保持；后端 JWT 校验中间件为 M8.1 增强。
+5. **学习版边界（用户既定接受）**：不照搬原版 ChatApp.tsx（16879 行）与 zcode 组件体系；"薄壳 + 单页 React + SSE 流式"最小闭环覆盖 5 个验收点，zcode 体系为 M8.1 精读方向。
 
 ## 🎯 实用场景
 
@@ -91,8 +91,8 @@ A: 两段式第一步 `POST /api/runs` 的响应里带 `thread_id`（thread_id �
 
 ## ⚠️ 风险点
 
-1. JWT 校验中间件未做（M8+）——当前接口全开放，仅登录页有 token 概念
-2. 聊天历史逐条恢复为 M8+ 增强（后端 threads 只存会话壳，消息历史走 checkpointer）
+1. JWT 校验中间件未做（M8.1）——当前接口全开放，仅登录页有 token 概念
+2. 聊天历史逐条恢复为 M8.1 增强（后端 threads 只存会话壳，消息历史走 checkpointer）
 3. 生产构建（vite build）走同源 /api，需反代或 gateway 同源部署；学习版以 dev 模式为主
 4. SSE 经 vite proxy 透传——生产（无 proxy）时需确认 gateway 直接可被前端访问
 
