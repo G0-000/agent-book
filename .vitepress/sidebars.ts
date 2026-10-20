@@ -7,6 +7,10 @@ import { fileURLToPath } from 'node:url'
 // 与本地项目（AgentFlow/doc/doc-code）的 md 文件层级一一对应，避免手工列表漂移。
 const docCodeRoot = fileURLToPath(new URL('../agent-flow/doc-code', import.meta.url))
 
+// doc-dev 侧边栏：同样自动扫描（2026-10-19 由手工列表改为扫描——
+// 手工列表曾漏掉新增文章，如 M0-M8 审查报告等；扫描后每篇文章自动入导航）。
+const docDevRoot = fileURLToPath(new URL('../agent-flow/doc-dev', import.meta.url))
+
 function docCodeTree(dir: string, linkPrefix: string): DefaultTheme.SidebarItem[] {
   return readdirSync(dir)
     .sort()
@@ -20,9 +24,12 @@ function docCodeTree(dir: string, linkPrefix: string): DefaultTheme.SidebarItem[
           collapsed: true,
           items: docCodeTree(abs, link),
         }
-        // 目录入口页取包内 __init__.md（tests/ 等无入口文件时只作分组，不生成死链接）
+        // 目录入口页取包内 __init__.md；无 __init__.md 时取 README.md（如 doc-dev/05-验收体系）；
+        // 两者都没有时（tests/ 等）只作分组，不生成死链接
         if (existsSync(join(abs, '__init__.md'))) {
           item.link = `${link}/__init__`
+        } else if (existsSync(join(abs, 'README.md'))) {
+          item.link = `${link}/README`
         }
         return [item]
       }
@@ -130,89 +137,8 @@ export const agentFlowSidebar: DefaultTheme.SidebarItem[] = [
   {
     text: '开发文档 doc-dev',
     items: [
-      {
-        text: '00 · 快速上手',
-        collapsed: true,
-        items: [{ text: 'AI 接管指南', link: '/agent-flow/doc-dev/00-快速上手/AI接管指南' }],
-      },
-      {
-        text: '01 · 里程碑',
-        collapsed: true,
-        items: [
-          { text: '学习路线', link: '/agent-flow/doc-dev/01-里程碑/00-学习路线' },
-          { text: 'M0 · 环境搭建', link: '/agent-flow/doc-dev/01-里程碑/M0-环境搭建' },
-          { text: 'M1 · 思考与规划', link: '/agent-flow/doc-dev/01-里程碑/M1-思考与规划' },
-          { text: 'M1 · 最小 Agent', link: '/agent-flow/doc-dev/01-里程碑/M1-最小Agent' },
-          { text: 'M2 · 工具与中间件', link: '/agent-flow/doc-dev/01-里程碑/M2-工具与中间件' },
-          { text: 'M3 · 记忆与知识', link: '/agent-flow/doc-dev/01-里程碑/M3-记忆与知识' },
-          { text: 'M4 · 子代理与沙箱', link: '/agent-flow/doc-dev/01-里程碑/M4-子代理与沙箱' },
-          { text: 'M5 · 长任务与协作', link: '/agent-flow/doc-dev/01-里程碑/M5-长任务与协作' },
-          { text: 'M6 · 扩展与治理', link: '/agent-flow/doc-dev/01-里程碑/M6-扩展与治理' },
-          { text: 'M7 · 应用层', link: '/agent-flow/doc-dev/01-里程碑/M7-应用层' },
-          { text: 'M8 · 前端界面', link: '/agent-flow/doc-dev/01-里程碑/M8-前端界面' },
-          { text: '学习步骤 M0-M8（逐里程碑执行手册）', link: '/agent-flow/doc-dev/01-里程碑/01-学习步骤-M0-M8' },
-        ],
-      },
-      {
-        text: '02 · 架构设计',
-        collapsed: true,
-        items: [
-          { text: '总体设计', link: '/agent-flow/doc-dev/02-架构设计/总体设计' },
-          { text: '目录结构', link: '/agent-flow/doc-dev/02-架构设计/目录结构' },
-        ],
-      },
-      {
-        text: '03 · 决策记录',
-        collapsed: true,
-        items: [
-          { text: 'ADR-001 · workspace 双包', link: '/agent-flow/doc-dev/03-决策记录/ADR-001-workspace双包' },
-          { text: 'ADR-002 · 依赖版本对齐原版', link: '/agent-flow/doc-dev/03-决策记录/ADR-002-依赖版本对齐原版' },
-          { text: 'ADR-003 · 配置与模型工厂', link: '/agent-flow/doc-dev/03-决策记录/ADR-003-配置与模型工厂' },
-          { text: 'ADR-004 · 持久化与检查点', link: '/agent-flow/doc-dev/03-决策记录/ADR-004-持久化与检查点' },
-        ],
-      },
-      {
-        text: '04 · 模块实现',
-        collapsed: true,
-        items: [
-          { text: 'agents 域', link: '/agent-flow/doc-dev/04-模块实现/agents域' },
-          { text: 'config-models 域', link: '/agent-flow/doc-dev/04-模块实现/config-models域' },
-          { text: 'persistence 域', link: '/agent-flow/doc-dev/04-模块实现/persistence域' },
-          { text: 'tools-cli 域', link: '/agent-flow/doc-dev/04-模块实现/tools-cli域' },
-        ],
-      },
-      {
-        text: '05 · 验收体系',
-        collapsed: true,
-        items: [
-          { text: '验收体系总览', link: '/agent-flow/doc-dev/05-验收体系/README' },
-          { text: '验收例子', link: '/agent-flow/doc-dev/05-验收体系/验收例子' },
-          { text: 'M0 · 验收清单', link: '/agent-flow/doc-dev/05-验收体系/M0-验收清单' },
-          { text: 'M0-M6 · 全面审计报告', link: '/agent-flow/doc-dev/05-验收体系/M0-M6-全面审计报告' },
-          { text: 'M1 · 验收清单', link: '/agent-flow/doc-dev/05-验收体系/M1-验收清单' },
-          { text: 'M1 · 验证记录', link: '/agent-flow/doc-dev/05-验收体系/M1-验证记录' },
-          { text: 'M2 · 验收清单', link: '/agent-flow/doc-dev/05-验收体系/M2-验收清单' },
-          { text: 'M2 · 验证记录', link: '/agent-flow/doc-dev/05-验收体系/M2-验证记录' },
-          { text: 'M3 · 验收清单', link: '/agent-flow/doc-dev/05-验收体系/M3-验收清单' },
-          { text: 'M3 · 验证记录', link: '/agent-flow/doc-dev/05-验收体系/M3-验证记录' },
-          { text: 'M4 · 验收清单', link: '/agent-flow/doc-dev/05-验收体系/M4-验收清单' },
-          { text: 'M5 · 验收清单', link: '/agent-flow/doc-dev/05-验收体系/M5-验收清单' },
-          { text: 'M6 · 验收清单', link: '/agent-flow/doc-dev/05-验收体系/M6-验收清单' },
-          { text: 'M7 · 验收清单', link: '/agent-flow/doc-dev/05-验收体系/M7-验收清单' },
-          { text: 'M8 · 验收清单', link: '/agent-flow/doc-dev/05-验收体系/M8-验收清单' },
-        ],
-      },
-      { text: '06 · 问题日志', link: '/agent-flow/doc-dev/06-问题日志/问题日志' },
-      {
-        text: '07 · 开发规范',
-        collapsed: true,
-        items: [
-          { text: '开发指南', link: '/agent-flow/doc-dev/07-开发规范/开发指南' },
-          { text: '全流程步骤', link: '/agent-flow/doc-dev/07-开发规范/全流程步骤' },
-          { text: 'M2 · 开发规范', link: '/agent-flow/doc-dev/07-开发规范/M2-开发规范' },
-        ],
-      },
       { text: 'doc-dev 总览', link: '/agent-flow/doc-dev/README' },
+      ...docCodeTree(docDevRoot, '/agent-flow/doc-dev'),
     ],
   },
   {
