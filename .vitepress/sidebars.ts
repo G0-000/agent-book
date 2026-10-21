@@ -126,6 +126,37 @@ export const pythonSidebar: DefaultTheme.SidebarItem[] = [
   },
 ]
 
+export const workAgentHarnessSidebar: DefaultTheme.SidebarItem[] = [
+  {
+    text: 'WorkAgentHarness',
+    items: [
+      { text: '项目说明', link: '/work-agent-harness/index' },
+      { text: '文档中心', link: '/work-agent-harness/doc/README' },
+      { text: '系统学习路线总规划', link: '/work-agent-harness/doc/系统学习路线-总规划' },
+    ],
+  },
+  {
+    text: '学习手册与记录',
+    collapsed: false,
+    items: [
+      { text: '课程目录：分篇与章节', link: '/work-agent-harness/doc/dev/学习手册/课程目录' },
+      { text: '功能地图', link: '/work-agent-harness/doc/dev/学习手册/功能地图' },
+      { text: '功能单元路线', link: '/work-agent-harness/doc/dev/学习手册/功能单元路线' },
+      { text: '功能清单', link: '/work-agent-harness/doc/dev/学习手册/功能清单' },
+      { text: '最终验收', link: '/work-agent-harness/doc/dev/学习手册/最终验收' },
+      { text: '学习记录', link: '/work-agent-harness/doc/dev/学习记录/README' },
+      { text: 'AgentFlow 第一遍复盘', link: '/work-agent-harness/doc/第一次学习复盘' },
+    ],
+  },
+  {
+    text: '代码与开发文档',
+    items: [
+      { text: '代码文档说明', link: '/work-agent-harness/doc/code/README' },
+      { text: '开发文档说明', link: '/work-agent-harness/doc/dev/README' },
+    ],
+  },
+]
+
 export const agentFlowSidebar: DefaultTheme.SidebarItem[] = [
   {
     text: '项目说明',

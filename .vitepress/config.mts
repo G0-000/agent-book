@@ -1,6 +1,6 @@
 import { defineConfig } from 'vitepress'
 import type { HeadConfig } from 'vitepress'
-import { langchainSidebar, langgraphSidebar, vibeSidebar, pythonSidebar, agentFlowSidebar, agentLearningSidebar, agentPart1Sidebar, agentPart2Sidebar, agentPart3Sidebar, agentPart4Sidebar, agentPart5Sidebar, agentPart6Sidebar } from './sidebars'
+import { langchainSidebar, langgraphSidebar, vibeSidebar, pythonSidebar, agentFlowSidebar, workAgentHarnessSidebar, agentLearningSidebar, agentPart1Sidebar, agentPart2Sidebar, agentPart3Sidebar, agentPart4Sidebar, agentPart5Sidebar, agentPart6Sidebar } from './sidebars'
 
 const site = 'https://G0-000.github.io'
 const homeUrl = site + '/agent-book/'
@@ -55,6 +55,7 @@ export default defineConfig({
       langgraph: 'LangGraph',
       vibe_coding: 'AI Coding',
       'agent-flow': 'agent-flow',
+      'work-agent-harness': 'WorkAgentHarness',
     }
     if (labels[course]) {
       head.push(
@@ -70,10 +71,10 @@ export default defineConfig({
 
   // 直接复用仓库根目录下的现有课件
   srcDir: '.',
-  srcExclude: ['**/代码/**', '**/code/**', '**/.venv/**', '**/node_modules/**', '**/langgraph-runtime-viz/**'],
+  srcExclude: ['**/代码/**', '**/.venv/**', '**/node_modules/**', '**/langgraph-runtime-viz/**'],
 
   // 死链检查保持开启，仅忽略“刻意排除/目录导航”导致的预期失效链接：
-  // 1. 指向 代码/ 目录的链接：源码目录在站点构建中被 srcExclude 排除，
+  // 1. 指向课程内 代码/ 示例目录的链接：示例代码目录在站点构建中被 srcExclude 排除，
   //    这些链接用于 GitHub 仓库内导航（README 分章表格中的代码列）
   // 2. langgraph-runtime-viz：独立 HTML 应用，未纳入站点构建
   // 3. agent-flow 文档中的“目录 index”链接（如 00-快速上手/index、./doc-dev/index）：
@@ -106,6 +107,7 @@ export default defineConfig({
         text: 'Harness',
         items: [
           { text: 'agent-flow', link: '/agent-flow/index' },
+          { text: 'WorkAgentHarness', link: '/work-agent-harness/index' },
         ],
       },
       {
@@ -125,6 +127,7 @@ export default defineConfig({
       '/langgraph/': langgraphSidebar,
       '/vibe_coding/': vibeSidebar,
       '/agent-flow/': agentFlowSidebar,
+      '/work-agent-harness/': workAgentHarnessSidebar,
       // 从零开始学 Agent：总览/前言/附录显示全书目录；各篇与章节只显示对应篇（键按段数排序匹配，用精确页键+目录前缀键）
       '/agent-learning/SUMMARY': agentLearningSidebar,
       '/agent-learning/index': agentLearningSidebar,

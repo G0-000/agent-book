@@ -25,6 +25,7 @@ pnpm docs:dev
 | [LangChain](./langchain/) | LangChain 1.2 入门到 Agent / RAG 实战         | [README](./langchain/README.md) |
 | [LangGraph](./langgraph/) | LangGraph 入门到智能体部署实战                | [README](./langgraph/README.md) |
 | [AI Coding](./vibe_coding/) | Vibe Coding 零基础实战（Claude Code / Skills / Codex） | [README](./vibe_coding/README.md) |
+| [WorkAgentHarness](./work-agent-harness/) | 基于 EvoFlow 的完整功能学习与重实现路线 | [文档入口](./work-agent-harness/index.md) |
 
 ## 仓库结构
 
@@ -36,7 +37,8 @@ agent-book/
 ├── python/               # Python 学习笔记（按章节拆分）+ 代码
 ├── langchain/            # LangChain 学习笔记 + 代码
 ├── langgraph/            # LangGraph 学习笔记 + 代码
-└── vibe_coding/          # AI Coding（Vibe Coding）学习笔记 + 代码
+├── vibe_coding/          # AI Coding（Vibe Coding）学习笔记 + 代码
+└── work-agent-harness/   # WorkAgentHarness 项目文档镜像
 ```
 
 站点直接复用各课程下的 Markdown 笔记，无需复制文件。
