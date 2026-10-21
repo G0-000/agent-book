@@ -64,6 +64,11 @@ const projectItems = [
     desc: 'AgentFlow 项目文档：开发过程（doc-dev）+ 代码结构（doc-code），代码与文档分开维护。',
     link: '/agent-flow/index',
   },
+  {
+    title: 'WorkAgentHarness',
+    desc: '以 EvoFlow 为源码教材，对照 AgentFlow 第一遍学习，按功能从最小闭环到完整重实现。',
+    link: '/work-agent-harness/index',
+  },
 ]
 </script>
 
@@ -120,15 +125,6 @@ const projectItems = [
             <span class="card-arrow">→</span>
           </div>
         </a>
-        <div class="card card-placeholder">
-          <div class="card-body">
-            <h3 class="card-title">更多实战项目</h3>
-            <p class="card-desc">新项目文档将陆续加入此分类，敬请期待。</p>
-          </div>
-          <div class="card-foot">
-            <span class="card-link card-link-dim">预留位置</span>
-          </div>
-        </div>
       </div>
     </section>
 
