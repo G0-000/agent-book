@@ -126,6 +126,9 @@ export const pythonSidebar: DefaultTheme.SidebarItem[] = [
   },
 ]
 
+// 学习教程册侧边栏：自动扫描 doc/dev/学习教程册 目录生成，新增篇/章自动入导航
+const tutorialRoot = fileURLToPath(new URL('../work-agent-harness/doc/dev/学习教程册', import.meta.url))
+
 export const workAgentHarnessSidebar: DefaultTheme.SidebarItem[] = [
   {
     text: 'WorkAgentHarness',
@@ -133,6 +136,14 @@ export const workAgentHarnessSidebar: DefaultTheme.SidebarItem[] = [
       { text: '项目说明', link: '/work-agent-harness/index' },
       { text: '文档中心', link: '/work-agent-harness/doc/README' },
       { text: '系统学习路线总规划', link: '/work-agent-harness/doc/系统学习路线-总规划' },
+    ],
+  },
+  {
+    text: '逐章仿写教程册',
+    collapsed: false,
+    items: [
+      { text: '教程册总览', link: '/work-agent-harness/doc/dev/学习教程册/README' },
+      ...docCodeTree(tutorialRoot, '/work-agent-harness/doc/dev/学习教程册'),
     ],
   },
   {
