@@ -11,9 +11,29 @@ const docCodeRoot = fileURLToPath(new URL('../agent-flow/doc-code', import.meta.
 // 手工列表曾漏掉新增文章，如 M0-M8 审查报告等；扫描后每篇文章自动入导航）。
 const docDevRoot = fileURLToPath(new URL('../agent-flow/doc-dev', import.meta.url))
 
-function docCodeTree(dir: string, linkPrefix: string): DefaultTheme.SidebarItem[] {
+// 中文数字 → 数字映射（用于教程册篇目录排序）
+const chineseNumOrder: Record<string, number> = {
+  '一': 1, '二': 2, '三': 3, '四': 4, '五': 5,
+  '六': 6, '七': 7, '八': 8, '九': 9, '十': 10,
+  '十一': 11, '十二': 12, '十三': 13,
+}
+
+function chineseNumSort(a: string, b: string): number {
+  const matchA = a.match(/^(一|二|三|四|五|六|七|八|九|十|十一|十二|十三)-/)
+  const matchB = b.match(/^(一|二|三|四|五|六|七|八|九|十|十一|十二|十三)-/)
+  if (matchA && matchB) {
+    return (chineseNumOrder[matchA[1]] ?? 99) - (chineseNumOrder[matchB[1]] ?? 99)
+  }
+  // 数字开头的（如 1. xxx、2. xxx）按数字排
+  const numA = parseFloat(a)
+  const numB = parseFloat(b)
+  if (!isNaN(numA) && !isNaN(numB)) return numA - numB
+  return a.localeCompare(b, 'zh-CN')
+}
+
+function docCodeTree(dir: string, linkPrefix: string, sortFn: (a: string, b: string) => number = (a, b) => a.localeCompare(b, 'zh-CN')): DefaultTheme.SidebarItem[] {
   return readdirSync(dir)
-    .sort()
+    .sort(sortFn)
     .flatMap((entry) => {
       const abs = join(dir, entry)
       // cleanUrls 开启，链接不带 .md 后缀；目录名保持原样
@@ -22,7 +42,7 @@ function docCodeTree(dir: string, linkPrefix: string): DefaultTheme.SidebarItem[
         const item: DefaultTheme.SidebarItem = {
           text: entry,
           collapsed: true,
-          items: docCodeTree(abs, link),
+          items: docCodeTree(abs, link, sortFn),
         }
         // 目录入口页取包内 __init__.md；无 __init__.md 时取 README.md（如 doc-dev/05-验收体系）；
         // 两者都没有时（tests/ 等）只作分组，不生成死链接
@@ -143,7 +163,7 @@ export const workAgentHarnessSidebar: DefaultTheme.SidebarItem[] = [
     collapsed: false,
     items: [
       { text: '教程册总览', link: '/work-agent-harness/doc/dev/学习教程册/README' },
-      ...docCodeTree(tutorialRoot, '/work-agent-harness/doc/dev/学习教程册'),
+      ...docCodeTree(tutorialRoot, '/work-agent-harness/doc/dev/学习教程册', chineseNumSort),
     ],
   },
   {
