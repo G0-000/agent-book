@@ -45,15 +45,23 @@ function docCodeTree(dir: string, linkPrefix: string, sortFn: (a: string, b: str
           items: docCodeTree(abs, link, sortFn),
         }
         // 目录入口页取包内 __init__.md；无 __init__.md 时取 README.md（如 doc-dev/05-验收体系）；
-        // 两者都没有时（tests/ 等）只作分组，不生成死链接
+        // 两者都没有但存在同名 .md（章首页，如教程册 "2. xxx/" + "2. xxx.md"）时，
+        // 把同名 md 作为分组可点击入口，避免章名在侧边栏重复出现一次分组 + 一次条目
         if (existsSync(join(abs, '__init__.md'))) {
           item.link = `${link}/__init__`
         } else if (existsSync(join(abs, 'README.md'))) {
           item.link = `${link}/README`
+        } else if (existsSync(join(dir, `${entry}.md`))) {
+          item.link = link
         }
         return [item]
       }
+      // 文件分支：若存在同名目录（章首页已被吸收为分组 link），跳过该 md 避免重复
       if (entry.endsWith('.md') && entry !== '__init__.md' && entry !== 'README.md') {
+        const siblingDir = join(dir, entry.slice(0, -3))
+        if (statSync(abs).isFile() && existsSync(siblingDir) && statSync(siblingDir).isDirectory()) {
+          return []
+        }
         return [{ text: entry.slice(0, -3), link }]
       }
       return []
