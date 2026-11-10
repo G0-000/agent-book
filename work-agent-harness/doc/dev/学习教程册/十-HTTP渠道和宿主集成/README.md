@@ -13,7 +13,7 @@
 
 | 事实 | 说明 |
 |---|---|
-| 代码进度 | 停在第三篇。本篇三章**没有实现代码** |
+| 代码进度 | 停在第三篇。本篇四章（含篇末验收章）**没有实现代码** |
 | 已有基础 | `app_server/sse.py:32 build_sse_response` / `:43 create_sse_app`（能构造响应，不启动服务）；`events/sse.py` 全套编码 |
 | 本篇主题 | "终端里能跑的东西，怎么让浏览器/别的客户端也能用" |
 | 最大的跨度 | 引入一个**常驻进程**和一个**新依赖**（uvicorn），这是本项目第一次 |
@@ -22,14 +22,15 @@
 
 | 章节 | 独立教程 | 功能范围 | 状态 |
 |---|---|---|---|
-| 第 35 章 | [Gateway 启动、依赖和聊天 API](35. Gateway启动依赖和聊天API.md) | `WAH-API-001–002、WAH-API-008` | 设计完成，未实现 |
-| 第 36 章 | [Gateway 兼容协议、语音和 OpenAI/LangGraph 代理](36. Gateway兼容协议语音和OpenAILangGraph代理.md) | `WAH-API-003–004、WAH-API-010` | 设计完成，未实现 |
-| 第 37 章 | [渠道适配器、消息总线与渠道状态](37. 渠道适配器消息总线与渠道状态.md) | `WAH-API-005–007、WAH-AUTO-005` | 设计完成，未实现 |
+| 第 44 章 | [Gateway 启动、依赖和聊天 API](44. Gateway启动依赖和聊天API.md) | `WAH-API-001–002、WAH-API-008` | 设计完成，未实现 |
+| 第 45 章 | [Gateway 兼容协议、语音和 OpenAI/LangGraph 代理](45. Gateway兼容协议语音和OpenAILangGraph代理.md) | `WAH-API-003–004、WAH-API-010` | 设计完成，未实现 |
+| 第 46 章 | [渠道适配器、消息总线与渠道状态](46. 渠道适配器消息总线与渠道状态.md) | `WAH-API-005–007、WAH-AUTO-005` | 设计完成，未实现 |
+| 第 47 章 | [第10篇综合测试与验收：HTTP渠道与宿主集成](47. 第10篇综合测试与验收：HTTP渠道与宿主集成.md) | `本篇集成` | 未学习，仅验收设计 |
 
 ## 本篇三条澄清
 
 1. **`app_server/` 只有 3 个文件**：`chat_bridge.py`、`embed.py`、`stdio_rpc.py`。它专注"桥"（`_auth_headers:61`、`_build_stream_url:130`、`_parse_sse_frame:153`），**不是完整 HTTP 框架**。完整 Gateway 在别处。
-2. **渠道适配器在原版 harness 里不存在**。`grep -rln "channel_adapter\|ChannelAdapter\|MessageBus"` 无有效命中；`feishu/wecom` 只出现在 `proactive/` 的**出站推送**（`feishu_notify.py:34 _approval_channels`、`:39 _feishu_channel_not_opted_out`、`:75 resolve_role_feishu_target`）。双向渠道（用户发消息进来）**不在本仓**。第 37 章因此是"按设计写"，不是仿写。
+2. **渠道适配器在原版 harness 里不存在**。`grep -rln "channel_adapter\|ChannelAdapter\|MessageBus"` 无有效命中；`feishu/wecom` 只出现在 `proactive/` 的**出站推送**（`feishu_notify.py:34 _approval_channels`、`:39 _feishu_channel_not_opted_out`、`:75 resolve_role_feishu_target`）。双向渠道（用户发消息进来）**不在本仓**。第 46 章因此是"按设计写"，不是仿写。
 3. **兼容协议省的是"改客户端"的成本**。`platform/isolated_loop.py:14 run_coroutine_on_fresh_loop(coro)` 说明嵌入场景有"已在事件循环里"的坑——不能直接 `asyncio.run`。
 
 ## 本篇综合练习（文档级，不跑代码）

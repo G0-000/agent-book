@@ -12,15 +12,36 @@
 
 ## 本篇章节
 
-**主线四章（6 / 7 / 9 / 10）串成一条可运行链路**，第 8 章是扩展与选学，不阻塞主线。
+**主线四章（8 / 9 / 11 / 12）串成一条可运行链路**，第 10 章（后台命令）是扩展与选学，不阻塞主线。
 
 | 章节 | 独立教程 | 小节 | 功能范围 | 定位 |
 |---|---|---|---|---|
-| 第 6 章 | [工具目录、Schema 与结果协议](6. 工具目录Schema与结果协议.md) | 6.1 / 6.2 | `WAH-TOOL-001–002` | 主线（最小闭环） |
-| 第 7 章 | [内置工具、文件/终端和宿主边界](7. 内置工具文件终端和宿主边界.md) | 7.1 / 7.2 | `WAH-TOOL-003–004` | 主线（最小闭环） |
-| 第 8 章 | [后台命令、Browser Bridge 与 Computer Use](8. 后台命令BrowserBridge与ComputerUse.md) | 8.1 / 8.2 | `WAH-TOOL-010–011、WAH-TOOL-009` | **扩展 + 选学**：8.1 已实现可跑；8.2 只讲形态、不实现 |
-| 第 9 章 | [Middleware、上下文整理与本地调度](9. Middleware上下文整理与本地调度.md) | 9.1 / 9.2 | `WAH-TOOL-005、WAH-TOOL-007–008、WAH-MEM-001、WAH-MEM-008` | 主线（审计已通，折叠/续跑是简化实验） |
-| 第 10 章 | [事件、SSE、恢复和界面消费](10. 事件SSE恢复和界面消费.md) | 10.1 / 10.2 | `WAH-TOOL-006、WAH-API-002、WAH-UI-002、WAH-UI-004` | 主线（CLI 消费已通，无独立 HTTP 服务） |
+| 第 8 章 | [工具目录、Schema 与结果协议](8. 工具目录Schema与结果协议.md) | 8.1 / 8.2 | `WAH-TOOL-001–002` | 主线（最小闭环） |
+| 第 9 章 | [内置工具、文件/终端和宿主边界](9. 内置工具文件终端和宿主边界.md) | 9.1 / 9.2 | `WAH-TOOL-003–004` | 主线（最小闭环） |
+| 第 10 章 | [后台命令、Browser Bridge 与 Computer Use](10. 后台命令BrowserBridge与ComputerUse.md) | 10.1 / 10.2 | `WAH-TOOL-010–011、WAH-TOOL-009` | **扩展 + 选学**：10.1 已实现可跑；10.2 只讲形态、不实现 |
+| 第 11 章 | [Middleware、上下文整理与本地调度](11. Middleware上下文整理与本地调度.md) | 11.1 / 11.2 | `WAH-TOOL-005、WAH-TOOL-007–008、WAH-MEM-001、WAH-MEM-008` | 主线（审计已通，折叠/续跑是简化实验） |
+| 第 12 章 | [事件、SSE、恢复和界面消费](12. 事件SSE恢复和界面消费.md) | 12.1 / 12.2 | `WAH-TOOL-006、WAH-API-002、WAH-UI-002、WAH-UI-004` | 主线（CLI 消费已通，无独立 HTTP 服务） |
+| 第 13 章 | [第3篇综合测试与验收：工具调用与流式交付](13. 第3篇综合测试与验收：工具调用与流式交付.md) | — | `本篇集成` | 已验收（fake 模型真实工具调用） |
+
+## 篇-章-节目录
+
+| 章 | 节（独立文件） | 验收 |
+|---|---|---|
+| 8 | 8.1 工具目录别名与Schema / 8.2 工具结果协议与截断 | `test_ch08_catalog.py`（7 例） |
+| 9 | 9.1 内置计算工具与安全求值 / 9.2 文件工具与宿主边界 | `test_ch09_tools.py`（13 例） |
+| 10 | 10.1 后台命令与终端会话 / 10.2 浏览器桥与ComputerUse（无代码） | `test_ch10_background.py`（10.1 共 7 例；10.2 无测试） |
+| 11 | 11.1 Middleware调用链与工具审计 / 11.2 上下文预算与自动后续动作 | `test_ch11_middleware.py`（10 例） |
+| 12 | 12.1 流事件生产 / 12.2 流式消费与SSE恢复 | `test_ch12_events.py`（10 例） |
+| 13 | 13.1 工具闭环 / 13.2 流式交付（分组，无节文件） | `test_ch13_part3_e2e.py`（4 例） |
+## 本篇测试
+
+| 项 | 内容 |
+|---|---|
+| 测试文件 | `test_ch08_catalog.py`(7)、`test_ch09_tools.py`(13)、`test_ch10_background.py`(7)、`test_ch11_middleware.py`(10)、`test_ch12_events.py`(10)、`test_ch13_part3_e2e.py`(4) |
+| 用例数 | 51 |
+| 覆盖 | 8.1–8.2 目录与截断、9.1–9.2 计算/文件/终端、10.1 后台命令、11.1–11.2 审计与折叠续跑、12.1–12.2 事件与 SSE、13.1–13.2 真实 CLI 闭环 |
+| 不覆盖 | 10.2 浏览器桥（本仓无实现代码，无测试，不得记为已实现） |
+| 重跑 | `uv run --project packages/harness python tests/run_chapter_tests.py 8 9 10 11 12 13` |
 
 ## 本篇已落地的代码
 
@@ -45,7 +66,7 @@
 
 | 项 | 状态 | 原因 / 边界 |
 |---|---|---|
-| 浏览器桥 / Computer Use（`WAH-TOOL-011`） | 不实现 | 原版在 `app/gateway/routers/`，本项目无网关层；8.2 只做形态对照 |
+| 浏览器桥 / Computer Use（`WAH-TOOL-011`） | 不实现 | 原版在 `app/gateway/routers/`，本项目无网关层；10.2 只做形态对照 |
 | ZCode 工具桥（`WAH-TOOL-009`） | 未接入 | 需要外部工具协议与能力声明 |
 | 独立 HTTP 服务 | 不做 | 依赖里没有 fastapi/uvicorn，只到"可挂载的 Starlette app" |
 | 事件持久化 | 不做 | `EventBuffer` 是内存 `deque`，重启即丢；补发 ≠ 持久化恢复 |
@@ -59,21 +80,21 @@
 
 | 步 | 发生什么 | 对应章节 |
 |---|---|---|
-| 1 | `ToolCatalog` 把 `calculator` 的 name/description/schema 交给模型 | 6.1 |
-| 2 | 模型返回 `tool_calls`，参数 `{"expression": "99*3"}` | 6.1 |
-| 3 | 工具执行，结果包成 `ToolResult`，超长则截断 | 6.2 / 7.1 |
-| 4 | `ToolAuditMiddleware` 记录这次调用的耗时与结果规模 | 9.1 |
-| 5 | `events/stream` 产出 `tool_call` / `tool_result` / `text_delta` | 10.1 |
-| 6 | CLI 用 `--stream` 打字机式打印，用 `--sse` 打印协议帧 | 10.2 |
+| 1 | `ToolCatalog` 把 `calculator` 的 name/description/schema 交给模型 | 8.1 |
+| 2 | 模型返回 `tool_calls`，参数 `{"expression": "99*3"}` | 8.1 |
+| 3 | 工具执行，结果包成 `ToolResult`，超长则截断 | 8.2 / 9.1 |
+| 4 | `ToolAuditMiddleware` 记录这次调用的耗时与结果规模 | 11.1 |
+| 5 | `events/stream` 产出 `tool_call` / `tool_result` / `text_delta` | 12.1 |
+| 6 | CLI 用 `--stream` 打字机式打印，用 `--sse` 打印协议帧 | 12.2 |
 
-**再做一次失败路径**：输入「计算 `__import__('os').system('ls')`」→ 计算工具应按 AST 白名单拒绝，`tool_result.ok=false`，模型收到错误文本而不是执行结果。这一步同时验证 6.2 的事件判定（`tool_result_ok`）和 7.1 的安全求值。
+**再做一次失败路径**：输入「计算 `__import__('os').system('ls')`」→ 计算工具应按 AST 白名单拒绝，`tool_result.ok=false`，模型收到错误文本而不是执行结果。这一步同时验证 8.2 的事件判定（`tool_result_ok`）和 9.1 的安全求值。
 
 手工调用内部函数不算端到端。
 
 ## 本篇完成标准
 
-- 主线四章（6 / 7 / 9 / 10）的功能 ID 已学习，或在状态清单中写明阻塞/排除理由。
+- 主线四章（8 / 9 / 11 / 12）的功能 ID 已学习，或在状态清单中写明阻塞/排除理由。
 - 至少一个真实用户入口端到端完成上面的贯穿练习（含一次失败路径）。
 - 能讲清入口、核心逻辑、状态存储、返回路径与失败处理。
 - 代码、记录和图使用同一 WorkAgentHarness commit。
-- **第 8 章不计入完成标准**：8.1 属扩展（可选）、8.2 属选学（不实现代码）。
+- **第 10 章不计入完成标准**：10.1 属扩展（可选）、10.2 属选学（不实现代码）。

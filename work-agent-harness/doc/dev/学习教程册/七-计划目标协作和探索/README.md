@@ -13,26 +13,27 @@
 
 | 事实 | 说明 |
 |---|---|
-| 代码进度 | 停在第三篇。本篇五章**没有实现代码** |
+| 代码进度 | 停在第三篇。本篇六章（含篇末验收章）**没有实现代码** |
 | 已有基础 | 第二篇有 `runs` 表（状态机雏形），第三篇有工具与审计 |
 | 本篇主题 | "多步任务怎么拆、谁来做、做到哪、断了怎么办" |
-| 最难的一章 | 第 26 章（暂停、恢复、幂等）——它决定前面所有设计能不能落地 |
+| 最难的一章 | 第 32 章（暂停、恢复、幂等）——它决定前面所有设计能不能落地 |
 
 ## 本篇章节
 
 | 章节 | 独立教程 | 功能范围 | 状态 |
 |---|---|---|---|
-| 第 22 章 | [Plan 定义、解析与 Goal 图](22. Plan定义解析与Goal图.md) | `WAH-PLAN-001–002` | 设计完成，未实现 |
-| 第 23 章 | [协作账本、团队分工、任务中心与会议](23. 协作账本团队分工任务中心与会议.md) | `WAH-PLAN-003–004、WAH-PLAN-011、WAH-EXT-010` | 设计完成，未实现 |
-| 第 24 章 | [Workflow、App、Center、Stage 与任务输入](24. WorkflowAppCenterStage与任务输入.md) | `WAH-PLAN-005–006、WAH-PLAN-010` | 设计完成，未实现 |
-| 第 25 章 | [探索预算、策略路由和思维图](25. 探索预算策略路由和思维图.md) | `WAH-PLAN-007–008` | 设计完成，未实现 |
-| 第 26 章 | [暂停、恢复、幂等与重复执行](26. 暂停恢复幂等与重复执行.md) | `WAH-PLAN-009、WAH-RUN-005–007` | 设计完成，未实现 |
+| 第 28 章 | [Plan 定义、解析与 Goal 图](28. Plan定义解析与Goal图.md) | `WAH-PLAN-001–002` | 设计完成，未实现 |
+| 第 29 章 | [协作账本、团队分工、任务中心与会议](29. 协作账本团队分工任务中心与会议.md) | `WAH-PLAN-003–004、WAH-PLAN-011、WAH-EXT-010` | 设计完成，未实现 |
+| 第 30 章 | [Workflow、App、Center、Stage 与任务输入](30. WorkflowAppCenterStage与任务输入.md) | `WAH-PLAN-005–006、WAH-PLAN-010` | 设计完成，未实现 |
+| 第 31 章 | [探索预算、策略路由和思维图](31. 探索预算策略路由和思维图.md) | `WAH-PLAN-007–008` | 设计完成，未实现 |
+| 第 32 章 | [暂停、恢复、幂等与重复执行](32. 暂停恢复幂等与重复执行.md) | `WAH-PLAN-009、WAH-RUN-005–007` | 设计完成，未实现 |
+| 第 33 章 | [第7篇综合测试与验收：计划协作与探索](33. 第7篇综合测试与验收：计划协作与探索.md) | `本篇集成` | 未学习，仅验收设计 |
 
 ## 本篇三条澄清（同名不同义，必读）
 
 1. **`plans/` 不是任务计划**。`plans/` 9 文件是**套餐能力授权**：`tier_entitlements:164`、`assert_vendor_plan_allows:100`。真正的"任务计划"在 `collab/`（`plan_session_task.py`、`plan_subtasks_sync.py`、`supervisor_plan_gate.py`）。找"Plan 定义"找错目录，会读到一堆授权代码。
 2. **状态机在哪**。`can_transition:108` / `validate_transition:122` / `get_allowed_transitions:136` + `InvalidStateTransitionError:102`。子任务状态机另有一套：`subtask_state_machine.py` 四函数（`normalize_subtask_status:44`、`is_terminal:51`、`is_active:55`、`can_advance:59`）。**两套不要混**。
-3. **第 26 章的核心是"执行世代"**。`runner_epoch.py:50 current_runner_epoch`——每次进程启动给一个 epoch，僵尸判定（`is_zombie_executing_subtask:60`）靠它区分"上一代的残留"和"这一代的在跑"。没有 epoch，"重启后哪些该回收"根本判不了。回收前还必须 `_children_all_fully_closed:62` 确认子任务全关。
+3. **第 32 章的核心是"执行世代"**。`runner_epoch.py:50 current_runner_epoch`——每次进程启动给一个 epoch，僵尸判定（`is_zombie_executing_subtask:60`）靠它区分"上一代的残留"和"这一代的在跑"。没有 epoch，"重启后哪些该回收"根本判不了。回收前还必须 `_children_all_fully_closed:62` 确认子任务全关。
 
 ## 本篇综合练习（文档级，不跑代码）
 

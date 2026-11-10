@@ -14,7 +14,7 @@
 
 | 事实 | 说明 |
 |---|---|
-| 代码进度 | 停在第三篇。本篇四章**没有实现代码** |
+| 代码进度 | 停在第三篇。本篇五章（含篇末验收章）**没有实现代码** |
 | 已有基础 | 第三篇的 `workspace_file.py` 只能按路径读文本，既不能上传也不能索引 |
 | 本篇主题 | "让 Agent 知道文档写了什么、代码长什么样" |
 | 与第四篇的接缝 | 第四篇讲"记住什么"，本篇讲"查得到什么"；前者靠写入，后者靠索引 |
@@ -23,14 +23,15 @@
 
 | 章节 | 独立教程 | 功能范围 | 状态 |
 |---|---|---|---|
-| 第 15 章 | [上传、文件解析和切块](15. 上传文件解析和切块.md) | `WAH-KNOW-001–002` | 设计完成，未实现 |
-| 第 16 章 | [知识库、Embedding、向量检索与引用](16. 知识库Embedding向量检索与引用.md) | `WAH-KNOW-003–005` | 设计完成，未实现 |
-| 第 17 章 | [Owned Knowledge 与知识地图](17. OwnedKnowledge与知识地图.md) | `WAH-KNOW-008` | 设计完成，未实现 |
-| 第 18 章 | [Workspace、代码索引与符号上下文](18. Workspace代码索引与符号上下文.md) | `WAH-KNOW-006–007、WAH-GOV-002` | 设计完成，未实现 |
+| 第 19 章 | [上传、文件解析和切块](19. 上传文件解析和切块.md) | `WAH-KNOW-001–002` | 设计完成，未实现 |
+| 第 20 章 | [知识库、Embedding、向量检索与引用](20. 知识库Embedding向量检索与引用.md) | `WAH-KNOW-003–005` | 设计完成，未实现 |
+| 第 21 章 | [Owned Knowledge 与知识地图](21. OwnedKnowledge与知识地图.md) | `WAH-KNOW-008` | 设计完成，未实现 |
+| 第 22 章 | [Workspace、代码索引与符号上下文](22. Workspace代码索引与符号上下文.md) | `WAH-KNOW-006–007、WAH-GOV-002` | 设计完成，未实现 |
+| 第 23 章 | [第5篇综合测试与验收：文档知识与代码理解](23. 第5篇综合测试与验收：文档知识与代码理解.md) | `本篇集成` | 未学习，仅验收设计 |
 
 ## 本篇三条澄清
 
-1. **知识图谱在这里，不在记忆侧**。`knowledge/owned/kg.py`（379 行，`upsert_node`/`upsert_edge`，`kg_*` 表，SQLite 无 Neo4j）+ `kg_pipeline.py`（LLM 或启发式抽三元组）。记忆侧实体图已退役（`knowledge/owned/worker.py:95` 注释）。第 13 章把它归到本章，就是这个原因。
+1. **知识图谱在这里，不在记忆侧**。`knowledge/owned/kg.py`（379 行，`upsert_node`/`upsert_edge`，`kg_*` 表，SQLite 无 Neo4j）+ `kg_pipeline.py`（LLM 或启发式抽三元组）。记忆侧实体图已退役（`knowledge/owned/worker.py:95` 注释）。第 16 章把它归到本章，就是这个原因。
 2. **检索不是只有向量**。`knowledge/owned/retrieve.py` 是**三路**：`search_keyword`（FTS/BM25）+ `search_vector`（余弦）+ `search_title`，再用 `rrf_fuse` 融合、`rerank_by_query_match` 重排。只做向量会漏数字和专有名词。
 3. **代码索引有四级解析器**。LSP（`LspClient`）→ tree-sitter（`parse_tree`）→ AST/javalang（`_ast_python_symbols`/`_javalang_symbols`）→ 正则兜底。而且 `store.py:152 _load_sqlite_vec_extension` 说明代码检索也走向量。
 
