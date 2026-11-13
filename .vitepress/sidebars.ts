@@ -68,6 +68,46 @@ function docCodeTree(dir: string, linkPrefix: string, sortFn: (a: string, b: str
     })
 }
 
+// evo-flow 侧边栏：扫描 evo-flow/knowledge 的阶段目录生成，
+// 与本地 /Users/main/EvoFlow/docs/knowledge 的层级一一对应，新增文章自动入导航。
+const evoFlowKnowledgeRoot = fileURLToPath(new URL('../evo-flow/knowledge', import.meta.url))
+
+// 只展开子目录（阶段目录），根级 README/总规划等由手工入口单独登记，避免重复
+function docDirTree(dir: string, linkPrefix: string): DefaultTheme.SidebarItem[] {
+  return readdirSync(dir)
+    .sort((a, b) => a.localeCompare(b, 'zh-CN'))
+    .flatMap((entry) => {
+      const abs = join(dir, entry)
+      if (!statSync(abs).isDirectory()) return []
+      const link = `${linkPrefix}/${entry}`
+      const item: DefaultTheme.SidebarItem = {
+        text: entry,
+        collapsed: true,
+        items: docCodeTree(abs, link),
+      }
+      if (existsSync(join(abs, 'README.md'))) item.link = `${link}/README`
+      return [item]
+    })
+}
+
+export const evoFlowSidebar: DefaultTheme.SidebarItem[] = [
+  {
+    text: 'EvoFlow',
+    items: [
+      { text: '项目说明', link: '/evo-flow/index' },
+      { text: '知识库入口', link: '/evo-flow/knowledge/README' },
+      { text: '研究进度面板', link: '/evo-flow/knowledge/RESEARCH-PROGRESS' },
+      { text: '权威研究总规划', link: '/evo-flow/knowledge/MASTER-PLAN' },
+      { text: '系统架构知识图谱', link: '/evo-flow/knowledge/architecture-map系统架构图' },
+    ],
+  },
+  {
+    text: '六阶段知识库',
+    collapsed: false,
+    items: docDirTree(evoFlowKnowledgeRoot, '/evo-flow/knowledge'),
+  },
+]
+
 export const agentFlowDocCodeSidebar: DefaultTheme.SidebarItem[] = [
   { text: 'doc-code 总览', link: '/agent-flow/doc-code/README' },
   { text: 'doc-code 包入口', link: '/agent-flow/doc-code/__init__' },

@@ -65,6 +65,11 @@ const projectItems = [
     link: '/agent-flow/index',
   },
   {
+    title: 'evo-flow',
+    desc: 'EvoFlow 工程知识库：六阶段源码研究、系统架构图谱、研究进度与独立仿写规划。',
+    link: '/evo-flow/index',
+  },
+  {
     title: 'WorkAgentHarness',
     desc: '以 EvoFlow 为源码教材，对照 AgentFlow 第一遍学习，按功能从最小闭环到完整重实现。',
     link: '/work-agent-harness/index',

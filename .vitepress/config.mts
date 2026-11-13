@@ -1,6 +1,6 @@
 import { defineConfig } from 'vitepress'
 import type { HeadConfig } from 'vitepress'
-import { langchainSidebar, langgraphSidebar, vibeSidebar, pythonSidebar, agentFlowSidebar, workAgentHarnessSidebar, agentLearningSidebar, agentPart1Sidebar, agentPart2Sidebar, agentPart3Sidebar, agentPart4Sidebar, agentPart5Sidebar, agentPart6Sidebar } from './sidebars'
+import { langchainSidebar, langgraphSidebar, vibeSidebar, pythonSidebar, agentFlowSidebar, evoFlowSidebar, workAgentHarnessSidebar, agentLearningSidebar, agentPart1Sidebar, agentPart2Sidebar, agentPart3Sidebar, agentPart4Sidebar, agentPart5Sidebar, agentPart6Sidebar } from './sidebars'
 
 const site = 'https://G0-000.github.io'
 const homeUrl = site + '/agent-book/'
@@ -55,6 +55,7 @@ export default defineConfig({
       langgraph: 'LangGraph',
       vibe_coding: 'AI Coding',
       'agent-flow': 'agent-flow',
+      'evo-flow': 'EvoFlow',
       'work-agent-harness': 'WorkAgentHarness',
     }
     if (labels[course]) {
@@ -107,6 +108,7 @@ export default defineConfig({
         text: 'Harness',
         items: [
           { text: 'agent-flow', link: '/agent-flow/index' },
+          { text: 'evo-flow', link: '/evo-flow/index' },
           { text: 'WorkAgentHarness', link: '/work-agent-harness/index' },
         ],
       },
@@ -127,6 +129,7 @@ export default defineConfig({
       '/langgraph/': langgraphSidebar,
       '/vibe_coding/': vibeSidebar,
       '/agent-flow/': agentFlowSidebar,
+      '/evo-flow/': evoFlowSidebar,
       '/work-agent-harness/': workAgentHarnessSidebar,
       // 从零开始学 Agent：总览/前言/附录显示全书目录；各篇与章节只显示对应篇（键按段数排序匹配，用精确页键+目录前缀键）
       '/agent-learning/SUMMARY': agentLearningSidebar,
