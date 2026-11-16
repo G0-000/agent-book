@@ -7,6 +7,7 @@
 - [课程目录：分篇与章节](dev/学习手册/课程目录.md)
 - [系统学习路线总规划](other/系统学习路线-总规划.md)
 - [功能式学习手册](dev/学习手册/README.md)
+- [EvoFlow 复刻文档（渲染为独立分区 my-agent-flow）](/my-agent-flow/index)
 - [EvoFlow 功能全景盘点](dev/学习手册/EvoFlow功能全景盘点.md)
 - [功能地图](dev/学习手册/功能地图.md)
 - [功能单元路线：最小闭环到完整对齐](dev/学习手册/功能单元路线.md)

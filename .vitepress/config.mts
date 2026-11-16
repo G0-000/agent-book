@@ -1,6 +1,6 @@
 import { defineConfig } from 'vitepress'
 import type { HeadConfig } from 'vitepress'
-import { langchainSidebar, langgraphSidebar, vibeSidebar, pythonSidebar, agentFlowSidebar, evoFlowSidebar, workAgentHarnessSidebar, agentLearningSidebar, agentPart1Sidebar, agentPart2Sidebar, agentPart3Sidebar, agentPart4Sidebar, agentPart5Sidebar, agentPart6Sidebar } from './sidebars'
+import { langchainSidebar, langgraphSidebar, vibeSidebar, pythonSidebar, agentFlowSidebar, evoFlowSidebar, workAgentHarnessSidebar, myAgentFlowSidebar, agentLearningSidebar, agentPart1Sidebar, agentPart2Sidebar, agentPart3Sidebar, agentPart4Sidebar, agentPart5Sidebar, agentPart6Sidebar } from './sidebars'
 
 const site = 'https://G0-000.github.io'
 const homeUrl = site + '/agent-book/'
@@ -57,6 +57,7 @@ export default defineConfig({
       'agent-flow': 'agent-flow',
       'evo-flow': 'EvoFlow',
       'work-agent-harness': 'WorkAgentHarness',
+      'my-agent-flow': 'my-agent-flow',
     }
     if (labels[course]) {
       head.push(
@@ -72,7 +73,7 @@ export default defineConfig({
 
   // 直接复用仓库根目录下的现有课件
   srcDir: '.',
-  srcExclude: ['**/代码/**', '**/.venv/**', '**/node_modules/**', '**/langgraph-runtime-viz/**'],
+  srcExclude: ['**/代码/**', '**/.venv/**', '**/node_modules/**', '**/langgraph-runtime-viz/**', '**/溯源/**'],
 
   // 死链检查保持开启，仅忽略“刻意排除/目录导航”导致的预期失效链接：
   // 1. 指向课程内 代码/ 示例目录的链接：示例代码目录在站点构建中被 srcExclude 排除，
@@ -81,6 +82,15 @@ export default defineConfig({
   // 3. agent-flow 文档中的“目录 index”链接（如 00-快速上手/index、./doc-dev/index）：
   //    GitHub 仓库中可打开目录页，VitePress 站点中无对应 index.md，属文档原有导航写法
   ignoreDeadLinks: [/代码|%E4%BB%A3%E7%A0%81/, /langgraph-runtime-viz/, /\/index$/, /diagrams\//, /backend\/packages\//, /\.\/dev\//, /\.\.\/\.\.\/%E7%AC%AC/, /\.\.\/%E7%B3%BB%E7%BB%9F/, /\.\/%E7%B3%BB%E7%BB%9F/, /\.\/%E7%AC%AC/, /\.\/doc\//],
+
+  // EvoFlow 复刻文档渲染成独立分区：正文仍在 work-agent-harness/doc/evoflow-学习规划，
+  // 这里只改输出 URL，不复制第二份文件（单一事实源）。
+  rewrites: {
+    // 注意：VitePress 的 :page 通配不跨目录，必须把「两级/一级」各写一条，
+    // 否则子目录里的相对链接会在改写后的路径下解析失败（死链）。
+    'work-agent-harness/doc/evoflow-学习规划/:dir/:page': 'my-agent-flow/:dir/:page',
+    'work-agent-harness/doc/evoflow-学习规划/:page': 'my-agent-flow/:page',
+  },
 
   cleanUrls: true,
 
@@ -110,6 +120,7 @@ export default defineConfig({
           { text: 'agent-flow', link: '/agent-flow/index' },
           { text: 'evo-flow', link: '/evo-flow/index' },
           { text: 'WorkAgentHarness', link: '/work-agent-harness/index' },
+          { text: 'my-agent-flow', link: '/my-agent-flow/index' },
         ],
       },
       {
@@ -131,6 +142,7 @@ export default defineConfig({
       '/agent-flow/': agentFlowSidebar,
       '/evo-flow/': evoFlowSidebar,
       '/work-agent-harness/': workAgentHarnessSidebar,
+      '/my-agent-flow/': myAgentFlowSidebar,
       // 从零开始学 Agent：总览/前言/附录显示全书目录；各篇与章节只显示对应篇（键按段数排序匹配，用精确页键+目录前缀键）
       '/agent-learning/SUMMARY': agentLearningSidebar,
       '/agent-learning/index': agentLearningSidebar,

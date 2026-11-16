@@ -197,6 +197,38 @@ export const pythonSidebar: DefaultTheme.SidebarItem[] = [
 // 学习教程册侧边栏：自动扫描 doc/dev/学习教程册 目录生成，新增篇/章自动入导航
 const tutorialRoot = fileURLToPath(new URL('../work-agent-harness/doc/dev/学习教程册', import.meta.url))
 
+// my-agent-flow：正文事实源在 work-agent-harness/doc/evoflow-学习规划，
+// 由 config.mts 的 rewrites 映射成 /my-agent-flow/ 前缀，本分区只放一个首页。
+// 侧边栏按目录自动扫描，新增章节自动入导航，避免手工列表漂移。
+const myAgentFlowRoot = fileURLToPath(new URL('../work-agent-harness/doc/evoflow-学习规划', import.meta.url))
+
+function numericPrefixSort(a: string, b: string): number {
+  const na = Number.parseInt(a, 10)
+  const nb = Number.parseInt(b, 10)
+  if (!Number.isNaN(na) && !Number.isNaN(nb) && na !== nb) return na - nb
+  return a.localeCompare(b, 'zh-CN')
+}
+
+export const myAgentFlowSidebar: DefaultTheme.SidebarItem[] = [
+  {
+    text: 'my-agent-flow',
+    items: [
+      { text: '项目首页', link: '/my-agent-flow/index' },
+      { text: '总目录与状态图例', link: '/my-agent-flow/README' },
+      { text: '进度台账', link: '/my-agent-flow/PROGRESS' },
+    ],
+  },
+  {
+    text: '文档正文（13 个部分）',
+    collapsed: false,
+    // PROGRESS 已在上面单独登记，这里从自动扫描结果里剔掉，避免重复
+    items: docCodeTree(myAgentFlowRoot, '/my-agent-flow', numericPrefixSort).filter(
+      // PROGRESS 单独登记；溯源/ 已由 srcExclude 排除，不在导航里出现
+      (item) => item.text !== 'PROGRESS' && item.text !== '溯源',
+    ),
+  },
+]
+
 export const workAgentHarnessSidebar: DefaultTheme.SidebarItem[] = [
   {
     text: 'WorkAgentHarness',
@@ -219,6 +251,7 @@ export const workAgentHarnessSidebar: DefaultTheme.SidebarItem[] = [
     collapsed: false,
     items: [
       { text: '课程目录：分篇与章节', link: '/work-agent-harness/doc/dev/学习手册/课程目录' },
+      { text: 'EvoFlow 分步实现总手册', link: '/work-agent-harness/doc/dev/学习手册/EvoFlow分步实现总手册' },
       { text: '功能地图', link: '/work-agent-harness/doc/dev/学习手册/功能地图' },
       { text: '功能单元路线', link: '/work-agent-harness/doc/dev/学习手册/功能单元路线' },
       { text: '功能清单', link: '/work-agent-harness/doc/dev/学习手册/功能清单' },
