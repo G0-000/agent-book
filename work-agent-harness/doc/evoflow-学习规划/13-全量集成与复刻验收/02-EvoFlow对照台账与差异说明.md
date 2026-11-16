@@ -71,9 +71,12 @@ def scan(root: Path) -> dict[str, int]:
 
 
 def classify(ref: int, ours: int) -> str:
+    """三态：EvoFlow 有、我们一个源文件都没有 → 空壳；实现了六成以上 → 已实现。"""
+    if ref == 0:
+        return "新增"          # 只我们有
     if ours == 0:
-        return "空壳" if True else "缺失"
-    if ref and ours / ref >= 0.6:
+        return "空壳"          # 目录在、没有实现
+    if ours / ref >= 0.6:
         return "已实现"
     return "部分"
 
