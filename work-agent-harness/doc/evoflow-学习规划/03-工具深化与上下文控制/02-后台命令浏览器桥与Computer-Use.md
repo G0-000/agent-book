@@ -1,21 +1,39 @@
 # 第 2 章　后台命令、浏览器桥与 Computer Use
 
+> **EvoFlow 对照状态 / Alignment status：** 🔍 结构已核对（路径、行数、符号均取自源码实测），**行为**（调用顺序、边界条件）尚未逐行核对。
+
 ## 本章目标
 让 Agent 能操作**长时间运行的进程**和**图形界面**，同时不把主对话阻塞。
 
 ## 最小闭环
 启动后台命令 → 轮询输出 → 结束后读取完整日志；打开浏览器 → 截图 → 点击。
 
-## 真实模块地图（源码证实：路径存在）
-| 职责 | 路径 |
-|---|---|
-| 后台 bash | `app/gateway/routers/background_bash.py` |
-| 浏览器桥 | `app/gateway/routers/browser_bridge.py`、`browser_stream.py`、`browser_snapshots.py` |
-| 浏览器嵌入页 | `app/gateway/routers/browser_embed.py` |
-| Computer Use 桥 | `app/gateway/routers/cua_bridge.py` |
-| CUA 执行 | `plugins/cua_helper.py`、`plugins/cua_exec.ps1` |
-| 桥接鉴权 | `plugins/bridge_auth.py` |
-| 插件运行时 | `plugins/runtime.py`、`plugins/node_repl.py`、`plugins/node_repl_tool.py` |
+## 真实模块地图（已核对：路径 · 行数 · 符号）
+
+| 文件 | 行数 | 关键符号 | 模块常量 |
+|---|---|---|---|
+| `app/gateway/routers/background_bash.py` | 50 | `list_background_bash`、`background_bash_output`、`background_bash_stop` | — |
+| `app/gateway/routers/browser_bridge.py` | 145 | `BrowserExecuteRequest`、`BrowserLogEntry`、`BrowserLogBatch`；`_org_admin_guard`、`_bridge_token_guard`、`append_browser_log` | — |
+| `packages/harness/evoflow/tools/builtins/browser_stream.py` | 137 | `browser_session_name`、`browser_live_ws_path`、`_engine_screencast_active` | — |
+| `app/gateway/routers/browser_snapshots.py` | 38 | `get_browser_screenshot` | — |
+| `app/gateway/routers/browser_embed.py` | 63 | `BrowserEmbedCdpBody`；`put_browser_embed_cdp`、`delete_browser_embed_cdp`、`get_browser_embed_cdp` | — |
+| `app/gateway/routers/cua_bridge.py` | 327 | `CuaExecuteRequest`、`AppIconLocator`、`AppIconRequestBody`；`_org_admin_guard`、`_bridge_token_guard`、`_resolve_ps1` | — |
+| `packages/harness/evoflow/plugins/cua_helper.py` | 162 | `_helper_entry`、`_helper_addon`、`is_helper_runtime` | HELPER_RUNTIME_DIRNAME、HELPER_ENTRY_REL、HELPER_ADDON_REL |
+| `packages/harness/evoflow/plugins/bridge_auth.py` | 94 | `_token_file_path`、`reset_bridge_token_cache`、`get_bridge_token` | — |
+| `packages/harness/evoflow/plugins/runtime.py` | 342 | `_ulog`、`_iter_enabled_plugins`、`enabled_plugin_roots` | — |
+| `packages/harness/evoflow/plugins/node_repl.py` | 1111 | `_ulog`、`_sanitize_model_browser_js`、`_meta_envelope` | — |
+| `packages/harness/evoflow/plugins/node_repl_tool.py` | 564 | `NodeReplJsInput`；`_maybe_compact_browser_docs_dump`、`_get_thread_id`、`_decode_image` | — |
+| `packages/harness/evoflow/plugins/cua_helper.py` | 162 | `_helper_entry`、`_helper_addon`、`is_helper_runtime` | HELPER_RUNTIME_DIRNAME、HELPER_ENTRY_REL、HELPER_ADDON_REL |
+
+## 已核对的行为事实（REST 层）
+
+| 能力 | 真实入口 | 关键行为 |
+|---|---|---|
+| 后台命令 | `app/gateway/routers/background_bash.py`（50 行） | `GET /api/background-bash`（`running_only` 默认 `True`）；`GET /{work_id}/output`；`POST /{work_id}/stop`。任务不存在 → **404**；任务不在 running → **409** `Task ... is not running (status: ...)`。后端实现在 `tools/zcode_port/background.py`（`list_tasks` / `get_task` / `read_output_snapshot` / `stop_task` / `task_to_summary`） |
+| 浏览器桥 | `app/gateway/routers/browser_bridge.py`（145 行） | 所有执行/查询路由都挂 `_bridge_token_guard`：`verify_bridge_token(request)` 失败即 **403** `browser bridge token required`。token 由 node-repl 内核桥**通过环境变量注入**，不是用户登录态 |
+| 桌面操作（Computer-Use） | `app/gateway/routers/cua_bridge.py`（327 行） | 同样有 `_bridge_token_guard` + `_org_admin_guard` 双重守卫；Windows 侧通过 `_run_ps_action` 调 PowerShell 脚本（`_resolve_ps1`），并支持取应用图标 `_read_icon_via_powershell` |
+
+> 结论：**桥接层不是「谁登录谁能用」，而是「谁拿到注入 token 谁能用」**。这是刻意的：内核桥是本地进程，无法走用户 JWT。
 
 ## 核心概念
 - **会话级资源**：浏览器/桌面会话必须挂在 session 上，随 session 关闭而回收。
@@ -42,6 +60,37 @@
 - [ ] 浏览器会话随 session 回收
 - [ ] 桥接端口仅本机可达
 
+### 源码核对记录（路径与符号实测）
+
+- `app/gateway/routers/background_bash.py`（50 行）
+  - 模块自述：REST surface for ZCode-aligned background Bash tasks (status panel + detail + stop).…
+- `app/gateway/routers/browser_bridge.py`（145 行）：类 `BrowserExecuteRequest`、`BrowserLogEntry`、`BrowserLogBatch`
+  - 模块自述：Browser bridge HTTP surface — exposes the EvoFlow browser engine to the node-repl-host kernel bridge (browser-…
+- `packages/harness/evoflow/tools/builtins/browser_stream.py`（137 行）；环境变量 `EVOFLOW_BROWSER_CDP_URL`、`EVOFLOW_BROWSER_HEADED`
+  - 模块自述：Browser live-view metadata for EvoPanel. ZCode parity: there is no separate screencast and no persistent Chrom…
+- `app/gateway/routers/browser_snapshots.py`（38 行）
+  - 模块自述：Serve persisted browser screenshot PNGs (UI only; not sent to the model).…
+- `app/gateway/routers/browser_embed.py`（63 行）：类 `BrowserEmbedCdpBody`
+  - 模块自述：EvoPanel embedded WebView2 — per-thread CDP registration for agent-browser.…
+- `app/gateway/routers/cua_bridge.py`（327 行）：类 `CuaExecuteRequest`、`AppIconLocator`、`AppIconRequestBody`
+  - 模块自述：Computer Use (CUA) bridge HTTP surface. The node-repl-host kernel's ``computer-use-bridge`` global (overridden…
+- `packages/harness/evoflow/plugins/cua_helper.py`（162 行）；环境变量 `EVOFLOW_CUA_HELPER_ROOT`、`EVOFLOW_NODE_COMMAND`
+- `packages/harness/evoflow/plugins/bridge_auth.py`（94 行）；环境变量 `EVOFLOW_BRIDGE_TOKEN_FILE`、`EVOFLOW_BROWSER_BRIDGE_TOKEN`
+  - 模块自述：Browser/CUA bridge token（对齐 ZCode broker-token 鉴权语义）. node-repl 内核桥经本地 HTTP 调 Gateway 的浏览器/CUA 命令面（``/api/brow…
+- `packages/harness/evoflow/plugins/runtime.py`（342 行）
+  - 模块自述：Plugin runtime integration — exposes installed plugins to the agent runtime. This module is the bridge between…
+- `packages/harness/evoflow/plugins/node_repl.py`（1111 行）；环境变量 `EVOFLOW_BROWSER_BRIDGE_TOKEN`、`EVOFLOW_BROWSER_DOCS_ROOT`、`EVOFLOW_GATEWAY_PORT`、`EVOFLOW_GATEWAY_URL`
+  - 模块自述：EvoFlow host for the ZCode ``node_repl`` kernel (Browser Use / Computer Use). The official plugins' skills (``…
+- `packages/harness/evoflow/plugins/node_repl_tool.py`（564 行）：类 `NodeReplJsInput`
+  - 模块自述：``mcp__node_repl__js`` — Browser Use / Computer Use kernel tool. Registered only when one of the dependent off…
+- `packages/harness/evoflow/plugins/cua_helper.py`（162 行）；环境变量 `EVOFLOW_CUA_HELPER_ROOT`、`EVOFLOW_NODE_COMMAND`
+
+> 本节只证明**路径、行数、符号存在**；调用顺序与边界条件仍属「行为」，未逐行核对。
+
 ## 对照 EvoFlow 核对清单
+- [x] 后台命令的 404/409 语义与三个 REST 入口（50 行全文已读）
+- [x] 浏览器桥与 CUA 桥的 `_bridge_token_guard` / `_org_admin_guard` 双层守卫
+- [ ] `tools/zcode_port/background.py` 的任务对象与输出截断细节（未读）
+- [ ] `cua_bridge` 的 PowerShell 脚本清单与权限要求（未读）
 - [ ] `browser_stream.py` 的流式截图策略
 - [ ] `cua_helper.py` 支持的动作集合

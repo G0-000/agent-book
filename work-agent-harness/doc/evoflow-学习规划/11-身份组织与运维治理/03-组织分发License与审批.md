@@ -1,18 +1,27 @@
 # 第 3 章　组织分发、License、Admin 与审批
 
+> **EvoFlow 对照状态 / Alignment status：** 🔍 结构已核对（路径、行数、符号均取自源码实测），**行为**（调用顺序、边界条件）尚未逐行核对。
+
 ## 本章目标
 让「谁能安装什么、能用多少、谁批准」在组织内可管理。
 
 ## 最小闭环
 管理员创建组织 → 分配席位 → 用户激活 License → 使用受限功能 → 审批流记录。
 
-## 真实模块地图（源码证实：路径存在）
-| 职责 | 路径 |
-|---|---|
-| 组织 | `packages/harness/evoflow/organizations/`、`routers/organizations.py` |
-| License | `license/gate.py`、`entitlements.py`、`machine.py`、`issued_store.py`、`routers/license.py` |
-| 管理 | `admin/`、`authz/admin_grants.py` |
-| 审计/审批记录 | `routers/audit.py`、`persistence/audit_log.py` |
+## 真实模块地图（已核对：路径 · 行数 · 符号）
+
+| 文件 | 行数 | 关键符号 | 模块常量 |
+|---|---|---|---|
+| `app/gateway/routers/organizations.py` | 293 | `SourceSpec`、`InstallOptions`、`PreflightRequest`；`_source_dict`、`_options_dict`、`api_preflight` | — |
+| `packages/harness/evoflow/license/gate.py` | 26 | `require_premium` | — |
+| `packages/harness/evoflow/license/entitlements.py` | 175 | `LicenseStatus`；`_parse_expires_at`、`get_license_status`、`is_premium_active` | ENFORCE_LICENSE_VERIFY |
+| `packages/harness/evoflow/license/machine.py` | 64 | `normalize_machine_id`、`_fingerprint_bytes`、`_windows_machine_guid` | — |
+| `packages/harness/evoflow/license/issued_store.py` | 215 | `_row_to_dict`、`_effective_status`、`_enrich` | STATUS_ACTIVE、STATUS_REVOKED、STATUS_EXPIRED |
+| `app/gateway/routers/license.py` | 212 | `ActivateBody`、`LicenseStatusResponse`、`IssueCodeBody`；`_parse_expires`、`_require_can_issue`、`license_status` | — |
+| `packages/harness/evoflow/authz/admin_grants.py` | 115 | `is_org_admin`、`list_org_admins`、`promote_org_admin` | — |
+| `app/gateway/routers/audit.py` | 47 | `list_audit_actions_endpoint` | — |
+| `packages/harness/evoflow/persistence/audit_log.py` | 167 | `_ensure_table`、`record_action`、`list_actions` | — |
+| `packages/harness/evoflow/license/codec.py` | 329 | `LicenseCodecError`；`_b64url_decode`、`_normalize_payload_mid`、`_mid_to_bytes` | CODE_PREFIX、LEGACY_PREFIX、PAYLOAD_VERSION |
 
 ## 核心概念
 - **entitlement（权益）** 与 **seat（席位）** 分离：功能开关 ≠ 人数限制。
@@ -41,6 +50,31 @@ license(codec, machine_fp, issued_at, revoked)
 - [ ] 超席位使用被拦
 - [ ] License 失效可解释
 - [ ] 审批记录完整
+
+### 源码核对记录（路径与符号实测）
+
+- `app/gateway/routers/organizations.py`（293 行）：类 `SourceSpec`、`InstallOptions`、`PreflightRequest`、`InstallRequest`
+  - 模块自述：Organization Pack / 资源包 Gateway API — Phase 1.…
+- `packages/harness/evoflow/license/gate.py`（26 行）
+  - 模块自述：FastAPI dependency helpers for premium entitlement.…
+- `packages/harness/evoflow/license/entitlements.py`（175 行）：类 `LicenseStatus`
+  - 模块自述：Entitlement checks for premium features (tasks / apps / proactive).…
+- `packages/harness/evoflow/license/machine.py`（64 行）
+  - 模块自述：Stable short machine id for license binding.…
+- `packages/harness/evoflow/license/issued_store.py`（215 行）
+  - 模块自述：Persist issued activation codes for ops ledger UI / CLI.…
+- `app/gateway/routers/license.py`（212 行）：类 `ActivateBody`、`LicenseStatusResponse`、`IssueCodeBody`
+  - 模块自述：Product license activation + issued-code ledger API.…
+- `packages/harness/evoflow/authz/admin_grants.py`（115 行）
+  - 模块自述：Org admin grants (separate from resource ACL).…
+- `app/gateway/routers/audit.py`（47 行）
+  - 模块自述：Operation audit log — admin read API (append-only store, see audit_log.py).…
+- `packages/harness/evoflow/persistence/audit_log.py`（167 行）
+  - 模块自述：Append-only operation audit log (enterprise governance). 记录「谁在什么时候对什么资源做了什么」——发布/改定义/删除/运行/密钥等管理动作。 设计约束： - **…
+- `packages/harness/evoflow/license/codec.py`（329 行）：类 `LicenseCodecError`
+  - 模块自述：Short local activation codes (EF3) + legacy EF2 verify. EF3 format (issued):: EF3-XXXXX-XXXXX-XXXXX-XXXXX-XXXX…
+
+> 本节只证明**路径、行数、符号存在**；调用顺序与边界条件仍属「行为」，未逐行核对。
 
 ## 对照 EvoFlow 核对清单
 - [ ] `license/codec.py` 的签名/编码方式

@@ -1,19 +1,34 @@
 # 第 1 章　Principal、ACL、Workspace 与身份入口
 
+> **EvoFlow 对照状态 / Alignment status：** 🔍 结构已核对（路径、行数、符号均取自源码实测），**行为**（调用顺序、边界条件）尚未逐行核对。
+
 ## 本章目标
 定义一个统一的「主体」概念，让权限判断只有一处实现。
 
 ## 最小闭环
 用户登录 → 得到 principal → 访问某 workspace 资源 → ACL 判定 → 允许/拒绝并可解释。
 
-## 真实模块地图（源码证实：路径存在）
-| 职责 | 路径 |
-|---|---|
-| 主体/身份 | `packages/harness/evoflow/authz/principals.py`、`runtime_identity.py`、`agent_actor.py` |
-| ACL 存储 | `authz/acl_store.py`、`groups.py`、`membership.py`、`resource_visibility.py` |
-| 作用域 | `authz/scope.py`、`scope_paths.py`、`session_ownership.py`、`skill_roots.py` |
-| HTTP 守卫 | `authz/http_guard.py`、`admin_grants.py`、`mode.py` |
-| 路由 | `app/gateway/routers/identity.py`、`auth.py` |
+## 真实模块地图（已核对：路径 · 行数 · 符号）
+
+| 文件 | 行数 | 关键符号 | 模块常量 |
+|---|---|---|---|
+| `packages/harness/evoflow/authz/principals.py` | 735 | `_row_dict`、`_parse_json_list`、`_parse_json_obj` | LOCAL_ADMIN_PRINCIPAL_ID |
+| `packages/harness/evoflow/authz/runtime_identity.py` | 265 | `set_current_principal_id`、`get_current_principal_id`、`principal_id_from_personal_scope` | — |
+| `packages/harness/evoflow/authz/agent_actor.py` | 341 | `set_current_agent_actor`、`get_current_agent_actor`、`normalize_agent_actor` | — |
+| `packages/harness/evoflow/authz/acl_store.py` | 247 | `encode_resource_ref`、`parse_resource_ref`、`principal_entitled_to_scope` | — |
+| `packages/harness/evoflow/authz/groups.py` | 121 | `create_group`、`get_group`、`list_groups` | — |
+| `packages/harness/evoflow/authz/membership.py` | 193 | `_member_row`、`list_scope_members`、`add_scope_member` | — |
+| `packages/harness/evoflow/authz/resource_visibility.py` | 118 | `owner_scope_visible_to_principal`、`stamp_kwargs_from_request`、`stamp_new_app_from_request` | — |
+| `packages/harness/evoflow/authz/scope.py` | 57 | `scope_id`、`org_scope`、`personal_scope` | — |
+| `packages/harness/evoflow/authz/scope_paths.py` | 188 | `_safe_segment`、`resolve_base_dir`、`scopes_root` | — |
+| `packages/harness/evoflow/authz/session_ownership.py` | 153 | `acl_session_list_filter_sql`、`stamp_session_ownership`、`add_session_participant` | — |
+| `packages/harness/evoflow/authz/skill_roots.py` | 36 | `scope_skill_roots_for_principal` | — |
+| `packages/harness/evoflow/authz/http_guard.py` | 549 | `resolve_authz_from_request`、`require_thread_visible`、`_has_auth_signals` | — |
+| `packages/harness/evoflow/authz/admin_grants.py` | 115 | `is_org_admin`、`list_org_admins`、`promote_org_admin` | — |
+| `packages/harness/evoflow/authz/mode.py` | 43 | `get_acl_mode`、`set_acl_mode`、`should_filter` | — |
+| `app/gateway/routers/identity.py` | 411 | `CreatePrincipalBody`、`UpdatePrincipalBody`、`ResetPasswordBody`；`_require_admin`、`_require_self_or_admin`、`get_me` | — |
+| `packages/harness/evoflow/mcp/oauth.py` | 217 | `_OAuthToken`、`OAuthTokenManager`；`build_oauth_tool_interceptor`、`get_initial_oauth_headers` | — |
+| `packages/harness/evoflow/authz/acl_store.py` | 247 | `encode_resource_ref`、`parse_resource_ref`、`principal_entitled_to_scope` | — |
 
 ## 核心概念
 - **Principal = user | agent | service**，统一抽象后 ACL 只判 `principal → resource`。
@@ -41,6 +56,45 @@ visible(principal, path) -> bool; can_write(principal, path) -> bool
 - [ ] 越权用例全部拒绝
 - [ ] 权限解释可输出（为什么拒）
 - [ ] Agent 权限不高于其委派者
+
+### 源码核对记录（路径与符号实测）
+
+- `packages/harness/evoflow/authz/principals.py`（735 行）
+  - 模块自述：Principal + identity persistence helpers.…
+- `packages/harness/evoflow/authz/runtime_identity.py`（265 行）
+  - 模块自述：Inject / resolve human identity for LangGraph runs and session stamps. Field contract: ``principal_id`` (who),…
+- `packages/harness/evoflow/authz/agent_actor.py`（341 行）
+  - 模块自述：Ambient employee / lead-agent actor for tool ACL (parallel to human principal_id). Model-facing tools must not…
+- `packages/harness/evoflow/authz/acl_store.py`（247 行）
+  - 模块自述：Resource ACL grants + audience intersection.…
+- `packages/harness/evoflow/authz/groups.py`（121 行）
+  - 模块自述：Groups (managed shared scopes).…
+- `packages/harness/evoflow/authz/membership.py`（193 行）
+  - 模块自述：Scope membership: can_read / can_write / can_manage.…
+- `packages/harness/evoflow/authz/resource_visibility.py`（118 行）
+  - 模块自述：Shared resource visibility: owner_scope_id isolation (always on).…
+- `packages/harness/evoflow/authz/scope.py`（57 行）
+  - 模块自述：ScopeId helpers: ``kind:ref`` encoding.…
+- `packages/harness/evoflow/authz/scope_paths.py`（188 行）
+  - 模块自述：Per-scope filesystem layout under ``{base_dir}/scopes/``. Layout (install still shares one ``.evoflow`` / EVOF…
+- `packages/harness/evoflow/authz/session_ownership.py`（153 行）
+  - 模块自述：Session ownership helpers (org_id / scope_id / created_by).…
+- `packages/harness/evoflow/authz/skill_roots.py`（36 行）
+  - 模块自述：Resolve skill discovery roots from AuthzContext / principal.…
+- `packages/harness/evoflow/authz/http_guard.py`（549 行）
+  - 模块自述：HTTP request guards for resource visibility (anti-IDOR).…
+- `packages/harness/evoflow/authz/admin_grants.py`（115 行）
+  - 模块自述：Org admin grants (separate from resource ACL).…
+- `packages/harness/evoflow/authz/mode.py`（43 行）
+  - 模块自述：ACL isolation is always on (multi-user). Mode API kept as no-op compat.…
+- `app/gateway/routers/identity.py`（411 行）：类 `CreatePrincipalBody`、`UpdatePrincipalBody`、`ResetPasswordBody`、`PrincipalStatusBody`
+  - 模块自述：Identity / ACL human-facing API (Phase 0/1).…
+- `packages/harness/evoflow/mcp/oauth.py`（217 行）：类 `_OAuthToken`、`OAuthTokenManager`
+  - 模块自述：OAuth token support for MCP HTTP/SSE servers.…
+- `packages/harness/evoflow/authz/acl_store.py`（247 行）
+  - 模块自述：Resource ACL grants + audience intersection.…
+
+> 本节只证明**路径、行数、符号存在**；调用顺序与边界条件仍属「行为」，未逐行核对。
 
 ## 对照 EvoFlow 核对清单
 - [ ] `acl_store.py` 的匹配算法

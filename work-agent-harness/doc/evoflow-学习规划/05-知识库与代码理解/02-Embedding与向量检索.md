@@ -1,18 +1,20 @@
 # 第 2 章　Embedding、向量检索与引用
 
+> **EvoFlow 对照状态 / Alignment status：** 🔍 结构已核对（路径、行数、符号均取自源码实测），**行为**（调用顺序、边界条件）尚未逐行核对。
+
 ## 本章目标
 用最小的代价实现「能召回、能排序、能引用」的检索。
 
 ## 最小闭环
 建索引 → 查询 → top-k 片段 → 注入上下文 → 回答带引用。
 
-## 真实模块地图（源码证实：路径存在）
-| 职责 | 路径 |
-|---|---|
-| 向量化 | `knowledge/embedding/` |
-| 向量库 | `knowledge/vector/`（配置提到 `sqlite_vec`） |
-| 索引编排 | `knowledge/service.py`、`index_builder.py` |
-| 检索入口 | `app/gateway/routers/knowledge.py` |
+## 真实模块地图（已核对：路径 · 行数 · 符号）
+
+| 文件 | 行数 | 关键符号 | 模块常量 |
+|---|---|---|---|
+| `packages/harness/evoflow/knowledge/service.py` | 687 | `_enrich_dataset`、`dataset_llm_index_enabled`、`list_datasets` | — |
+| `packages/harness/evoflow/knowledge/index_builder.py` | 77 | `build_document_summary`、`enrich_chunk_indexes`、`embedding_text_for_chunk` | — |
+| `app/gateway/routers/knowledge.py` | 418 | `CreateDatasetRequest`、`UpdateDatasetRequest`、`SyncLocalRequest`；`_org_admin_dep`、`list_knowledge_bases`、`create_knowledge_base` | — |
 
 ## 核心概念
 - **混合检索**：向量（语义）+ BM25/FTS（关键词），两路结果融合（RRF 或加权）。
@@ -38,6 +40,17 @@ retrieve(q): vec_top20 + fts_top20 → 去重 → rerank → 取 5 → 附 chunk
 - [ ] 专有名词查询命中
 - [ ] 语义改写查询命中
 - [ ] 索引版本与模型版本一致
+
+### 源码核对记录（路径与符号实测）
+
+- `packages/harness/evoflow/knowledge/service.py`（687 行）
+  - 模块自述：Knowledge base service layer — business logic for CRUD, file upload, search. All DB operations go through the …
+- `packages/harness/evoflow/knowledge/index_builder.py`（77 行）
+  - 模块自述：Build document summary + per-chunk index strings (rule-based, no user config).…
+- `app/gateway/routers/knowledge.py`（418 行）：类 `CreateDatasetRequest`、`UpdateDatasetRequest`、`SyncLocalRequest`、`CreateFolderRequest`；环境变量 `EVOFLOW_HOME`、`EVOFLOW_KB_UPLOAD_DIR`
+  - 模块自述：Knowledge base API router. Provides CRUD for knowledge bases, file upload, chunk listing, semantic search, and…
+
+> 本节只证明**路径、行数、符号存在**；调用顺序与边界条件仍属「行为」，未逐行核对。
 
 ## 对照 EvoFlow 核对清单
 - [ ] `knowledge/vector/` 的具体实现与表结构

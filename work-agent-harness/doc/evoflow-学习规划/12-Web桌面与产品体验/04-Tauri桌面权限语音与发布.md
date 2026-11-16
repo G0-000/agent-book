@@ -1,5 +1,7 @@
 # 第 4 章　Tauri 桌面权限、语音与发布安装
 
+> **EvoFlow 对照状态 / Alignment status：** 🔍 结构已核对（路径、行数、符号均取自源码实测），**行为**（调用顺序、边界条件）尚未逐行核对。
+
 > **范围层级：B 仅解释**（见 [进度台账 · 范围三层](../PROGRESS.md)）。本章读懂结构与权限模型即可，**不**复刻安装包与打包链路。
 
 ## 本章目标
@@ -8,14 +10,11 @@
 ## 最小闭环
 桌面端启动 → 申请必要权限 → 语音输入转文字 → 对话 → 升级包可平滑更新。
 
-## 真实模块地图（源码证实：路径存在）
-| 职责 | 路径 |
-|---|---|
-| 桌面壳 | `evopanel/src-tauri/`（`commands/gateway.rs` 等） |
-| 语音 UI | `evopanel/src/voice-overlay/`、`cua-glow-overlay` |
-| 语音后端 | `backend/app/gateway/speech/` |
-| 打包 | `backend/packaging/`（PyInstaller spec、macOS/Unix/Windows 脚本、官方插件包） |
-| 发布资产 | 仓库 `docker/`、`Makefile`、`.github/` |
+## 真实模块地图（已核对：路径 · 行数 · 符号）
+
+| 文件 | 行数 | 关键符号 | 模块常量 |
+|---|---|---|---|
+
 
 ## 核心概念
 - **最小权限**：Tauri 能力白名单（fs、shell、audio），默认关闭。
@@ -43,6 +42,11 @@ sidecar: spawn backend → 等 health ready（超时 30s）→ 连接
 - [ ] 冷启动 10s 内可对话
 - [ ] 升级保留数据
 - [ ] 权限最小化可审计
+
+### 源码核对记录（路径与符号实测）
+
+
+> 本节只证明**路径、行数、符号存在**；调用顺序与边界条件仍属「行为」，未逐行核对。
 
 ## 对照 EvoFlow 核对清单
 - [ ] `src-tauri` 的 capability 清单

@@ -1,20 +1,29 @@
 # 第 2 章　设置、Agent、知识、任务与管理页面
 
+> **EvoFlow 对照状态 / Alignment status：** 🔍 结构已核对（路径、行数、符号均取自源码实测），**行为**（调用顺序、边界条件）尚未逐行核对。
+
 ## 本章目标
 让「配置」变成可理解的产品界面，而不是让人改 YAML。
 
 ## 最小闭环
 设置页改模型 → 保存 → 立即生效（下一次请求用新模型）→ 有变更记录。
 
-## 真实模块地图（源码证实：路径存在）
-| 职责 | 路径 |
-|---|---|
-| 前端页面 | `evopanel/src/pages/`、`evopanel/src/react/`、`evopanel/src/components/` |
-| 面板设置 API | `backend/app/gateway/routers/panel_settings.py` |
-| 模型管理 API | `routers/models.py`、`packages/harness/evoflow/models/factory.py` |
-| Agent 管理 | `routers/agents.py`、`packages/harness/evoflow/subagents/registry.py` |
-| 知识/记忆 | `routers/knowledge.py`、`knowledge_owned.py`、`memory.py` |
-| 任务/自动化 | `routers/sessions.py`、`automation_scheduler.py` |
+## 真实模块地图（已核对：路径 · 行数 · 符号）
+
+| 文件 | 行数 | 关键符号 | 模块常量 |
+|---|---|---|---|
+| `app/gateway/routers/panel_settings.py` | 48 | `PanelSettingsResponse`、`PanelSettingsPatchBody`；`_principal_id`、`get_panel_ui_settings`、`patch_panel_ui_settings` | — |
+| `app/gateway/routers/models.py` | 1156 | `ModelResponse`、`ModelsListResponse`、`SetPrimaryModelRequest`；`_to_model_response`、`list_models`、`get_primary_model` | — |
+| `packages/harness/evoflow/models/factory.py` | 1245 | `_strip_provider_internal_keys`、`_is_local_noauth_endpoint`、`_normalize_reasoning_effort` | — |
+| `app/gateway/routers/agents.py` | 1555 | `AgentResponse`、`AgentsListResponse`、`AgentCreateRequest`；`_normalize_agent_tools_for_api`、`_matches_agent_list_filters`、`_agent_runtime_available_for_ui` | AGENT_NAME_PATTERN |
+| `packages/harness/evoflow/subagents/registry.py` | 223 | `_timeout_for_subagent`、`_resolve_subagent_system_prompt`、`_agent_config_to_subagent_config` | — |
+| `app/gateway/routers/knowledge.py` | 418 | `CreateDatasetRequest`、`UpdateDatasetRequest`、`SyncLocalRequest`；`_org_admin_dep`、`list_knowledge_bases`、`create_knowledge_base` | — |
+| `app/gateway/routers/knowledge_owned.py` | 840 | `ReindexBaseBody`；`list_bases`、`create_base`、`get_base` | — |
+| `packages/harness/evoflow/admin/memory.py` | 62 | `_normalize_agent`、`list_memory_agents`、`get_memory` | — |
+| `app/gateway/routers/sessions.py` | 159 | `SessionSearchRequest`、`SessionSearchResult`、`SessionSearchResponse`；`_filter_search_hits`、`search_sessions`、`search_sessions_get` | — |
+| `app/gateway/routers/automation_scheduler.py` | 665 | `_coerce_app_parameters`、`_apply_workflow_binding`、`_stamp_app_name` | — |
+| `packages/harness/evoflow/persistence/panel_settings.py` | 106 | `_panel_key`、`_deep_merge_defaults`、`get_panel_settings` | PANEL_SETTINGS_KEY、DEFAULT_PANEL_SETTINGS |
+| `packages/harness/evoflow/models/factory.py` | 1245 | `_strip_provider_internal_keys`、`_is_local_noauth_endpoint`、`_normalize_reasoning_effort` | — |
 
 ## 核心概念
 - **配置三层**：文件配置（启动项）→ 数据库配置（用户可改）→ 会话级覆盖（临时）。
@@ -42,6 +51,32 @@ PUT /settings → 校验 → 落库 → 发布变更事件
 - [ ] 改配置无需重启
 - [ ] 密钥不明文回显
 - [ ] 变更可回滚
+
+### 源码核对记录（路径与符号实测）
+
+- `app/gateway/routers/panel_settings.py`（48 行）：类 `PanelSettingsResponse`、`PanelSettingsPatchBody`
+  - 模块自述：EvoPanel preferences stored in ``evoflow_app_settings`` (per principal).…
+- `app/gateway/routers/models.py`（1156 行）：类 `ModelResponse`、`ModelsListResponse`、`SetPrimaryModelRequest`、`ModelInvokeMessage`
+- `packages/harness/evoflow/models/factory.py`（1245 行）；环境变量 `EVOFLOW_STRESS_VENDOR_BASE_URL`、`EVOFLOW_VOLC_ASSUMED_OUTPUT_CAP`、`EVOFLOW_VOLC_COMPLETION_RESERVE_TOKENS`
+- `app/gateway/routers/agents.py`（1555 行）：类 `AgentResponse`、`AgentsListResponse`、`AgentCreateRequest`、`SkillHubExpertInstallRequest`
+  - 模块自述：CRUD API for custom agents.…
+- `packages/harness/evoflow/subagents/registry.py`（223 行）
+  - 模块自述：Subagent registry for managing available subagents.…
+- `app/gateway/routers/knowledge.py`（418 行）：类 `CreateDatasetRequest`、`UpdateDatasetRequest`、`SyncLocalRequest`、`CreateFolderRequest`；环境变量 `EVOFLOW_HOME`、`EVOFLOW_KB_UPLOAD_DIR`
+  - 模块自述：Knowledge base API router. Provides CRUD for knowledge bases, file upload, chunk listing, semantic search, and…
+- `app/gateway/routers/knowledge_owned.py`（840 行）：类 `ReindexBaseBody`
+  - 模块自述：Owned knowledge base Gateway API — local-first RAG (spec: owned-knowledge-base-spec.md).…
+- `packages/harness/evoflow/admin/memory.py`（62 行）
+  - 模块自述：Memory admin (updater + config, no tools coupling).…
+- `app/gateway/routers/sessions.py`（159 行）：类 `SessionSearchRequest`、`SessionSearchResult`、`SessionSearchResponse`
+  - 模块自述：Gateway router for session search.…
+- `app/gateway/routers/automation_scheduler.py`（665 行）
+  - 模块自述：Automation scheduler API: status, CRUD on ``~/.evoflow/tasks/automations``, manual run. CRUD mirrors ``evopane…
+- `packages/harness/evoflow/persistence/panel_settings.py`（106 行）
+  - 模块自述：EvoPanel UI preferences in ``evoflow_app_settings``. Per-principal key: ``panel.ui:<principal_id>``. Legacy gl…
+- `packages/harness/evoflow/models/factory.py`（1245 行）；环境变量 `EVOFLOW_STRESS_VENDOR_BASE_URL`、`EVOFLOW_VOLC_ASSUMED_OUTPUT_CAP`、`EVOFLOW_VOLC_COMPLETION_RESERVE_TOKENS`
+
+> 本节只证明**路径、行数、符号存在**；调用顺序与边界条件仍属「行为」，未逐行核对。
 
 ## 对照 EvoFlow 核对清单
 - [ ] `panel_settings.py` 的 schema 结构
