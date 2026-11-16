@@ -77,3 +77,142 @@ HTTP  → Gateway（Part 10）
 ## 对照 EvoFlow 核对清单
 - [ ] `stdio_rpc.py` 的方法清单与错误码
 - [ ] CLI 是否复用 Gateway 还是直连 harness
+
+## 从零实现（手把手）
+> 读完这章你有两个入口：一个命令行，一个 JSON-Lines 的 stdio 服务，共用同一套图。
+> 路径均相对 `backend/`，代码注释写「为什么」。
+
+### Step 1　新建 CLI：两个子命令
+**文件**：`packages/harness/myagentflow/cli/main.py（新建）`
+**要写的逻辑**：`chat` 跑一轮并打印回复；`state` 用 02/01 的 `read_thread_state` 直接读，不编译图。
+
+**代码**
+
+```python
+"""CLI：最小两个子命令。
+
+为什么 CLI 要和 Gateway 共用代码：调试时想在终端复现线上问题，
+两条代码路径一定会分叉。
+"""
+from __future__ import annotations
+
+import argparse
+import json
+
+from myagentflow.config.settings import load_config
+
+
+def _chat(args: argparse.Namespace) -> int:
+    from langchain_core.messages import HumanMessage
+
+    from myagentflow.agents.lead_agent.graph import build_graph
+    from myagentflow.models.factory import build_chat_model
+
+    graph = build_graph(build_chat_model(load_config().model))
+    out = graph.invoke(
+        {"messages": [HumanMessage(content=args.text)]},
+        {"configurable": {"thread_id": args.thread}},
+    )
+    print(out["messages"][-1].content)
+    return 0
+
+
+def _state(args: argparse.Namespace) -> int:
+    from myagentflow.agents.checkpointer import get_checkpointer
+    from myagentflow.agents.checkpointer.thread_state_reader import read_thread_state
+
+    # 注意：这里绝不导入 build_graph —— 读状态不该编译图
+    print(json.dumps(read_thread_state(get_checkpointer(), args.thread), ensure_ascii=False))
+    return 0
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(prog="myaf")
+    sub = parser.add_subparsers(dest="cmd", required=True)
+
+    p_chat = sub.add_parser("chat", help="跑一轮对话")
+    p_chat.add_argument("text")
+    p_chat.add_argument("--thread", default="cli")
+    p_chat.set_defaults(fn=_chat)
+
+    p_state = sub.add_parser("state", help="读线程状态（不编译图）")
+    p_state.add_argument("--thread", default="cli")
+    p_state.set_defaults(fn=_state)
+
+    args = parser.parse_args(argv)
+    return int(args.fn(args))
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+```
+
+**验证**
+
+```bash
+uv run python -m myagentflow.cli.main state --thread demo
+# 期望：null（线程还没跑过），且不报「图编译失败」
+```
+
+### Step 2　新建 stdio 服务：一行一请求
+**文件**：`packages/harness/myagentflow/app_server/stdio.py（新建）`
+**要写的逻辑**：从 stdin 读 JSON 行，回一行 JSON；异常也回一行（带 error 字段），绝不静默退出。
+
+**代码**
+
+```python
+"""stdio app server：一行请求、一行响应。
+
+为什么用 JSONL 而不是 HTTP：桌面端/编辑器插件拉起子进程时没有端口可用，
+stdin/stdout 是最稳的通道。
+"""
+from __future__ import annotations
+
+import json
+import sys
+from typing import Any
+
+
+def handle(req: dict[str, Any]) -> dict[str, Any]:
+    if req.get("method") != "ping":
+        return {"id": req.get("id"), "error": f"未知方法：{req.get('method')}"}
+    return {"id": req.get("id"), "result": "pong"}
+
+
+def serve(stdin=sys.stdin, stdout=sys.stdout) -> None:
+    for line in stdin:
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            resp = handle(json.loads(line))
+        except Exception as exc:
+            resp = {"id": None, "error": str(exc)}
+        stdout.write(json.dumps(resp, ensure_ascii=False) + "\n")
+        stdout.flush()   # 不 flush 的话父进程会一直等
+```
+
+**验证**
+
+```bash
+printf '{"id":1,"method":"ping"}\n' | uv run python -m myagentflow.app_server.stdio
+# 期望：{"id": 1, "result": "pong"}
+```
+
+### 与 EvoFlow 对照
+
+| 我们的做法 | EvoFlow | 为什么 |
+|---|---|---|
+| `chat` / `state` 两个子命令 | `cli/` 的命令划分 | 读状态与跑对话是两条不同路径 |
+| JSONL stdio | `app_server/` 的 stdio 通道 | 编辑器插件拉起子进程时无端口 |
+
+### 知识点
+
+- [agent-book](https://g0-000.github.io/agent-book/)：CLI 与 Agent 的交互形态
+- Harbor404：进程间通信与阻塞排查
+
+### 验收
+
+```bash
+printf '{"id":2,"method":"x"}\n' | uv run python -m myagentflow.app_server.stdio
+```

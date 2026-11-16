@@ -86,3 +86,110 @@ baseline.json 对比 → delta
 - [ ] `eval/scenarios/` 的场景数与分类
 - [ ] `eval/security.py` 的安全用例
 - [ ] RAG/Agent 评测体系（参考 Harbor404📚）
+
+## 从零实现（手把手）
+> 读完这章你能写一个最小 eval：固定用例 + 关键词断言 + 通过率，改动后一跑就知道有没有退化。
+> 路径均相对 `backend/`，代码注释写「为什么」。
+
+### Step 1　新建 runner.py：用例 + 打分
+**文件**：`packages/harness/myagentflow/eval/runner.py（新建）`
+**要写的逻辑**：用例是 `(输入, 必须包含的关键词)`；打分只判「包含/不包含」，不做主观评分——主观评分不稳定，回归时会误导。
+
+**代码**
+
+```python
+"""Eval：固定用例 + 可判定的断言。
+
+为什么不用「让模型打分」：模型评分每次都会飘，
+回归测试需要的是稳定信号，哪怕它很粗糙。
+"""
+from __future__ import annotations
+
+from collections.abc import Callable
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class Case:
+    name: str
+    prompt: str
+    must_contain: tuple[str, ...] = ()
+
+
+def score(case: Case, answer: str) -> bool:
+    return all(k in answer for k in case.must_contain)
+
+
+def run(cases: list[Case], answer_fn: Callable[[str], str]) -> dict:
+    results = []
+    for c in cases:
+        try:
+            ok = score(c, answer_fn(c.prompt))
+        except Exception as exc:
+            results.append({"name": c.name, "ok": False, "error": str(exc)})
+            continue
+        results.append({"name": c.name, "ok": ok})
+
+    passed = sum(1 for r in results if r["ok"])
+    return {"total": len(results), "passed": passed,
+            "rate": round(passed / max(1, len(results)), 3), "results": results}
+```
+
+**验证**
+
+```bash
+uv run python -c "
+from myagentflow.eval.runner import Case, run
+cases = [Case('c1','说你好',('你好',)), Case('c2','说再见',('再见',))]
+print(run(cases, lambda p: '你好'))
+"
+```
+
+### Step 2　写测试：通过率与异常隔离
+**文件**：`tests/chapters/test_ch11_05_eval.py（新建）`
+**要写的逻辑**：一条命中一条不命中，rate=0.5；抛异常的用例被记为失败而不是中断整轮。
+
+**代码**
+
+```python
+from __future__ import annotations
+
+
+def test_eval():
+    from myagentflow.eval.runner import Case, run
+
+    cases = [Case("a", "x", ("你好",)), Case("b", "y", ("再见",))]
+    report = run(cases, lambda p: "你好")
+    assert report["passed"] == 1 and report["rate"] == 0.5
+
+    def boom(_p):
+        raise RuntimeError("model down")
+
+    report = run(cases, boom)
+    assert report["passed"] == 0 and all("error" in r for r in report["results"])
+```
+
+**验证**
+
+```bash
+uv run pytest tests/chapters/test_ch11_05_eval.py -v
+# 期望：1 passed
+```
+
+### 与 EvoFlow 对照
+
+| 我们的做法 | EvoFlow | 为什么 |
+|---|---|---|
+| 关键词断言 | `eval/` 的评分 | 主观评分不稳定，回归会误报 |
+| 异常记失败不中断 | 同文件 run | 一条崩了不该让整轮无结果 |
+
+### 知识点
+
+- agent-book：Eval 设计
+- Harbor404：回归测试
+
+### 验收
+
+```bash
+uv run pytest tests/chapters/test_ch11_05_eval.py -q
+```

@@ -99,3 +99,99 @@ visible(principal, path) -> bool; can_write(principal, path) -> bool
 ## 对照 EvoFlow 核对清单
 - [ ] `acl_store.py` 的匹配算法
 - [ ] `mode.py` 的单机/多用户模式差异
+
+## 从零实现（手把手）
+> 读完这章你能判断「这个人能不能看这个 workspace」：角色 → 权限 → 资源。
+> 路径均相对 `backend/`，代码注释写「为什么」。
+
+### Step 1　新建 acl.py：角色映射 + 判定
+**文件**：`packages/harness/myagentflow/authz/acl.py（新建）`
+**要写的逻辑**：`role → permissions` 用集合；`can()` 先查 owner（资源所有者永远有权），再查权限集。
+
+**代码**
+
+```python
+"""ACL：角色 → 权限 → 资源。
+
+为什么 owner 单独判：把 owner 也塞进角色表，
+会出现「管理员改了策略把自己锁在门外」。
+"""
+from __future__ import annotations
+
+from dataclasses import dataclass
+
+ROLES: dict[str, set[str]] = {
+    "owner": {"read", "write", "delete", "share"},
+    "member": {"read", "write"},
+    "viewer": {"read"},
+}
+
+
+@dataclass(frozen=True)
+class Resource:
+    kind: str
+    id: str
+    owner: str
+
+
+def can(principal: str, roles: dict[str, str], resource: Resource, action: str) -> bool:
+    if resource.owner == principal:
+        return True                      # owner 永远有权
+    role = roles.get(principal, "")
+    return action in ROLES.get(role, set())
+```
+
+**验证**
+
+```bash
+uv run python -c "
+from myagentflow.authz.acl import can, Resource
+r = Resource('workspace','w1','alice')
+print(can('alice', {}, r, 'delete'), can('bob', {'bob':'viewer'}, r, 'write'), can('bob', {'bob':'member'}, r, 'write'))
+"
+```
+
+### Step 2　写测试：owner / 角色 / 无角色
+**文件**：`tests/chapters/test_ch11_01_acl.py（新建）`
+**要写的逻辑**：owner 能删；viewer 不能写；无角色全拒。
+
+**代码**
+
+```python
+from __future__ import annotations
+
+
+def test_acl():
+    from myagentflow.authz.acl import Resource, can
+
+    r = Resource("workspace", "w1", "alice")
+    assert can("alice", {}, r, "delete") is True
+    assert can("bob", {"bob": "viewer"}, r, "write") is False
+    assert can("bob", {"bob": "member"}, r, "write") is True
+    assert can("carol", {}, r, "read") is False
+```
+
+**验证**
+
+```bash
+uv run pytest tests/chapters/test_ch11_01_acl.py -v
+# 期望：1 passed
+```
+
+### 与 EvoFlow 对照
+
+| 我们的做法 | EvoFlow | 为什么 |
+|---|---|---|
+| owner 单独判定 | `authz/` 的 ACL | 策略改错会把 owner 锁在门外 |
+| 权限用集合 | 同文件 | 字符串比较容易漏 case |
+
+### 知识点
+
+- agent-book：权限模型
+- Harbor404：越权排查
+
+### 验收
+
+```bash
+uv run pytest tests/chapters/test_ch11_01_acl.py -q
+```

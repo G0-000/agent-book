@@ -62,3 +62,132 @@ step(id, plan_id, seq, goal, done_when, status, output_ref)
 ## 对照 EvoFlow 核对清单
 - [ ] `plan_tool.py` 的 schema（`<task_plan>` JSON 格式）
 - [ ] `plan_guard_middleware` 的重注入策略
+
+## 从零实现（手把手）
+> 读完这章你能把一段 Markdown 计划解析成步骤列表，并把步骤连成有依赖的 DAG。
+> 路径均相对 `backend/`，代码注释写「为什么」。
+
+### Step 1　新建 parser.py：解析 + 建图
+**文件**：`packages/harness/myagentflow/plans/parser.py（新建）`
+**要写的逻辑**：认 `- [ ] 步骤` 行；`depends:` 写依赖；解析后检测环，有环直接报错而不是跑起来才死锁。
+
+**代码**
+
+```python
+"""计划解析：Markdown → 步骤 DAG。
+
+为什么建图时就查环：跑到一半发现互相等待，前面的步骤全白做。
+"""
+from __future__ import annotations
+
+import re
+from dataclasses import dataclass, field
+
+_STEP = re.compile(r"^\s*-\s*\[[ xX]\]\s*(.+)$")
+_DEP = re.compile(r"depends:\s*([\w\-, ]+)")
+
+
+@dataclass
+class Step:
+    id: str
+    title: str
+    depends: list[str] = field(default_factory=list)
+
+
+def parse(markdown: str) -> list[Step]:
+    steps: list[Step] = []
+    for line in markdown.splitlines():
+        m = _STEP.match(line)
+        if not m:
+            continue
+        title = m.group(1).strip()
+        dep = _DEP.search(title)
+        deps = [d.strip() for d in dep.group(1).split(",")] if dep else []
+        sid = f"s{len(steps) + 1}"
+        steps.append(Step(id=sid, title=_DEP.sub("", title).strip(), depends=deps))
+    check_cycles(steps, by_title=True)
+    return steps
+
+
+def check_cycles(steps: list[Step], by_title: bool = False) -> None:
+    """依赖写的是标题时，先映射成 id 再查环。"""
+    if by_title:
+        index = {s.title: s.id for s in steps}
+        for s in steps:
+            s.depends = [index.get(d, d) for d in s.depends]
+    graph = {s.id: s.depends for s in steps}
+    state: dict[str, int] = {}
+
+    def visit(node: str) -> None:
+        if state.get(node) == 1:
+            raise ValueError(f"计划存在环：{node}")
+        if state.get(node) == 2:
+            return
+        state[node] = 1
+        for dep in graph.get(node, []):
+            visit(dep)
+        state[node] = 2
+
+    for node in graph:
+        visit(node)
+```
+
+**验证**
+
+```bash
+uv run python -c "
+from myagentflow.plans.parser import parse
+print([ (s.id, s.title, s.depends) for s in parse('- [ ] 读代码\n- [ ] 写实现 depends: 读代码') ])
+"
+```
+
+### Step 2　写测试：正常依赖 + 环报错
+**文件**：`tests/chapters/test_ch07_01_plan.py（新建）`
+**要写的逻辑**：两步依赖解析正确；`A depends: B` 且 `B depends: A` 必须抛 ValueError。
+
+**代码**
+
+```python
+from __future__ import annotations
+
+import pytest
+
+
+def test_parse_dep():
+    from myagentflow.plans.parser import parse
+
+    steps = parse("- [ ] 读代码\n- [ ] 写实现 depends: 读代码")
+    assert steps[1].depends == [steps[0].id]
+
+
+def test_cycle_detected():
+    from myagentflow.plans.parser import parse
+
+    with pytest.raises(ValueError):
+        parse("- [ ] A depends: B\n- [ ] B depends: A")
+```
+
+**验证**
+
+```bash
+uv run pytest tests/chapters/test_ch07_01_plan.py -v
+# 期望：2 passed
+```
+
+### 与 EvoFlow 对照
+
+| 我们的做法 | EvoFlow | 为什么 |
+|---|---|---|
+| `- [ ]` 行当步骤 | `plans/` 的计划解析 | 用户手写计划就是这个格式 |
+| 解析即查环 | 计划建图 | 跑到一半死锁代价更高 |
+
+### 知识点
+
+- agent-book：任务分解与 DAG
+- Harbor404：计划执行的失败复盘
+
+### 验收
+
+```bash
+uv run pytest tests/chapters/test_ch07_01_plan.py -q
+```

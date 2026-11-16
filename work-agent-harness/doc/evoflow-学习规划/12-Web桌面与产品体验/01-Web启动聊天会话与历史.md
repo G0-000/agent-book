@@ -56,3 +56,103 @@ send(): optimistic(msg) → ensureThread() → POST runs/stream → onEvent(seq)
 ## 对照 EvoFlow 核对清单
 - [ ] `ws-client.js` 的 TTL/重试策略
 - [ ] `ensure-thread` 的 `force_recreate` 条件
+
+## 从零实现（手把手）
+> 读完这章你能用一个 HTML 页面把网关跑起来：发消息、看流式回复、切会话。
+> 路径均相对 `backend/`，代码注释写「为什么」。
+
+### Step 1　新建 index.html：一个页面三件事
+**文件**：`app/webui/static/index.html（新建，路径相对 `backend/`）`
+**要写的逻辑**：用原生 `fetch` + `ReadableStream` 读 SSE，不引前端框架；会话切换就是换 `thread_id`。
+
+**代码**
+
+```python
+<!doctype html>
+<html lang="zh">
+<head><meta charset="utf-8"><title>my-agent-flow</title>
+<style>
+  body{font-family:system-ui;margin:24px;max-width:760px}
+  #log{white-space:pre-wrap;border:1px solid #ddd;padding:12px;height:320px;overflow:auto}
+  input{width:70%;padding:8px} button{padding:8px 14px}
+</style></head>
+<body>
+<h2>my-agent-flow</h2>
+<div>
+  会话：<input id="thread" value="default" size="12">
+  <button id="newThread">新会话</button>
+</div>
+<div id="log"></div>
+<div><input id="text" placeholder="输入消息，回车发送"><button id="send">发送</button></div>
+
+<script>
+const log = document.getElementById('log');
+const threadEl = document.getElementById('thread');
+
+function append(s){ log.textContent += s; log.scrollTop = log.scrollHeight; }
+
+// 读 SSE：按空行切帧，取 data: 行里的 JSON
+async function send(){
+  const text = document.getElementById('text').value.trim();
+  if(!text) return;
+  append(`\n你：${text}\nAI：`);
+  document.getElementById('text').value = '';
+
+  const resp = await fetch('/api/chat', {
+    method:'POST', headers:{'content-type':'application/json'},
+    body: JSON.stringify({thread_id: threadEl.value, text})
+  });
+  const reader = resp.body.getReader();
+  const decoder = new TextDecoder();
+  let buf = '';
+  while(true){
+    const {value, done} = await reader.read();
+    if(done) break;
+    buf += decoder.decode(value, {stream:true});
+    const frames = buf.split('\n\n'); buf = frames.pop();   // 最后一段可能不完整
+    for(const f of frames){
+      for(const line of f.split('\n')){
+        if(!line.startsWith('data:')) continue;
+        const evt = JSON.parse(line.slice(5));
+        if('text' in evt) append(evt.text);
+        if('message' in evt) append(`[错误] ${evt.message}`);
+      }
+    }
+  }
+}
+
+document.getElementById('send').onclick = send;
+document.getElementById('text').addEventListener('keydown', e => { if(e.key==='Enter') send(); });
+document.getElementById('newThread').onclick = () => {
+  threadEl.value = 't-' + Math.random().toString(36).slice(2,8);
+  log.textContent = '';
+};
+</script>
+</body></html>
+```
+
+**验证**
+
+```bash
+uv run uvicorn app.gateway.main:app --port 8070
+# 浏览器打开 http://localhost:8070/webui/static/index.html
+# 期望：输入消息后逐字出现回复；点「新会话」后重新开始
+```
+
+### 与 EvoFlow 对照
+
+| 我们的做法 | EvoFlow | 为什么 |
+|---|---|---|
+| 原生 fetch 读流 | `webui/` 的聊天页 | 引框架会盖住「SSE 怎么读」这件事 |
+| 按空行切帧 | 同上 | 一次 read 可能半帧，不缓存会解析失败 |
+
+### 知识点
+
+- [agent-book](https://g0-000.github.io/agent-book/)：前端与流式
+- Harbor404：SSE 调试
+
+### 验收
+
+```bash
+curl -s localhost:8070/health
+```

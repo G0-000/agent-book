@@ -55,3 +55,122 @@ retrieve(q): vec_top20 + fts_top20 → 去重 → rerank → 取 5 → 附 chunk
 ## 对照 EvoFlow 核对清单
 - [ ] `knowledge/vector/` 的具体实现与表结构
 - [ ] 是否内置 rerank
+
+## 从零实现（手把手）
+> 读完这章你能把块向量化存进 SQLite，并按余弦相似度召回 top-k。
+> 路径均相对 `backend/`，代码注释写「为什么」。
+
+### Step 1　新建 vector_store.py：存 + 查
+**文件**：`packages/harness/myagentflow/knowledge/vector_store.py（新建）`
+**要写的逻辑**：向量以 JSON 存 TEXT 列（先不引向量库）；检索在 Python 里算余弦。数据量大再换 FAISS。
+
+**代码**
+
+```python
+"""向量存储：SQLite + Python 余弦。
+
+为什么先不上向量库：几千块规模下，一次全表扫描 <10ms，
+引入 FAISS 只会让部署多一个依赖。
+"""
+from __future__ import annotations
+
+import json
+import math
+import sqlite3
+from pathlib import Path
+
+_SCHEMA = """
+CREATE TABLE IF NOT EXISTS chunks (
+    id        INTEGER PRIMARY KEY AUTOINCREMENT,
+    doc_id    TEXT NOT NULL,
+    heading   TEXT NOT NULL,
+    text      TEXT NOT NULL,
+    vector    TEXT NOT NULL
+);
+"""
+
+
+def _cos(a: list[float], b: list[float]) -> float:
+    dot = sum(x * y for x, y in zip(a, b))
+    na = math.sqrt(sum(x * x for x in a)) or 1.0
+    nb = math.sqrt(sum(y * y for y in b)) or 1.0
+    return dot / (na * nb)
+
+
+class VectorStore:
+    def __init__(self, db_path: str | Path):
+        Path(db_path).parent.mkdir(parents=True, exist_ok=True)
+        self._conn = sqlite3.connect(str(db_path), check_same_thread=False)
+        self._conn.executescript(_SCHEMA)
+
+    def add(self, doc_id: str, heading: str, text: str, vector: list[float]) -> None:
+        self._conn.execute(
+            "INSERT INTO chunks (doc_id, heading, text, vector) VALUES (?, ?, ?, ?)",
+            (doc_id, heading, text, json.dumps(vector)),
+        )
+        self._conn.commit()
+
+    def search(self, query_vec: list[float], top_k: int = 3) -> list[dict]:
+        rows = self._conn.execute("SELECT doc_id, heading, text, vector FROM chunks").fetchall()
+        scored = [
+            {"doc_id": r[0], "heading": r[1], "text": r[2], "score": _cos(query_vec, json.loads(r[3]))}
+            for r in rows
+        ]
+        return sorted(scored, key=lambda x: x["score"], reverse=True)[:top_k]
+```
+
+**验证**
+
+```bash
+uv run python -c "
+from myagentflow.knowledge.vector_store import VectorStore
+s = VectorStore('/tmp/myaf-vec.sqlite')
+s.add('d1','A','猫喜欢鱼',[1,0]); s.add('d1','B','狗喜欢骨头',[0,1])
+print(s.search([1,0], 1))
+"
+```
+
+### Step 2　写测试：同一向量排第一
+**文件**：`tests/chapters/test_ch05_02_vector.py（新建）`
+**要写的逻辑**：查询向量与某块完全一致时，该块 score≈1 且排第一。
+
+**代码**
+
+```python
+from __future__ import annotations
+
+
+def test_top1(tmp_path):
+    from myagentflow.knowledge.vector_store import VectorStore
+
+    s = VectorStore(tmp_path / "v.sqlite")
+    s.add("d1", "A", "猫", [1.0, 0.0])
+    s.add("d1", "B", "狗", [0.0, 1.0])
+    top = s.search([1.0, 0.0], top_k=1)[0]
+    assert top["text"] == "猫" and abs(top["score"] - 1.0) < 1e-6
+```
+
+**验证**
+
+```bash
+uv run pytest tests/chapters/test_ch05_02_vector.py -v
+# 期望：1 passed
+```
+
+### 与 EvoFlow 对照
+
+| 我们的做法 | EvoFlow | 为什么 |
+|---|---|---|
+| 向量存 TEXT | `knowledge/` 的向量表 | 先跑通，别为规模提前上库 |
+| 余弦 + top_k | 检索入口 | 归一化后才可比 |
+
+### 知识点
+
+- agent-book：Embedding 与相似度
+- Harbor404：检索召回率
+
+### 验收
+
+```bash
+uv run pytest tests/chapters/test_ch05_02_vector.py -q
+```

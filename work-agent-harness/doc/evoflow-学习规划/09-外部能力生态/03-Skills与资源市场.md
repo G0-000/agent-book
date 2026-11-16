@@ -92,3 +92,90 @@ match(query): 描述关键词 + 语义 → top1 → 读正文 → 注入
 ## 对照 EvoFlow 核对清单
 - [ ] `skills/selection.py` 的匹配算法
 - [ ] `skillhub_pack.py` 的包格式
+
+## 从零实现（手把手）
+> 读完这章你能把「技能包」做成可安装的目录：manifest + 入口 + 版本，安装时校验。
+> 路径均相对 `backend/`，代码注释写「为什么」。
+
+### Step 1　新建 registry.py：manifest 校验 + 安装
+**文件**：`packages/harness/myagentflow/skills/registry.py（新建）`
+**要写的逻辑**：`manifest.json` 至少要有 name/version/entry；安装时检查重名与版本格式，缺字段直接拒绝。
+
+**代码**
+
+```python
+"""技能包注册：manifest 校验 + 安装列表。
+
+为什么安装时就校验：坏包在运行时才炸，用户看到的是「Agent 突然不能用了」，
+很难联想到是某个技能包的问题。
+"""
+from __future__ import annotations
+
+import json
+import re
+from dataclasses import dataclass
+from pathlib import Path
+
+_VER = re.compile(r"^\d+\.\d+\.\d+$")
+
+
+@dataclass(frozen=True)
+class Manifest:
+    name: str
+    version: str
+    entry: str
+
+
+def read_manifest(pkg_dir: Path) -> Manifest:
+    data = json.loads((pkg_dir / "manifest.json").read_text(encoding="utf-8"))
+    for key in ("name", "version", "entry"):
+        if not data.get(key):
+            raise ValueError(f"manifest 缺少字段：{key}")
+    if not _VER.match(data["version"]):
+        raise ValueError(f"版本号不合法：{data['version']}（应为 x.y.z）")
+    return Manifest(data["name"], data["version"], data["entry"])
+
+
+class SkillRegistry:
+    def __init__(self) -> None:
+        self._installed: dict[str, Manifest] = {}
+
+    def install(self, pkg_dir: Path) -> Manifest:
+        m = read_manifest(pkg_dir)
+        if m.name in self._installed:
+            raise ValueError(f"技能已安装：{m.name}（升级请走 upgrade）")
+        self._installed[m.name] = m
+        return m
+
+    def list(self) -> list[dict]:
+        return [{"name": m.name, "version": m.version} for m in self._installed.values()]
+```
+
+**验证**
+
+```bash
+uv run python -c "
+import json, pathlib, tempfile
+from myagentflow.skills.registry import SkillRegistry
+d = pathlib.Path(tempfile.mkdtemp()); (d/'manifest.json').write_text(json.dumps({'name':'pdf','version':'1.0.0','entry':'m:f'}))
+r = SkillRegistry(); print(r.install(d), r.list())
+"
+```
+
+### 与 EvoFlow 对照
+
+| 我们的做法 | EvoFlow | 为什么 |
+|---|---|---|
+| manifest 三字段必填 | `skills/` 的包结构 | 缺 entry 时装载器根本不知道调什么 |
+| 版本号强校验 | 同文件 | 版本乱写会让升级逻辑失效 |
+
+### 知识点
+
+- agent-book：技能包与市场
+- Harbor404：依赖与版本治理
+
+### 验收
+
+```bash
+uv run python -c "from myagentflow.skills.registry import SkillRegistry; print('ok')"
+```

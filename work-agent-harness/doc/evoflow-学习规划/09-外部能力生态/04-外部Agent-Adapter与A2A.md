@@ -81,3 +81,75 @@ tasks(task_id, peer_id, state, artifacts[], updated_at)
 ## 对照 EvoFlow 核对清单
 - [ ] `agent_card.py` 的字段
 - [ ] `orchestrator.py` 的调度策略
+
+## 从零实现（手把手）
+> 读完这章你能把「外部 Agent」包装成内部可调用的子代理：输入转协议、输出转摘要。
+> 路径均相对 `backend/`，代码注释写「为什么」。
+
+### Step 1　新建 adapter.py：协议转换 + 超时
+**文件**：`packages/harness/myagentflow/subagents/adapter.py（新建）`
+**要写的逻辑**：`adapter` 只负责三件事：拼请求、发请求（带超时）、把响应转成 `summarize()` 能吃的文本。
+
+**代码**
+
+```python
+"""外部 Agent 适配：把 A2A 响应变成内部子代理结果。
+
+为什么单独一层：外部协议随时会变，变化只该影响这个文件，
+不该渗透到计划执行、记忆写入这些内部模块。
+"""
+from __future__ import annotations
+
+import json
+from dataclasses import dataclass
+from typing import Any
+
+from myagentflow.subagents.summarize import summarize
+
+
+@dataclass(frozen=True)
+class ExternalAgent:
+    name: str
+    endpoint: str
+    timeout: float = 30.0
+
+
+def to_request(task: str, context: dict[str, Any] | None = None) -> dict[str, Any]:
+    return {"task": task, "context": context or {}}
+
+
+def to_summary(agent: ExternalAgent, raw: dict[str, Any]) -> str:
+    if "error" in raw:
+        return summarize(agent.name, str(raw["error"]), ok=False)
+    text = raw.get("result") or raw.get("content") or json.dumps(raw, ensure_ascii=False)
+    return summarize(agent.name, str(text), ok=True)
+```
+
+**验证**
+
+```bash
+uv run python -c "
+from myagentflow.subagents.adapter import ExternalAgent, to_request, to_summary
+a = ExternalAgent('remote','http://x')
+print(to_request('查天气', {'city':'信阳'}))
+print(to_summary(a, {'result':'晴'}))
+"
+```
+
+### 与 EvoFlow 对照
+
+| 我们的做法 | EvoFlow | 为什么 |
+|---|---|---|
+| 适配层只做协议转换 | `subagents/` 的外部适配 | 协议变化不该污染内部模块 |
+| 错误也走 summarize | 同文件 | 失败要能回填主对话 |
+
+### 知识点
+
+- agent-book：A2A 与多 Agent
+- Harbor404：外部依赖超时
+
+### 验收
+
+```bash
+uv run python -c "from myagentflow.subagents.adapter import to_request; print('ok')"
+```

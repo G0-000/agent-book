@@ -95,3 +95,94 @@ usage(run_id, model, prompt_tokens, completion_tokens, cost, ts)
 ## 对照 EvoFlow 核对清单
 - [ ] `latency_waterfall.py` 的阶段划分
 - [ ] `usage_ledger.py` 的记账粒度
+
+## 从零实现（手把手）
+> 读完这章你能给每次运行记一条 trace：耗时、token、工具调用数，出问题能按 id 查。
+> 路径均相对 `backend/`，代码注释写「为什么」。
+
+### Step 1　新建 trace.py：span + 汇总
+**文件**：`packages/harness/myagentflow/observability/trace.py（新建）`
+**要写的逻辑**：`Span` 记录开始/结束；`Trace` 聚合子 span，输出一条 JSON；关键字段固定，方便日志检索。
+
+**代码**
+
+```python
+"""Trace：一次运行的耗时与成本。
+
+为什么不用 print 调试：线上没有 stdout，
+trace 必须能以结构化字段落到日志/表里，才能按 run_id 追。
+"""
+from __future__ import annotations
+
+import json
+import time
+from contextlib import contextmanager
+from dataclasses import dataclass, field
+
+
+@dataclass
+class Span:
+    name: str
+    start: float = field(default_factory=time.time)
+    end: float | None = None
+    meta: dict = field(default_factory=dict)
+
+    @property
+    def ms(self) -> float:
+        return ((self.end or time.time()) - self.start) * 1000
+
+
+@dataclass
+class Trace:
+    run_id: str
+    spans: list[Span] = field(default_factory=list)
+    tokens: int = 0
+
+    @contextmanager
+    def span(self, name: str, **meta):
+        s = Span(name=name, meta=meta)
+        try:
+            yield s
+        finally:
+            s.end = time.time()
+            self.spans.append(s)
+
+    def add_tokens(self, n: int) -> None:
+        self.tokens += n
+
+    def dump(self) -> str:
+        return json.dumps({
+            "run_id": self.run_id,
+            "tokens": self.tokens,
+            "spans": [{"name": s.name, "ms": round(s.ms, 1), **s.meta} for s in self.spans],
+        }, ensure_ascii=False)
+```
+
+**验证**
+
+```bash
+uv run python -c "
+from myagentflow.observability.trace import Trace
+t = Trace('r1')
+with t.span('model', tool='none'): pass
+t.add_tokens(120); print(t.dump())
+"
+```
+
+### 与 EvoFlow 对照
+
+| 我们的做法 | EvoFlow | 为什么 |
+|---|---|---|
+| span 结构化落盘 | `observability/` 的 trace | 线上没有 stdout |
+| tokens 单独累计 | 同文件 | 成本要能按 run 汇总 |
+
+### 知识点
+
+- Harbor404：可观测性与成本
+- agent-book：日志设计
+
+### 验收
+
+```bash
+uv run python -c "from myagentflow.observability.trace import Trace; print(Trace('x').dump())"
+```

@@ -94,3 +94,127 @@
 - [ ] `cua_bridge` 的 PowerShell 脚本清单与权限要求（未读）
 - [ ] `browser_stream.py` 的流式截图策略
 - [ ] `cua_helper.py` 支持的动作集合
+
+## 从零实现（手把手）
+> 读完这章你能把「长时间运行的命令」和「需要鉴权的桥接调用」做出来：进程可查、token 不对就 403。
+> 路径均相对 `backend/`，代码注释写「为什么」。
+
+### Step 1　新建后台命令管理：三入口 + 404/409
+**文件**：`packages/harness/myagentflow/tools/host_direct/background_bash.py（新建）`
+**要写的逻辑**：`start` 起子进程并登记；`poll` 不存在给 404、未在运行给 409；`kill` 幂等。
+
+**代码**
+
+```python
+"""后台命令：启动、查询、终止。
+
+为什么 poll 要区分 404/409：
+404 = 你问的这个 id 我从没见过（客户端 bug）；
+409 = 见过但已经退出（正常的生命周期结束）。两者混在一起就没法排查。
+"""
+from __future__ import annotations
+
+import subprocess
+from dataclasses import dataclass, field
+from typing import Any
+
+
+@dataclass
+class BgProc:
+    proc: subprocess.Popen
+    stdout_path: str
+    _log: list[str] = field(default_factory=list)
+
+
+class BgManager:
+    def __init__(self) -> None:
+        self._procs: dict[str, BgProc] = {}
+
+    def start(self, cmd: str, stdout_path: str) -> str:
+        import uuid
+
+        run_id = uuid.uuid4().hex[:8]
+        proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        self._procs[run_id] = BgProc(proc=proc, stdout_path=stdout_path)
+        return run_id
+
+    def poll(self, run_id: str) -> dict[str, Any]:
+        rec = self._procs.get(run_id)
+        if rec is None:
+            raise LookupError("no such background process")     # → 404
+        if rec.proc.poll() is None:
+            return {"status": "running", "pid": rec.proc.pid, "stdout": rec.stdout_path}
+        return {"status": "exited", "code": rec.proc.returncode}  # → 409 语义
+
+    def kill(self, run_id: str) -> None:
+        rec = self._procs.get(run_id)
+        if rec is None:
+            raise LookupError("no such background process")
+        if rec.proc.poll() is None:
+            rec.proc.terminate()
+```
+
+**验证**
+
+```bash
+uv run python -c "
+from myagentflow.tools.host_direct.background_bash import BgManager
+m = BgManager(); rid = m.start('sleep 2', '/tmp/bg.log')
+print(m.poll(rid)['status'])
+"
+```
+
+### Step 2　新建桥接鉴权：token 比对 + 常量时间
+**文件**：`packages/harness/myagentflow/tools/host_direct/bridge_auth.py（新建）`
+**要写的逻辑**：token 从环境变量注入；比较用 `secrets.compare_digest`，防止时序侧信道。
+
+**代码**
+
+```python
+"""桥接鉴权：浏览器桥 / CUA 桥共用的 token 校验。
+
+为什么不用 ==：字符串比较会在第一个不同字符处提前返回，
+攻击者能靠响应时间逐位猜出 token。
+"""
+from __future__ import annotations
+
+import hmac
+import os
+
+BRIDGE_TOKEN_ENV = "MYAF_BRIDGE_TOKEN"
+
+
+def verify_bridge_token(provided: str | None) -> bool:
+    expected = os.getenv(BRIDGE_TOKEN_ENV, "")
+    if not expected or not provided:
+        return False          # 没配 token 一律拒绝，不能「没配就放行」
+    return hmac.compare_digest(provided, expected)
+```
+
+**验证**
+
+```bash
+MYAF_BRIDGE_TOKEN=abc uv run python -c "
+from myagentflow.tools.host_direct.bridge_auth import verify_bridge_token
+print(verify_bridge_token('abc'), verify_bridge_token('abd'), verify_bridge_token(None))
+"
+# 期望：True False False
+```
+
+### 与 EvoFlow 对照
+
+| 我们的做法 | EvoFlow | 为什么 |
+|---|---|---|
+| 404 / 409 语义分开 | `app/gateway/routers/background_bash.py`（50 行） | 客户端 bug 与正常退出必须能区分 |
+| `_bridge_token_guard` → `verify_bridge_token` | `browser_bridge.py` / `cua_bridge.py` | 桥没有 token 等于任意本机进程都能调 |
+
+### 知识点
+
+- [agent-book](https://g0-000.github.io/agent-book/)：工具与进程管理
+- Harbor404：进程泄漏与端口占用排查
+
+### 验收
+
+```bash
+uv run python -c "from myagentflow.tools.host_direct.bridge_auth import verify_bridge_token; print('ok')"
+```

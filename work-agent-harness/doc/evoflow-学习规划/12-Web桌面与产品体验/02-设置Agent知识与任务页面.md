@@ -81,3 +81,86 @@ PUT /settings → 校验 → 落库 → 发布变更事件
 ## 对照 EvoFlow 核对清单
 - [ ] `panel_settings.py` 的 schema 结构
 - [ ] `models/factory.py` 的模型热切换
+
+## 从零实现（手把手）
+> 读完这章你能做设置页：改模型、开关记忆、看任务历史，改动立刻生效（不重启）。
+> 路径均相对 `backend/`，代码注释写「为什么」。
+
+### Step 1　新建 settings.py 路由：读 + 写 + 热生效
+**文件**：`app/gateway/routers/settings.py（新建）`
+**要写的逻辑**：`GET` 返回脱敏配置（不返回 api_key）；`PUT` 只允许改白名单字段；改完清一次 checkpointer 单例，让新配置生效。
+
+**代码**
+
+```python
+"""设置页接口：读配置（脱敏）、改配置（白名单）、热生效。"""
+from __future__ import annotations
+
+import os
+
+from fastapi import APIRouter
+from pydantic import BaseModel
+
+router = APIRouter()
+
+_ALLOWED = {"MYAF_MODEL_NAME", "MYAF_MODEL_BASE_URL", "MYAF_CHECKPOINTER"}
+
+
+class SettingsIn(BaseModel):
+    values: dict[str, str]
+
+
+@router.get("/settings")
+def read_settings() -> dict:
+    from myagentflow.config.settings import load_config
+
+    cfg = load_config()
+    return {
+        "model": {"provider": cfg.model.provider, "name": cfg.model.name,
+                  "base_url": cfg.model.base_url, "api_key": "***" if cfg.model.api_key else None},
+        "checkpointer": cfg.checkpointer,
+    }
+
+
+@router.put("/settings")
+def write_settings(body: SettingsIn) -> dict:
+    changed = {}
+    for key, value in body.values.items():
+        if key not in _ALLOWED:
+            raise ValueError(f"不允许修改：{key}")     # 白名单：防止改 PATH 之类
+        os.environ[key] = value
+        changed[key] = value
+
+    from myagentflow.agents.checkpointer.provider import reset_checkpointer
+
+    reset_checkpointer()          # 配置变了：让下次 get_checkpointer() 重建
+    return {"changed": changed}
+```
+
+**验证**
+
+```bash
+curl -s localhost:8070/api/settings
+curl -s -X PUT localhost:8070/api/settings -H 'content-type: application/json' \
+  -d '{"values":{"MYAF_MODEL_NAME":"gpt-4o"}}'
+# 期望：第一次返回脱敏配置；第二次返回 changed
+```
+
+### 与 EvoFlow 对照
+
+| 我们的做法 | EvoFlow | 为什么 |
+|---|---|---|
+| 读时脱敏 api_key | `webui/` 的设置接口 | 设置页不该把密钥回显 |
+| 写时白名单 | 同文件 | 任意环境变量可写等于本机任意代码执行 |
+| 改完 reset 单例 | 同文件 | 不 reset 新配置不生效 |
+
+### 知识点
+
+- Harbor404：配置热更新的坑
+- agent-book：设置页设计
+
+### 验收
+
+```bash
+curl -s localhost:8070/api/settings
+```

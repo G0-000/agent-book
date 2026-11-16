@@ -86,3 +86,126 @@ query: name = "run" → 精确 → 前缀 → FTS
 ## 对照 EvoFlow 核对清单
 - [ ] `code_index/store.py` 的表结构与 FTS5 用法
 - [ ] LSP 与 tree-sitter 的降级策略
+
+## 从零实现（手把手）
+> 读完这章你能用 `ast` 扫出自己的代码地图：模块、类、函数、行号，供 Agent 精确跳转。
+> 路径均相对 `backend/`，代码注释写「为什么」。
+
+### Step 1　新建 store.py：ast 遍历 + 落表
+**文件**：`packages/harness/myagentflow/code_index/store.py（新建）`
+**要写的逻辑**：只索引定义（模块/类/函数/方法），不索引语句；存 `path, kind, name, line`，供「跳到哪一行」用。
+
+**代码**
+
+```python
+"""代码索引：用 ast 抽符号，不靠正则。
+
+为什么必须用 ast：注释里的 `def foo` 和字符串里的 `class Bar` 会骗过正则，
+索引一旦有两成错，Agent 就会跳到不存在的行。
+"""
+from __future__ import annotations
+
+import ast
+import sqlite3
+from pathlib import Path
+
+_SCHEMA = """
+CREATE TABLE IF NOT EXISTS symbols (
+    path TEXT NOT NULL,
+    kind TEXT NOT NULL,
+    name TEXT NOT NULL,
+    line INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_symbols_name ON symbols(name);
+"""
+
+
+def index_file(py_path: Path) -> list[tuple[str, str, str, int]]:
+    tree = ast.parse(py_path.read_text(encoding="utf-8"), filename=str(py_path))
+    path = str(py_path)
+    out: list[tuple[str, str, str, int]] = [(path, "module", py_path.stem, 1)]
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            out.append((path, "function", node.name, node.lineno))
+        elif isinstance(node, ast.ClassDef):
+            out.append((path, "class", node.name, node.lineno))
+    return out
+
+
+class CodeIndex:
+    def __init__(self, db_path: str | Path):
+        Path(db_path).parent.mkdir(parents=True, exist_ok=True)
+        self._conn = sqlite3.connect(str(db_path), check_same_thread=False)
+        self._conn.executescript(_SCHEMA)
+
+    def add_file(self, py_path: Path) -> int:
+        rows = index_file(py_path)
+        self._conn.executemany("INSERT INTO symbols VALUES (?, ?, ?, ?)", rows)
+        self._conn.commit()
+        return len(rows)
+
+    def find(self, name: str) -> list[dict]:
+        rows = self._conn.execute(
+            "SELECT path, kind, line FROM symbols WHERE name=? ORDER BY path, line", (name,)
+        ).fetchall()
+        return [{"path": r[0], "kind": r[1], "line": r[2]} for r in rows]
+```
+
+**验证**
+
+```bash
+uv run python -c "
+from pathlib import Path
+from myagentflow.code_index.store import CodeIndex
+i = CodeIndex('/tmp/myaf-code.sqlite'); print(i.add_file(Path('packages/harness/myagentflow/code_index/store.py')))
+print(i.find('index_file'))
+"
+```
+
+### Step 2　写测试：类与函数都能找到，行号对得上
+**文件**：`tests/chapters/test_ch05_04_code_index.py（新建）`
+**要写的逻辑**：临时写一个样例 py，索引后按名字查，行号必须有值。
+
+**代码**
+
+```python
+from __future__ import annotations
+
+
+def test_index(tmp_path):
+    from myagentflow.code_index.store import CodeIndex
+
+    src = tmp_path / "demo.py"
+    src.write_text("class A:\n    def m(self):\n        pass\n\ndef f():\n    pass\n", encoding="utf-8")
+
+    idx = CodeIndex(tmp_path / "c.sqlite")
+    idx.add_file(src)
+    assert idx.find("A")[0]["line"] == 1
+    assert idx.find("m")[0]["kind"] == "function"
+    assert idx.find("f")[0]["line"] == 5
+```
+
+**验证**
+
+```bash
+uv run pytest tests/chapters/test_ch05_04_code_index.py -v
+# 期望：1 passed
+```
+
+### 与 EvoFlow 对照
+
+| 我们的做法 | EvoFlow | 为什么 |
+|---|---|---|
+| `ast.walk` 抽定义 | `code_index/store.py` | 正则会被注释/字符串骗 |
+| 存 path/kind/name/line | 同文件 | 少 line 就没法跳转 |
+
+### 知识点
+
+- agent-book：代码索引与符号检索
+- Harbor404：大仓索引的增量策略
+
+### 验收
+
+```bash
+uv run pytest tests/chapters/test_ch05_04_code_index.py -q
+```

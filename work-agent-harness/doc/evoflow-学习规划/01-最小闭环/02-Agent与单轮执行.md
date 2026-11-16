@@ -124,3 +124,129 @@ class Agent:
 - [ ] EvoFlow 中「Agent 角色」的数据结构（岗位、提示词、工具集、模型绑定）
 - [ ] run / task / thread 三个概念在 EvoFlow 里的边界
 - [ ] 错误事件的字段与分类
+
+## 从零实现（手把手）
+> 读完这章你能编译出第一张 LangGraph 图：输入一条消息，返回一条回复——没有工具、没有循环，只有一条边。
+> 路径均相对 `backend/`，代码注释写「为什么」。
+
+### Step 1　新建 graph.py：一个节点、两条边
+**文件**：`packages/harness/myagentflow/agents/lead_agent/graph.py（新建）`
+**要写的逻辑**：用 `MessagesState` 做状态；节点只负责把历史消息交给模型；checkpointer 允许为空（先不接持久化）。
+
+**代码**
+
+```python
+"""最小 Agent：一个节点 + 两条边。
+
+刻意不做工具循环：先把「单轮」跑通，后面每章只在这张图上加节点/加边。
+"""
+from __future__ import annotations
+
+from typing import Any
+
+from langgraph.graph import END, START, MessagesState, StateGraph
+
+
+def build_graph(model: Any, checkpointer: Any = None):
+    graph = StateGraph(MessagesState)
+
+    def call_model(state: MessagesState):
+        # 唯一职责：把当前历史交给模型，把回复塞回 messages
+        reply = model.invoke(state["messages"])
+        return {"messages": [reply]}
+
+    graph.add_node("call_model", call_model)
+    graph.add_edge(START, "call_model")
+    graph.add_edge("call_model", END)
+
+    # checkpointer 允许 None：本章先不落盘，02/01 再注入
+    return graph.compile(checkpointer=checkpointer)
+```
+
+**验证**
+
+```bash
+uv run python -c "from myagentflow.agents.lead_agent.graph import build_graph; print('import ok')"
+```
+
+### Step 2　用假模型跑通一条消息
+**文件**：`tests/chapters/test_ch01_02_graph.py（新建）`
+**要写的逻辑**：假模型只实现 `invoke`，这样测试不花 token、不依赖网络。
+
+**代码**
+
+```python
+from __future__ import annotations
+
+from langchain_core.messages import AIMessage, HumanMessage
+
+
+class EchoModel:
+    """假模型：不联网，只回显。测试里所有「模型」都该长这样。"""
+
+    def invoke(self, messages, *_args, **_kwargs):
+        return AIMessage(content="echo: " + messages[-1].content)
+
+
+def test_single_turn():
+    from myagentflow.agents.lead_agent.graph import build_graph
+
+    graph = build_graph(EchoModel())
+    out = graph.invoke({"messages": [HumanMessage(content="你好")]})
+    assert out["messages"][-1].content == "echo: 你好"
+```
+
+**验证**
+
+```bash
+uv run pytest tests/chapters/test_ch01_02_graph.py -v
+# 期望：1 passed
+```
+
+### Step 3　接上 checkpointer，验证「同 thread 能续上」
+**文件**：`tests/chapters/test_ch01_02_graph.py（追加用例）`
+**要写的逻辑**：两次 invoke 用同一个 thread_id；第二次的历史里应包含第一轮的两条消息。
+
+**代码**
+
+```python
+def test_same_thread_keeps_history():
+    from langgraph.checkpoint.memory import InMemorySaver
+    from langchain_core.messages import HumanMessage
+
+    from myagentflow.agents.lead_agent.graph import build_graph
+
+    graph = build_graph(EchoModel(), InMemorySaver())
+    cfg = {"configurable": {"thread_id": "t1"}}
+
+    graph.invoke({"messages": [HumanMessage(content="一")]}, cfg)
+    out = graph.invoke({"messages": [HumanMessage(content="二")]}, cfg)
+
+    # 4 条 = 用户一、回复一、用户二、回复二；说明检查点真的在累积
+    assert len(out["messages"]) == 4
+```
+
+**验证**
+
+```bash
+uv run pytest tests/chapters/test_ch01_02_graph.py -v
+# 期望：2 passed
+```
+
+### 与 EvoFlow 对照
+
+| 我们的做法 | EvoFlow | 为什么 |
+|---|---|---|
+| `StateGraph(MessagesState)` | `lead_agent/agent.py` 的建图部分 | 消息列表就是最小状态 |
+| 单节点 `call_model` | 同文件 `call_model` 节点 | 先复刻主干，再叠中间件 |
+
+### 知识点
+
+- [agent-book · LangGraph 课程](https://g0-000.github.io/agent-book/langgraph/)：StateGraph / compile / checkpointer 三段
+- 本章的 `thread_id` 语义在 02/01 展开
+
+### 验收
+
+```bash
+uv run pytest tests/chapters/test_ch01_02_graph.py -q
+```

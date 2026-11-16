@@ -78,3 +78,121 @@ guard(input|output|tool, ctx) → pass | block(reason, rule_id) | redact
 ## 对照 EvoFlow 核对清单
 - [ ] `guardrails/provider.py` 的扩展接口
 - [ ] `oidc_config.py` 的必需字段
+
+## 从零实现（手把手）
+> 读完这章你能自己校验 JWT（不引库）：验签、验过期、验 issuer，任何一项不过就拒。
+> 路径均相对 `backend/`，代码注释写「为什么」。
+
+### Step 1　新建 jwt.py：HS256 验签 + 声明校验
+**文件**：`packages/harness/myagentflow/authz/jwt.py（新建）`
+**要写的逻辑**：base64url 解码 → `hmac.compare_digest` 验签 → 校验 `exp` / `iss` / `aud`；顺序不能反，先验签再读声明。
+
+**代码**
+
+```python
+"""JWT 校验：HS256，手写。
+
+为什么不用现成库：这一步要理解「先验签再读 payload」这件事，
+顺序反了等于相信未经验证的内容。
+"""
+from __future__ import annotations
+
+import base64
+import hashlib
+import hmac
+import json
+import time
+
+
+def _b64d(part: str) -> bytes:
+    pad = "=" * (-len(part) % 4)
+    return base64.urlsafe_b64decode(part + pad)
+
+
+def verify(token: str, secret: str, audience: str, issuer: str,
+           now: float | None = None) -> dict:
+    try:
+        head_b64, body_b64, sig_b64 = token.split(".")
+    except ValueError as exc:
+        raise ValueError("token 结构不合法") from exc
+
+    expected = hmac.new(secret.encode(), f"{head_b64}.{body_b64}".encode(), hashlib.sha256).digest()
+    if not hmac.compare_digest(_b64d(sig_b64), expected):
+        raise ValueError("签名不匹配")
+
+    claims = json.loads(_b64d(body_b64))
+    now = now or time.time()
+    if claims.get("exp") and now > claims["exp"]:
+        raise ValueError("token 已过期")
+    if claims.get("aud") != audience:
+        raise ValueError("audience 不匹配")
+    if claims.get("iss") != issuer:
+        raise ValueError("issuer 不匹配")
+    return claims
+```
+
+**验证**
+
+```bash
+uv run python -c "
+import base64, hashlib, hmac, json, time
+def b64(o): return base64.urlsafe_b64encode(json.dumps(o).encode()).decode().rstrip('=')
+h, b = b64({'alg':'HS256'}), b64({'sub':'u1','aud':'myaf','iss':'myaf','exp':time.time()+60})
+sig = base64.urlsafe_b64encode(hmac.new(b'k', f'{h}.{b}'.encode(), hashlib.sha256).digest()).decode().rstrip('=')
+from myagentflow.authz.jwt import verify
+print(verify(f'{h}.{b}.{sig}', 'k', 'myaf', 'myaf')['sub'])
+"
+```
+
+### Step 2　写测试：篡改 payload 必失败
+**文件**：`tests/chapters/test_ch11_02_jwt.py（新建）`
+**要写的逻辑**：改一位 payload 后验签失败；过期 token 报错。
+
+**代码**
+
+```python
+from __future__ import annotations
+
+import pytest
+
+
+def test_tamper_detected():
+    from tests.chapters.helpers_jwt import make_token
+    from myagentflow.authz.jwt import verify
+
+    good = make_token(sub="u1", exp_offset=60)
+    claims = verify(good, "k", "myaf", "myaf")
+    assert claims["sub"] == "u1"
+
+    bad = good[:-2] + ("aa" if good[-2:] != "aa" else "bb")
+    with pytest.raises(ValueError):
+        verify(bad, "k", "myaf", "myaf")
+
+    with pytest.raises(ValueError):
+        verify(make_token(sub="u1", exp_offset=-10), "k", "myaf", "myaf")
+```
+
+**验证**
+
+```bash
+uv run pytest tests/chapters/test_ch11_02_jwt.py -v
+# 期望：1 passed（helpers_jwt 见同目录）
+```
+
+### 与 EvoFlow 对照
+
+| 我们的做法 | EvoFlow | 为什么 |
+|---|---|---|
+| 先验签再读声明 | `authz/` 的 JWT 校验 | 顺序反了等于信任未验签内容 |
+| exp/aud/iss 三项都查 | 同文件 | 只查 exp 会接受别的服务发的 token |
+
+### 知识点
+
+- agent-book：认证与 OIDC
+- Harbor404：token 泄露与轮换
+
+### 验收
+
+```bash
+uv run pytest tests/chapters/test_ch11_02_jwt.py -q
+```

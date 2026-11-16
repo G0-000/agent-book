@@ -51,3 +51,60 @@ sidecar: spawn backend → 等 health ready（超时 30s）→ 连接
 ## 对照 EvoFlow 核对清单
 - [ ] `src-tauri` 的 capability 清单
 - [ ] `packaging/` 各平台产物差异
+
+## 从零实现（手把手）
+> 读完这章你知道 Tauri 外壳要配什么，以及为什么它属于「仅解释、不复刻」。
+> 路径均相对 `backend/`，代码注释写「为什么」。
+
+### Step 1　新建 tauri.conf.json：只配最小字段
+**文件**：`src-tauri/tauri.conf.json（新建，示例配置，不在本章实现）`
+**要写的逻辑**：Tauri 是薄壳：窗口 + 一个指向本地网关的 URL；权限用 allowlist 收紧，麦克风要单列。
+
+**代码**
+
+```python
+{
+  "build": {
+    "devUrl": "http://localhost:8070/webui/static/index.html",
+    "frontendDist": "../app/webui/static"
+  },
+  "app": {
+    "windows": [{"title": "my-agent-flow", "width": 1100, "height": 760}],
+    "security": {"csp": "default-src 'self' http://localhost:8070"}
+  },
+  "bundle": {"identifier": "dev.myaf.app", "active": true},
+  "plugins": {
+    "shell": {"open": false},
+    "dialog": {"open": true},
+    "microphone": {"enabled": true}
+  }
+}
+```
+
+**验证**
+
+```bash
+# 本章只解释配置，不构建：
+python3 -c "import json;json.load(open('src-tauri/tauri.conf.json'));print('json ok')"
+# 期望：json ok
+```
+
+### 与 EvoFlow 对照
+
+| 我们的做法 | EvoFlow | 为什么 |
+|---|---|---|
+| 前端资源走本地网关 | `src-tauri` 配置 | 壳只负责窗口，业务全在后端 |
+| allowlist 收紧 | 同文件 plugins | 默认全开等于把本机交给网页 |
+
+### 知识点
+
+- [agent-book](https://g0-000.github.io/agent-book/)：桌面壳
+- Harbor404：桌面端发布
+
+> **范围标记：B（仅解释）**。Tauri 打包不复刻，本章只说明配置项与权限边界。
+
+### 验收
+
+```bash
+python3 -c "import json;json.load(open('src-tauri/tauri.conf.json'));print('ok')"
+```

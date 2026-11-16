@@ -79,3 +79,89 @@ license(codec, machine_fp, issued_at, revoked)
 ## 对照 EvoFlow 核对清单
 - [ ] `license/codec.py` 的签名/编码方式
 - [ ] `entitlements.py` 的功能清单
+
+## 从零实现（手把手）
+> 读完这章你能做一份「离线许可」：内容 + 签名，校验不过就不开功能。
+> 路径均相对 `backend/`，代码注释写「为什么」。
+
+### Step 1　新建 license.py：签发 + 验签 + 功能位
+**文件**：`packages/harness/myagentflow/authz/license.py（新建）`
+**要写的逻辑**：payload 里放 `features` 与 `expires`；验签用 HMAC；`has_feature()` 同时查有效期，过期一律 False。
+
+**代码**
+
+```python
+"""离线许可：签名内容 + 功能位。
+
+为什么许可要签名：许可文件会被用户改，
+不签名的 JSON 等于把「企业版」写在明文里等别人改。
+"""
+from __future__ import annotations
+
+import base64
+import hashlib
+import hmac
+import json
+import time
+
+
+def _sign(payload: str, key: str) -> str:
+    return base64.urlsafe_b64encode(
+        hmac.new(key.encode(), payload.encode(), hashlib.sha256).digest()
+    ).decode().rstrip("=")
+
+
+def issue(features: list[str], days: int, key: str) -> str:
+    payload = base64.urlsafe_b64encode(
+        json.dumps({"features": features, "expires": time.time() + days * 86400}).encode()
+    ).decode().rstrip("=")
+    return f"{payload}.{_sign(payload, key)}"
+
+
+def parse(lic: str, key: str, now: float | None = None) -> dict:
+    try:
+        payload, sig = lic.split(".")
+    except ValueError as exc:
+        raise ValueError("许可格式不合法") from exc
+    if not hmac.compare_digest(_sign(payload, key), sig):
+        raise ValueError("许可签名不匹配")
+    data = json.loads(base64.urlsafe_b64decode(payload + "=" * (-len(payload) % 4)))
+    if (now or time.time()) > data["expires"]:
+        raise ValueError("许可已过期")
+    return data
+
+
+def has_feature(lic: str, key: str, feature: str, now: float | None = None) -> bool:
+    try:
+        return feature in parse(lic, key, now).get("features", [])
+    except ValueError:
+        return False          # 许可不可信：一律当没有
+```
+
+**验证**
+
+```bash
+uv run python -c "
+from myagentflow.authz.license import issue, has_feature
+lic = issue(['sso','audit'], 30, 'k')
+print(has_feature(lic,'k','sso'), has_feature(lic,'k','tauri'))
+"
+```
+
+### 与 EvoFlow 对照
+
+| 我们的做法 | EvoFlow | 为什么 |
+|---|---|---|
+| 许可=签名 JSON | `authz/` 的许可校验 | 明文许可一改就变企业版 |
+| 过期即全部关闭 | 同文件 has_feature | 过期后只关部分功能会让语义混乱 |
+
+### 知识点
+
+- Harbor404：许可与分发
+- agent-book：功能开关
+
+### 验收
+
+```bash
+uv run python -c "from myagentflow.authz.license import issue; print(issue(['a'],1,'k'))"
+```

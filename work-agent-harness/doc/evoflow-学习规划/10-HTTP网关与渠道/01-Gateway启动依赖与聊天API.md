@@ -98,3 +98,128 @@ middleware: trace_id → auth → rate_limit → route
 ## 对照 EvoFlow 核对清单
 - [ ] `startup_gate.py` 的就绪判定
 - [ ] `test_traffic_lanes.py` 的 lane 划分
+
+## 从零实现（手把手）
+> 读完这章你能起一个真正的 HTTP 网关：一个聊天接口，返回 SSE 流。
+> 路径均相对 `backend/`，代码注释写「为什么」。
+
+### Step 1　新建 main.py：装配路由与健康检查
+**文件**：`app/gateway/main.py（新建，路径相对 `backend/`）`
+**要写的逻辑**：`create_app()` 只做装配；健康检查要能反映「检查点能否打开」，否则重启后挂的是别的东西。
+
+**代码**
+
+```python
+"""网关入口：只做装配，不写业务。
+
+为什么健康检查要碰一下 checkpointer：
+进程活着但数据库打不开是最常见的「假健康」，
+只看 200 会让负载均衡一直往这台机器派活。
+"""
+from __future__ import annotations
+
+from fastapi import FastAPI
+
+
+def create_app() -> FastAPI:
+    from app.gateway.routers.chat import router as chat_router
+
+    app = FastAPI(title="my-agent-flow")
+    app.include_router(chat_router, prefix="/api")
+
+    @app.get("/health")
+    def health() -> dict[str, str]:
+        from myagentflow.agents.checkpointer.provider import get_checkpointer
+
+        try:
+            get_checkpointer()
+            db = "ok"
+        except Exception as exc:          # 数据库打不开：不是健康
+            db = f"error: {exc}"
+        return {"status": "ok" if db == "ok" else "degraded", "checkpointer": db}
+
+    return app
+
+
+app = create_app()
+```
+
+**验证**
+
+```bash
+uv run uvicorn app.gateway.main:app --port 8070
+# 另开终端：curl -s localhost:8070/health
+# 期望：{"status":"ok","checkpointer":"ok"}
+```
+
+### Step 2　新建 chat.py：SSE 流式接口
+**文件**：`app/gateway/routers/chat.py（新建）`
+**要写的逻辑**：`POST /api/chat` 收 `{thread_id, text}`；用 `StreamingResponse` 吐 SSE；`event_stream` 里必须处理客户端断开。
+
+**代码**
+
+```python
+"""聊天接口：一个 POST，一条 SSE 流。"""
+from __future__ import annotations
+
+from fastapi import APIRouter
+from fastapi.responses import StreamingResponse
+from pydantic import BaseModel
+
+router = APIRouter()
+
+
+class ChatIn(BaseModel):
+    thread_id: str = "default"
+    text: str
+
+
+@router.post("/chat")
+async def chat(body: ChatIn) -> StreamingResponse:
+    from langchain_core.messages import HumanMessage
+
+    from myagentflow.agents.lead_agent.graph import build_graph
+    from myagentflow.config.settings import load_config
+    from myagentflow.models.factory import build_chat_model
+    from myagentflow.runtime.streaming import stream_graph
+
+    graph = build_graph(build_chat_model(load_config().model))
+
+    async def gen():
+        # 断线时 StreamingResponse 会取消这个生成器，资源随 with 清理
+        async for chunk in stream_graph(
+            graph,
+            {"messages": [HumanMessage(content=body.text)]},
+            {"configurable": {"thread_id": body.thread_id}},
+        ):
+            yield chunk
+
+    return StreamingResponse(gen(), media_type="text/event-stream")
+```
+
+**验证**
+
+```bash
+curl -N -X POST localhost:8070/api/chat \
+  -H 'content-type: application/json' \
+  -d '{"thread_id":"t1","text":"你好"}'
+# 期望：event: token / event: done 交替输出
+```
+
+### 与 EvoFlow 对照
+
+| 我们的做法 | EvoFlow | 为什么 |
+|---|---|---|
+| 健康检查碰 checkpointer | `app/gateway/` 的健康检查 | 「进程活着但库打不开」是最常见假健康 |
+| 聊天返回 SSE | Gateway 的流式接口 | 一次性 JSON 会让用户等整轮跑完 |
+
+### 知识点
+
+- [agent-book](https://g0-000.github.io/agent-book/)：网关与流式
+- Harbor404：SSE 断线与重连
+
+### 验收
+
+```bash
+curl -s localhost:8070/health
+```

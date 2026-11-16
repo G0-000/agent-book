@@ -55,3 +55,101 @@ kb_doc(kb_id, doc_id); kb_node(node_id, kb_id, parent_id, title, ref_chunk_ids)
 ## 对照 EvoFlow 核对清单
 - [ ] `knowledge/owned/` 的存储形态
 - [ ] 知识地图生成管线（memory + knowledge 交汇）
+
+## 从零实现（手把手）
+> 读完这章你能把「自己的知识库」组织成一张地图：文档 → 标题树 → 块 id。
+> 路径均相对 `backend/`，代码注释写「为什么」。
+
+### Step 1　新建 map.py：文档树 + 块索引
+**文件**：`packages/harness/myagentflow/knowledge/map.py（新建）`
+**要写的逻辑**：`build_map()` 输出 `{doc_id: {heading: [chunk_id...]}}`；`describe()` 给模型看的概览，限制条数避免爆上下文。
+
+**代码**
+
+```python
+"""知识地图：文档 → 标题 → 块 id。
+
+为什么要地图：让模型先看「有哪些文档」，再决定检索哪一篇，
+比直接 top-k 更省 token，也更少答错文档。
+"""
+from __future__ import annotations
+
+from collections import defaultdict
+from typing import Iterable
+
+
+def build_map(items: Iterable[dict]) -> dict[str, dict[str, list[int]]]:
+    tree: dict[str, dict[str, list[int]]] = defaultdict(lambda: defaultdict(list))
+    for it in items:                       # it: {doc_id, heading, chunk_id}
+        tree[it["doc_id"]][it["heading"]].append(it["chunk_id"])
+    return {doc: dict(secs) for doc, secs in tree.items()}
+
+
+def describe(tree: dict[str, dict[str, list[int]]], max_docs: int = 5,
+             max_sections: int = 3) -> str:
+    lines = []
+    for doc, sections in list(tree.items())[:max_docs]:
+        count = sum(len(v) for v in sections.values())
+        names = list(sections)[:max_sections]
+        lines.append(f"- {doc}（{count} 块）：" + "、".join(names))
+    return "\n".join(lines)
+```
+
+**验证**
+
+```bash
+uv run python -c "
+from myagentflow.knowledge.map import build_map, describe
+tree = build_map([{'doc_id':'d1','heading':'A','chunk_id':1},{'doc_id':'d1','heading':'B','chunk_id':2}])
+print(describe(tree))
+"
+```
+
+### Step 2　写测试：结构正确 + 截断
+**文件**：`tests/chapters/test_ch05_03_map.py（新建）`
+**要写的逻辑**：两篇文档各自独立；`max_docs=1` 只输出一篇。
+
+**代码**
+
+```python
+from __future__ import annotations
+
+
+def test_map_and_describe():
+    from myagentflow.knowledge.map import build_map, describe
+
+    items = [
+        {"doc_id": "d1", "heading": "A", "chunk_id": 1},
+        {"doc_id": "d1", "heading": "A", "chunk_id": 2},
+        {"doc_id": "d2", "heading": "B", "chunk_id": 3},
+    ]
+    tree = build_map(items)
+    assert tree["d1"]["A"] == [1, 2]
+    assert "d1（2 块）" in describe(tree)
+    assert "d2" not in describe(tree, max_docs=1)
+```
+
+**验证**
+
+```bash
+uv run pytest tests/chapters/test_ch05_03_map.py -v
+# 期望：1 passed
+```
+
+### 与 EvoFlow 对照
+
+| 我们的做法 | EvoFlow | 为什么 |
+|---|---|---|
+| 文档 → 标题 → 块 id | `knowledge/` 的知识地图 | 先看目录再检索，省 token |
+| 概览要截断 | 地图描述 | 全量目录会占满上下文 |
+
+### 知识点
+
+- agent-book：Owned Knowledge 的组织方式
+- Harbor404：什么该进知识库
+
+### 验收
+
+```bash
+uv run pytest tests/chapters/test_ch05_03_map.py -q
+```

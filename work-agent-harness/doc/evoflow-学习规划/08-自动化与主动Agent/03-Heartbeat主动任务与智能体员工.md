@@ -73,3 +73,107 @@ gate: 判断 result 是否有新信息 + 是否超频 → send or record
 ## 对照 EvoFlow 核对清单
 - [ ] `decision_gate.py` 的判定维度
 - [ ] `departments.py` 的组织模型
+
+## 从零实现（手把手）
+> 读完这章你能让 Agent 每隔一段时间「自己看一眼」，但空闲时不烧 token。
+> 路径均相对 `backend/`，代码注释写「为什么」。
+
+### Step 1　新建 heartbeat.py：变化检测 + 节流
+**文件**：`packages/harness/myagentflow/automation/heartbeat.py（新建）`
+**要写的逻辑**：每轮只算「世界状态指纹」；指纹没变就跳过（不调模型）；变了才触发任务，并限制每小时最多 N 次。
+
+**代码**
+
+```python
+"""心跳：状态没变就别叫模型。
+
+为什么用指纹而不是时间：
+按时间触发的话，一切正常时也在烧 token；
+按指纹触发，只有「真的有变化」才动作。
+"""
+from __future__ import annotations
+
+import hashlib
+import time
+from dataclasses import dataclass, field
+
+
+def fingerprint(values: dict[str, str]) -> str:
+    raw = "|".join(f"{k}={values[k]}" for k in sorted(values))
+    return hashlib.sha256(raw.encode()).hexdigest()[:16]
+
+
+@dataclass
+class Heartbeat:
+    max_per_hour: int = 6
+    _last_fp: str | None = None
+    _events: list[float] = field(default_factory=list)
+
+    def should_run(self, state: dict[str, str], now: float | None = None) -> bool:
+        now = now or time.time()
+        fp = fingerprint(state)
+        if fp == self._last_fp:
+            return False                     # 没变化：省一次模型调用
+        self._events = [t for t in self._events if now - t < 3600]
+        if len(self._events) >= self.max_per_hour:
+            return False                     # 变化太频繁：节流
+        self._last_fp = fp
+        self._events.append(now)
+        return True
+```
+
+**验证**
+
+```bash
+uv run python -c "
+from myagentflow.automation.heartbeat import Heartbeat
+h = Heartbeat()
+print(h.should_run({'ci':'green'}), h.should_run({'ci':'green'}), h.should_run({'ci':'red'}))
+"
+```
+
+### Step 2　写测试：不变不跑 + 超频被拦
+**文件**：`tests/chapters/test_ch08_03_heartbeat.py（新建）`
+**要写的逻辑**：同状态第二次 False；连续 7 次变化只有 6 次通过。
+
+**代码**
+
+```python
+from __future__ import annotations
+
+
+def test_heartbeat():
+    from myagentflow.automation.heartbeat import Heartbeat
+
+    h = Heartbeat(max_per_hour=6)
+    assert h.should_run({"a": "1"}) is True
+    assert h.should_run({"a": "1"}) is False
+    for i in range(10):
+        h.should_run({"a": str(i)})       # 前 5 次通过，之后被节流
+    assert len(h._events) <= 6
+```
+
+**验证**
+
+```bash
+uv run pytest tests/chapters/test_ch08_03_heartbeat.py -v
+# 期望：1 passed
+```
+
+### 与 EvoFlow 对照
+
+| 我们的做法 | EvoFlow | 为什么 |
+|---|---|---|
+| 状态指纹去重 | `automation/` 的心跳 | 没变化也调模型 = 白烧钱 |
+| 每小时上限 | 心跳节流 | 状态抖动会让它变成死循环 |
+
+### 知识点
+
+- [Harbor404 · 推理链路延迟优化](https://harbor404.fushenlin.com/notes/llm-agent-latency-optimization/)：减少无谓调用的收益
+- agent-book：主动 Agent
+
+### 验收
+
+```bash
+uv run pytest tests/chapters/test_ch08_03_heartbeat.py -q
+```

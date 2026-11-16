@@ -144,3 +144,127 @@ class Chain:
 - [ ] `_build_runtime_middlewares()` 完整列表（本次只读注释与装配片段，未逐行确认全部 40+ 项）
 - [ ] `checkpoint_transcript_slim_middleware.py` 与 `OmitTranscriptCheckpointer` 是否重复
 - [ ] 中间件数量按类精确统计（需按 `class .*Middleware` 计数）
+
+## 从零实现（手把手）
+> 读完这章你知道中间件「谁先谁后」为什么重要，并写出一个能记录每次工具调用的审计中间件。
+> 路径均相对 `backend/`，代码注释写「为什么」。
+
+### Step 1　新建 chain.py：顺序 + 反向收尾
+**文件**：`packages/harness/myagentflow/agents/middlewares/chain.py（新建）`
+**要写的逻辑**：`before` 正序、`after` 逆序（洋葱模型）；任何一层抛异常都要保证已进入的层能收尾。
+
+**代码**
+
+```python
+"""中间件链：进正序、出逆序。
+
+为什么 after 要逆序：它是「清理」语义——后申请的资源先释放，
+否则 A 依赖 B 的资源时，A 先清理会让 B 拿到已失效的对象。
+"""
+from __future__ import annotations
+
+from collections.abc import Callable, Iterable
+from typing import Any
+
+
+class Middleware:
+    name: str = "middleware"
+
+    def before_tool(self, name: str, args: dict[str, Any]) -> dict[str, Any]:
+        return args              # 默认不改参数
+
+    def after_tool(self, name: str, args: dict[str, Any], result: Any) -> Any:
+        return result            # 默认不改结果
+
+
+def run_chain(mws: Iterable[Middleware], name: str, args: dict[str, Any],
+              call: Callable[[str, dict[str, Any]], Any]) -> Any:
+    entered: list[Middleware] = []
+    current = args
+    try:
+        for mw in mws:
+            current = mw.before_tool(name, current)
+            entered.append(mw)
+        result = call(name, current)
+    finally:
+        for mw in reversed(entered):     # 逆序收尾
+            result = mw.after_tool(name, current, locals().get("result"))
+    return result
+```
+
+**验证**
+
+```bash
+uv run python -c "from myagentflow.agents.middlewares.chain import Middleware, run_chain; print('import ok')"
+```
+
+### Step 2　加审计中间件：记录谁调了什么
+**文件**：`packages/harness/myagentflow/agents/middlewares/audit.py（新建）`
+**要写的逻辑**：只记录工具名、参数摘要、耗时、成功与否；参数要截断，避免把密钥写进日志。
+
+**代码**
+
+```python
+"""审计中间件：每次工具调用留一行。"""
+from __future__ import annotations
+
+import json
+import logging
+import time
+from typing import Any
+
+from myagentflow.agents.middlewares.chain import Middleware
+
+logger = logging.getLogger("myaf.audit")
+
+
+def _brief(args: dict[str, Any], limit: int = 120) -> str:
+    text = json.dumps(args, ensure_ascii=False, default=str)
+    return text if len(text) <= limit else text[:limit] + "…"   # 截断：日志里不该出现完整密钥
+
+
+class AuditMiddleware(Middleware):
+    name = "audit"
+
+    def __init__(self) -> None:
+        self._t0: dict[str, float] = {}
+
+    def before_tool(self, name: str, args: dict[str, Any]) -> dict[str, Any]:
+        self._t0[name] = time.time()
+        return args
+
+    def after_tool(self, name: str, args: dict[str, Any], result: Any) -> Any:
+        cost = time.time() - self._t0.pop(name, time.time())
+        logger.info("tool=%s args=%s cost=%.3fs ok=%s", name, _brief(args), cost,
+                    not isinstance(result, Exception))
+        return result
+```
+
+**验证**
+
+```bash
+uv run python -c "
+from myagentflow.agents.middlewares.audit import AuditMiddleware
+from myagentflow.agents.middlewares.chain import run_chain
+print(run_chain([AuditMiddleware()], 'echo', {'text':'hi'}, lambda n,a: a['text']))
+"
+```
+
+### 与 EvoFlow 对照
+
+| 我们的做法 | EvoFlow | 为什么 |
+|---|---|---|
+| 进正序 / 出逆序 | `lead_agent/agent.py` 的中间件装配顺序 | 顺序错会导致资源提前释放 |
+| 参数截断后入日志 | 工具审计日志 | 全量参数会把 token/密钥写进日志 |
+| finally 里逆序收尾 | 中间件异常处理 | 抛异常也要保证清理 |
+
+### 知识点
+
+- agent-book · LangGraph 课程：middleware 与 wrap 语义
+- Harbor404：日志脱敏
+
+### 验收
+
+```bash
+uv run python -c "from myagentflow.agents.middlewares.chain import run_chain; print('ok')"
+```

@@ -73,3 +73,125 @@ run(workflow_id, inputs) → run_id → 每步产物带 stage
 ## 对照 EvoFlow 核对清单
 - [ ] `app_engine.py` 的执行模型
 - [ ] `stage/` 的状态定义
+
+## 从零实现（手把手）
+> 读完这章你能把「多步骤流程」定义成可复用对象，并按步骤顺序执行、记录每步产物。
+> 路径均相对 `backend/`，代码注释写「为什么」。
+
+### Step 1　新建 workflow.py：定义 + 顺序执行
+**文件**：`packages/harness/myagentflow/plans/workflow.py（新建）`
+**要写的逻辑**：`Workflow` 持有步骤列表；`run()` 逐步执行，任一步失败即停，并把已完成步骤的产物保留下来。
+
+**代码**
+
+```python
+"""流程（Workflow）：一组有序步骤 + 一次执行记录。
+
+为什么失败要保留已完成产物：用户修完失败那一步后，
+不该从第一步重跑（重跑会重复写文件、重复调外部接口）。
+"""
+from __future__ import annotations
+
+import time
+from dataclasses import dataclass, field
+from typing import Any, Callable
+
+
+@dataclass
+class StepResult:
+    name: str
+    ok: bool
+    output: Any = None
+    error: str | None = None
+
+
+@dataclass
+class Workflow:
+    name: str
+    steps: list[tuple[str, Callable[[], Any]]] = field(default_factory=list)
+    history: list[StepResult] = field(default_factory=list)
+
+    def run(self) -> list[StepResult]:
+        for name, fn in self.steps:
+            try:
+                out = fn()
+                self.history.append(StepResult(name, True, out))
+            except Exception as exc:
+                self.history.append(StepResult(name, False, error=str(exc)))
+                break                    # 失败即停：后面的步骤依赖前面的结果
+        return self.history
+
+    def resume_from(self, index: int) -> list[StepResult]:
+        """从第 index 步继续（前面已成功的产物留在 history 里）。"""
+        for name, fn in self.steps[index:]:
+            try:
+                self.history.append(StepResult(name, True, fn()))
+            except Exception as exc:
+                self.history.append(StepResult(name, False, error=str(exc)))
+                break
+        return self.history
+```
+
+**验证**
+
+```bash
+uv run python -c "
+from myagentflow.plans.workflow import Workflow
+w = Workflow('demo', [('a', lambda: 1), ('b', lambda: 1/0)])
+for r in w.run(): print(r.name, r.ok, r.error)
+print('resume:', w.resume_from(1)[-1].name)
+"
+```
+
+### Step 2　写测试：失败即停 + 可续跑
+**文件**：`tests/chapters/test_ch07_03_workflow.py（新建）`
+**要写的逻辑**：第二步失败时第三步不执行；`resume_from(1)` 从第二步重试。
+
+**代码**
+
+```python
+from __future__ import annotations
+
+
+def test_stop_and_resume():
+    from myagentflow.plans.workflow import Workflow
+
+    calls = []
+    w = Workflow("w", [
+        ("a", lambda: calls.append("a") or 1),
+        ("b", lambda: 1 / 0),
+        ("c", lambda: calls.append("c") or 3),
+    ])
+    w.run()
+    assert calls == ["a"]                 # c 没执行
+    assert w.history[-1].ok is False
+
+    w.steps[1] = ("b", lambda: calls.append("b") or 2)
+    w.resume_from(1)
+    assert calls == ["a", "b", "c"]
+```
+
+**验证**
+
+```bash
+uv run pytest tests/chapters/test_ch07_03_workflow.py -v
+# 期望：1 passed
+```
+
+### 与 EvoFlow 对照
+
+| 我们的做法 | EvoFlow | 为什么 |
+|---|---|---|
+| 顺序执行失败即停 | `plans/` 的 workflow | 后面步骤依赖前面产物 |
+| 保留已完成产物可续跑 | 同文件 resume | 全量重跑会重复副作用 |
+
+### 知识点
+
+- [Harbor404 · 幂等性设计](https://harbor404.fushenlin.com/notes/idempotency-design/)：为什么要能安全重试
+- agent-book：Workflow 编排
+
+### 验收
+
+```bash
+uv run pytest tests/chapters/test_ch07_03_workflow.py -q
+```

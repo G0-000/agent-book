@@ -69,3 +69,125 @@ run(run_id, session_id, started_at, status, artifact_refs)
 ## 对照 EvoFlow 核对清单
 - [ ] `automation_repositories` 的字段与 occurrence 语义
 - [ ] `automation_runner` 如何选择模型与工具
+
+## 从零实现（手把手）
+> 读完这章你能定义一条自动化规则（何时、做什么），并留下每次执行的记录。
+> 路径均相对 `backend/`，代码注释写「为什么」。
+
+### Step 1　新建 store.py：定义表 + 历史表
+**文件**：`packages/harness/myagentflow/automation/store.py（新建）`
+**要写的逻辑**：`automations(id, cron, prompt, enabled)` 存规则；`runs(automation_id, status, started_at)` 存每次执行；执行前先写 `running`，避免崩溃后无法判断是否跑过。
+
+**代码**
+
+```python
+"""自动化：规则 + 执行历史。
+
+为什么执行前先写 running：进程被杀时，只看历史会以为「从没跑过」，
+先写一条 running 才能让「上次是否完成」可判断。
+"""
+from __future__ import annotations
+
+import sqlite3
+import time
+import uuid
+from pathlib import Path
+
+_SCHEMA = """
+CREATE TABLE IF NOT EXISTS automations (
+    id TEXT PRIMARY KEY, name TEXT NOT NULL, cron TEXT NOT NULL,
+    prompt TEXT NOT NULL, enabled INTEGER NOT NULL DEFAULT 1
+);
+CREATE TABLE IF NOT EXISTS runs (
+    id TEXT PRIMARY KEY, automation_id TEXT NOT NULL,
+    status TEXT NOT NULL, started_at REAL NOT NULL, finished_at REAL
+);
+"""
+
+
+class AutomationStore:
+    def __init__(self, db_path: str | Path):
+        Path(db_path).parent.mkdir(parents=True, exist_ok=True)
+        self._conn = sqlite3.connect(str(db_path), check_same_thread=False)
+        self._conn.executescript(_SCHEMA)
+
+    def add(self, name: str, cron: str, prompt: str) -> str:
+        ident = uuid.uuid4().hex[:8]
+        self._conn.execute("INSERT INTO automations (id, name, cron, prompt) VALUES (?, ?, ?, ?)",
+                           (ident, name, cron, prompt))
+        self._conn.commit()
+        return ident
+
+    def enabled(self) -> list[dict]:
+        rows = self._conn.execute("SELECT id, name, cron, prompt FROM automations WHERE enabled=1").fetchall()
+        return [{"id": r[0], "name": r[1], "cron": r[2], "prompt": r[3]} for r in rows]
+
+    def begin_run(self, automation_id: str) -> str:
+        ident = uuid.uuid4().hex[:8]
+        self._conn.execute("INSERT INTO runs VALUES (?, ?, ?, ?, NULL)",
+                           (ident, automation_id, "running", time.time()))
+        self._conn.commit()
+        return ident
+
+    def finish_run(self, run_id: str, status: str) -> None:
+        self._conn.execute("UPDATE runs SET status=?, finished_at=? WHERE id=?",
+                           (status, time.time(), run_id))
+        self._conn.commit()
+```
+
+**验证**
+
+```bash
+uv run python -c "
+from myagentflow.automation.store import AutomationStore
+s = AutomationStore('/tmp/myaf-auto.sqlite'); a = s.add('日报','0 9 * * *','总结昨天的提交')
+r = s.begin_run(a); s.finish_run(r, 'ok'); print(s.enabled())
+"
+```
+
+### Step 2　写测试：历史可查 + 禁用不返回
+**文件**：`tests/chapters/test_ch08_01_automation.py（新建）`
+**要写的逻辑**：执行一条后 runs 里有记录；把 enabled 置 0 后不再出现在列表。
+
+**代码**
+
+```python
+from __future__ import annotations
+
+
+def test_history_and_disable(tmp_path):
+    from myagentflow.automation.store import AutomationStore
+
+    s = AutomationStore(tmp_path / "a.sqlite")
+    a = s.add("日报", "0 9 * * *", "总结")
+    r = s.begin_run(a); s.finish_run(r, "ok")
+    assert s._conn.execute("SELECT status FROM runs WHERE id=?", (r,)).fetchone()[0] == "ok"
+
+    s._conn.execute("UPDATE automations SET enabled=0 WHERE id=?", (a,)); s._conn.commit()
+    assert s.enabled() == []
+```
+
+**验证**
+
+```bash
+uv run pytest tests/chapters/test_ch08_01_automation.py -v
+# 期望：1 passed
+```
+
+### 与 EvoFlow 对照
+
+| 我们的做法 | EvoFlow | 为什么 |
+|---|---|---|
+| 先写 running 再执行 | `automation/` 的执行记录 | 崩溃后才能判断「跑到一半」 |
+| enabled 开关 | 自动化列表 | 禁用要能立刻生效 |
+
+### 知识点
+
+- [agent-book](https://g0-000.github.io/agent-book/)：定时与主动 Agent
+- Harbor404：定时任务的补偿执行
+
+### 验收
+
+```bash
+uv run pytest tests/chapters/test_ch08_01_automation.py -q
+```

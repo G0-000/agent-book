@@ -59,3 +59,80 @@ RpcClient: http | tauri | stdio 三种 transport，同一 method 表
 ## 对照 EvoFlow 核对清单
 - [ ] `tauri-api.js` 的 method 覆盖范围
 - [ ] `zcode-provider` 的接口契约
+
+## 从零实现（手把手）
+> 读完这章你能给桌面端做一层 JSON-RPC：一个入口、一组方法、统一错误码。
+> 路径均相对 `backend/`，代码注释写「为什么」。
+
+### Step 1　新建 rpc.py：方法表 + 统一错误
+**文件**：`packages/harness/myagentflow/webui/rpc.py（新建）`
+**要写的逻辑**：`{id, method, params}` → `{id, result}` 或 `{id, error:{code,message}}`；方法不存在返回 `-32601`（照 JSON-RPC 规范，别自创）。
+
+**代码**
+
+```python
+"""UI RPC：桌面端不需要 REST，一层方法表就够。
+
+错误码照 JSON-RPC 规范：
+-32601 方法不存在 / -32602 参数错误 / -32603 内部错误。
+自创错误码会让所有客户端各写一套映射。
+"""
+from __future__ import annotations
+
+from collections.abc import Callable
+from typing import Any
+
+
+class Rpc:
+    def __init__(self) -> None:
+        self._methods: dict[str, Callable[..., Any]] = {}
+
+    def method(self, name: str):
+        def deco(fn: Callable[..., Any]):
+            self._methods[name] = fn
+            return fn
+        return deco
+
+    def call(self, req: dict[str, Any]) -> dict[str, Any]:
+        rid = req.get("id")
+        name = req.get("method", "")
+        fn = self._methods.get(name)
+        if fn is None:
+            return {"id": rid, "error": {"code": -32601, "message": f"方法不存在：{name}"}}
+        try:
+            return {"id": rid, "result": fn(**(req.get("params") or {}))}
+        except TypeError as exc:
+            return {"id": rid, "error": {"code": -32602, "message": str(exc)}}
+        except Exception as exc:
+            return {"id": rid, "error": {"code": -32603, "message": str(exc)}}
+```
+
+**验证**
+
+```bash
+uv run python -c "
+from myagentflow.webui.rpc import Rpc
+r = Rpc()
+@r.method('ping')
+def ping(): return 'pong'
+print(r.call({'id':1,'method':'ping'}), r.call({'id':2,'method':'nope'}))
+"
+```
+
+### 与 EvoFlow 对照
+
+| 我们的做法 | EvoFlow | 为什么 |
+|---|---|---|
+| 方法表 + 规范错误码 | `webui/` 的 RPC 层 | 自创错误码客户端要各写映射 |
+| 参数错与内部错分开 | 同文件 | 客户端需要区分「我传错了」和「服务挂了」 |
+
+### 知识点
+
+- agent-book：JSON-RPC
+- Harbor404：桌面端通信
+
+### 验收
+
+```bash
+uv run python -c "from myagentflow.webui.rpc import Rpc; print('ok')"
+```
