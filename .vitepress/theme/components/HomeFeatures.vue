@@ -74,6 +74,11 @@ const projectItems = [
     desc: '以 EvoFlow 为源码教材，对照 AgentFlow 第一遍学习，按功能从最小闭环到完整重实现。',
     link: '/work-agent-harness/index',
   },
+  {
+    title: 'my-agent-flow',
+    desc: '0→1 复刻 EvoFlow 的施工文档：13 个部分共 74 篇，逐章对照真实源码，含验收口径与进度台账。',
+    link: '/my-agent-flow/index',
+  },
 ]
 </script>
 
