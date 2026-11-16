@@ -1,6 +1,6 @@
 # 第 12 部分　Web、桌面与产品体验 / Web, Desktop, Product Experience
 
-> 状态：🟡 骨架（真实路径已核对：`/Users/main/EvoFlow/evopanel`）。
+> 状态：🟡 骨架（真实路径已核对：`<EvoFlow 仓库>/evopanel`）。
 
 目标：把内核能力变成**人能用的产品**：聊天、设置、知识、任务、桌面端。
 

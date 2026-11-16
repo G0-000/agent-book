@@ -1,4 +1,5 @@
 import { defineConfig } from 'vitepress'
+import { withMermaid } from 'vitepress-plugin-mermaid'
 import type { HeadConfig } from 'vitepress'
 import { langchainSidebar, langgraphSidebar, vibeSidebar, pythonSidebar, agentFlowSidebar, evoFlowSidebar, workAgentHarnessSidebar, myAgentFlowSidebar, agentLearningSidebar, agentPart1Sidebar, agentPart2Sidebar, agentPart3Sidebar, agentPart4Sidebar, agentPart5Sidebar, agentPart6Sidebar } from './sidebars'
 
@@ -22,7 +23,7 @@ function breadcrumb(pageUrl: string, crumbs: { name: string; url?: string }[]): 
   })
 }
 
-export default defineConfig({
+export default withMermaid(defineConfig({
   title: 'Agent-Book 学习笔记',
   description: 'Python / LangChain / LangGraph / AI Coding 学习笔记，以及实战项目文档',
   lang: 'zh-CN',
@@ -273,4 +274,12 @@ export default defineConfig({
       },
     },
   },
-})
+
+  // mermaid 图表：```mermaid 代码块渲染成 SVG（文档内共 8 处）
+  mermaid: {
+    theme: 'default',
+  },
+  mermaidPlugin: {
+    class: 'mermaid-diagram',
+  },
+}))
