@@ -115,3 +115,11 @@
 
 测试从 54 → 57 passed，ruff 清零；`01/01` 的示例代码、五个 Step、对照表全部按四文件重写，`10/01`、`10/02`、`02/03` 的调用示例同步为 `create_chat_model()`。
 
+## 代码注释细则（2026-11-17）
+
+用户指出 `CheckpointerType = Literal[...]` 没有注释。已把「每个符号都要有注释」写成硬规则：`00-导论/04-实现手册体例.md` 第 3 节扩成六条（命名照 EvoFlow / 每个符号必注释 / 注释写为什么 / 代码能跑 / 一步一验证 / 兜底显式），并附对象→必写内容→反例表。
+
+代码侧已补注释的裸符号：`CheckpointerType`（逐值说明与依赖）、`_LEGACY_DEFAULT_MAX_OUTPUT_TOKENS`、`DEFAULT_CONTEXT`/`AUTO_COMPACT_RATIO`/`ABSOLUTE_CAP`/两个 REFILL、`ROLES`、`PATTERNS`/`INVISIBLE`/`BLOCKED`、`POSTGRES_INSTALL`/`POSTGRES_CONN_REQUIRED`、`DANGEROUS`/`WRITE_MARKERS`、`DEFAULT`（记忆模板）、`_VER`、`BRIDGE_TOKEN_ENV`、`ALLOWED_END`、`ALLOWED`（审批终态），以及六处 `_SCHEMA` 建表 DDL 与 `plans/parser.py`、`knowledge/chunker.py` 的正则常量。
+
+文件头规矩：反例 `CheckpointerType = Literal["memory", "sqlite", "postgres"]` 已写进体例文档，作为「类型别名必须逐个取值说明」的标准样例。
+
