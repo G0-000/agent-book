@@ -194,9 +194,6 @@ export const pythonSidebar: DefaultTheme.SidebarItem[] = [
   },
 ]
 
-// 学习教程册侧边栏：自动扫描 doc/dev/学习教程册 目录生成，新增篇/章自动入导航
-const tutorialRoot = fileURLToPath(new URL('../work-agent-harness/doc/dev/学习教程册', import.meta.url))
-
 // my-agent-flow：正文事实源在 work-agent-harness/doc/evoflow-学习规划，
 // 由 config.mts 的 rewrites 映射成 /my-agent-flow/ 前缀，本分区只放一个首页。
 // 侧边栏按目录自动扫描，新增章节自动入导航，避免手工列表漂移。
@@ -234,37 +231,9 @@ export const workAgentHarnessSidebar: DefaultTheme.SidebarItem[] = [
     text: 'WorkAgentHarness',
     items: [
       { text: '项目说明', link: '/work-agent-harness/index' },
-      { text: '文档中心', link: '/work-agent-harness/doc/README' },
-      { text: '系统学习路线总规划', link: '/work-agent-harness/doc/系统学习路线-总规划' },
-    ],
-  },
-  {
-    text: '逐章仿写教程册',
-    collapsed: false,
-    items: [
-      { text: '教程册总览', link: '/work-agent-harness/doc/dev/学习教程册/README' },
-      ...docCodeTree(tutorialRoot, '/work-agent-harness/doc/dev/学习教程册', chineseNumSort),
-    ],
-  },
-  {
-    text: '学习手册与记录',
-    collapsed: false,
-    items: [
-      { text: '课程目录：分篇与章节', link: '/work-agent-harness/doc/dev/学习手册/课程目录' },
-      { text: 'EvoFlow 分步实现总手册', link: '/work-agent-harness/doc/dev/学习手册/EvoFlow分步实现总手册' },
-      { text: '功能地图', link: '/work-agent-harness/doc/dev/学习手册/功能地图' },
-      { text: '功能单元路线', link: '/work-agent-harness/doc/dev/学习手册/功能单元路线' },
-      { text: '功能清单', link: '/work-agent-harness/doc/dev/学习手册/功能清单' },
-      { text: '最终验收', link: '/work-agent-harness/doc/dev/学习手册/最终验收' },
-      { text: '学习记录', link: '/work-agent-harness/doc/dev/学习记录/README' },
-      { text: 'AgentFlow 第一遍复盘', link: '/work-agent-harness/doc/第一次学习复盘' },
-    ],
-  },
-  {
-    text: '代码与开发文档',
-    items: [
-      { text: '代码文档说明', link: '/work-agent-harness/doc/code/README' },
-      { text: '开发文档说明', link: '/work-agent-harness/doc/dev/README' },
+      { text: 'EvoFlow 学习规划（渲染分区）', link: '/my-agent-flow/' },
+      { text: '进度台账', link: '/my-agent-flow/PROGRESS' },
+      { text: '实现手册体例', link: '/my-agent-flow/00-导论/04-实现手册体例' },
     ],
   },
 ]
