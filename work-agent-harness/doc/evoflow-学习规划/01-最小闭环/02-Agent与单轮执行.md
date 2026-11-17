@@ -46,7 +46,9 @@ sequenceDiagram
 **错误处理 / Error handling：** 任何异常都被转成 `error` 事件，并把 run 状态置为 `failed`；错误消息会先经过 `Redactor`。
 
 ## 示例代码 / Sample code
-### `evoflow_min/agent.py`
+### 我方实现：`agents/lead_agent/graph.py`
+
+> **EvoFlow 对应**：`agents/lead_agent/agent.py`（LangGraph 装配 + middleware 链）。下面为我方实现，单节点两边的简化图。
 ```python
 """Agent: role prompt + model + tools + store. One run = loop until the model stops. (Chapters 1.2 and 1.4)"""
 from __future__ import annotations
