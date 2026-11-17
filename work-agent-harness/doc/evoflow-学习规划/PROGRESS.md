@@ -123,3 +123,13 @@
 
 文件头规矩：反例 `CheckpointerType = Literal["memory", "sqlite", "postgres"]` 已写进体例文档，作为「类型别名必须逐个取值说明」的标准样例。
 
+## 补 `config/models_yaml.py`（2026-11-17）
+
+用户指出文档引了 `config/models_yaml.py:116 flatten_providers_dict()`，但复刻仓库里没有这个文件。已补：
+
+- 新建 `config/models_yaml.py`：`infer_vendor_from_connection`、`_coerce_model_entry`、`_ensure_vendor_field`、`flatten_providers_dict`、`_normalize_models_input`、`coerce_models_field_for_appconfig`，函数名与 EvoFlow 一致；
+- 未抄 `unflatten_models_to_providers_dict`（方向是「库里的模型 → yaml」，我们没有模型库）；
+- `AppConfig.models` 增加 `field_validator(mode="before")`，扁平列表与 `models.providers` 分组两种 yaml 都能读；
+- 新增测试 `test_providers_layout_is_flattened`（provider 层 base_url/api_key 下传、条目字段覆盖、name 顺序），本章 6 例、全书 58 passed；
+- `config.example.yaml` 补 providers 写法注释，`01/01` 对照表与示例代码补 `models_yaml.py` 一节。
+
