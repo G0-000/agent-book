@@ -35,6 +35,14 @@
 - [ ] 各域真实文件数与行数量级（用于评估复刻成本）
 - [ ] 与本仓库 `backend/` 的差异（两者是否同源需确认）
 
+## 常见坑
+
+| 症状 | 原因 | 动作 |
+|---|---|---|
+| 全表都是「空壳」 | 第一个参数传了 `EvoFlow` 仓库根，而不是 `.../evoflow` 包根 | 传 `/Users/main/EvoFlow/backend/packages/harness/evoflow` |
+| 我们自己的新模块没出现在表里 | 只扫了 EvoFlow 一侧的目录名 | 代码已按 `set(ref)` 与 `set(ours)` 的并集处理，确认传的是 `packages/harness/myagentflow` |
+| 「已实现」比例虚高 | 用文件数当功能数（一个 2000 行文件抵十个空壳） | 比例只作导航；结论要回到 `PROGRESS.md` 的逐章状态 |
+
 ## 从零实现（手把手）
 > 读完这章你能自动生成一份「模块对照表」：哪些有、哪些缺、哪些只解释。
 > 路径均相对 `backend/`，代码注释写「为什么」。
@@ -113,8 +121,8 @@ uv run python tools/diff_ledger.py \
 
 ### 知识点
 
-- agent-book：验收标准
-- Harbor404：复刻项目的差异管理
+- [Agent 评测体系：验收指标从哪来](https://harbor404.fushenlin.com/notes/agent-evaluation-system/)
+- [系统课入口：整体架构](https://g0-000.github.io/agent-book/)
 
 ### 验收
 

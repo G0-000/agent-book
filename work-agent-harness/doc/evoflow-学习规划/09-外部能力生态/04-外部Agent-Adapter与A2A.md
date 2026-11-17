@@ -145,8 +145,8 @@ print(to_summary(a, {'result':'晴'}))
 
 ### 知识点
 
-- agent-book：A2A 与多 Agent
-- Harbor404：外部依赖超时
+- [Multi-Agent 五种架构：谁调谁、怎么汇总](https://harbor404.fushenlin.com/notes/multi-agent-five-architectures/)
+- [系统课入口：多 Agent](https://g0-000.github.io/agent-book/)
 
 ### 验收
 

@@ -125,6 +125,14 @@ class Agent:
 - [ ] run / task / thread 三个概念在 EvoFlow 里的边界
 - [ ] 错误事件的字段与分类
 
+## 常见坑
+
+| 症状 | 原因 | 动作 |
+|---|---|---|
+| `ModuleNotFoundError: langgraph` | 依赖没装或不在 workspace 里 | `cd backend && uv sync`；确认 `pyproject.toml` 有 `langgraph` |
+| 第二次 `invoke` 只有 2 条消息（没有累积） | 没传 `configurable.thread_id`，或压根没挂 checkpointer | 传 `{"configurable": {"thread_id": "t1"}}`，并 `build_graph(model, InMemorySaver())` |
+| `InvalidUpdateError: Expected dict, got AIMessage` | 图的状态里 `messages` 少了 `add_messages` reducer | 用 `Annotated[list, add_messages]` 声明 messages 通道 |
+
 ## 从零实现（手把手）
 > 读完这章你能编译出第一张 LangGraph 图：输入一条消息，返回一条回复——没有工具、没有循环，只有一条边。
 > 路径均相对 `backend/`，代码注释写「为什么」。

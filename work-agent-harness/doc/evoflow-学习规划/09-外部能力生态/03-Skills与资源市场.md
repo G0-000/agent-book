@@ -171,8 +171,7 @@ r = SkillRegistry(); print(r.install(d), r.list())
 
 ### 知识点
 
-- agent-book：技能包与市场
-- Harbor404：依赖与版本治理
+- [MCP 中台 Tool 治理：清单、版本与权限](https://harbor404.fushenlin.com/notes/mcp-tool-governance-architecture/)
 
 ### 验收
 

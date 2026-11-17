@@ -234,8 +234,7 @@ uv run pytest tests/chapters/test_ch11_02_jwt.py -v
 
 ### 知识点
 
-- agent-book：认证与 OIDC
-- Harbor404：token 泄露与轮换
+- [提示词注入四层防御：为什么 token 之外还要守内容](https://harbor404.fushenlin.com/notes/agent-prompt-injection-defense/)
 
 ### 验收
 

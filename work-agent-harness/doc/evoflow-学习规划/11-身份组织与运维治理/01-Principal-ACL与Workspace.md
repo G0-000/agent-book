@@ -187,8 +187,8 @@ uv run pytest tests/chapters/test_ch11_01_acl.py -v
 
 ### 知识点
 
-- agent-book：权限模型
-- Harbor404：越权排查
+- [MCP 中台 Tool 治理：授权边界怎么划](https://harbor404.fushenlin.com/notes/mcp-tool-governance-architecture/)
+- [系统课入口：权限与会话](https://g0-000.github.io/agent-book/)
 
 ### 验收
 

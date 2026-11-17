@@ -40,7 +40,11 @@ def steps(text: str):
         path = m.group(1).strip()
         if path.startswith("`"):
             path = path.strip("`")
-        lang_codes = FENCE.findall(b)
+        # Only treat fences beneath the explicit **代码** label as source.
+        # Explanatory/verification snippets earlier in a Step must never be
+        # mistaken for the implementation and written over the target file.
+        code_section = re.search(r"\*\*代码\*\*[^\n]*\n(.*)", b, re.S)
+        lang_codes = FENCE.findall(code_section.group(1)) if code_section else []
         if not lang_codes:
             continue
         yield path, lang_codes
@@ -61,6 +65,7 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--parts", default="", help="只落地这些前缀，如 01,02")
     ap.add_argument("--dry", action="store_true")
+    ap.add_argument("--force", action="store_true", help="允许覆盖已存在文件；默认只写新文件")
     args = ap.parse_args()
 
     written: list[Path] = []
@@ -90,8 +95,11 @@ def main() -> int:
             if args.dry:
                 print(f"{md.parent.name}/{md.name} -> {dest.relative_to(BACKEND)}")
                 continue
-            dest.parent.mkdir(parents=True, exist_ok=True)
             mode = "a" if ("追加" in path or "同上" in path or "接着往下写" in path) else "w"
+            if dest.exists() and mode == "w" and not args.force:
+                skipped.append(f"{md.name}: {path}（目标已存在；如确认覆盖请加 --force）")
+                continue
+            dest.parent.mkdir(parents=True, exist_ok=True)
             if mode == "a":
                 dest.touch(exist_ok=True)
                 with dest.open("a", encoding="utf-8") as f:

@@ -156,8 +156,8 @@ curl -s -X PUT localhost:8070/api/settings -H 'content-type: application/json' \
 
 ### 知识点
 
-- Harbor404：配置热更新的坑
-- agent-book：设置页设计
+- [系统课入口：产品面与配置](https://g0-000.github.io/agent-book/)
+- [大模型网关：配置项与配额的关系](https://harbor404.fushenlin.com/notes/llm-gateway-comprehensive-guide/)
 
 ### 验收
 

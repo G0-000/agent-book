@@ -178,8 +178,8 @@ t.add_tokens(120); print(t.dump())
 
 ### 知识点
 
-- Harbor404：可观测性与成本
-- agent-book：日志设计
+- [日志分析平台的演变：可观测性分层](https://harbor404.fushenlin.com/notes/note-b7134f72/)
+- [推理链路延迟优化：把耗时拆到节点](https://harbor404.fushenlin.com/notes/llm-agent-latency-optimization/)
 
 ### 验收
 

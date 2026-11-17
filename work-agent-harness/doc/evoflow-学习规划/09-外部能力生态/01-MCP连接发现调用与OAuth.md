@@ -170,8 +170,8 @@ uv run python -c "from myagentflow.mcp.client import McpClient; print('import ok
 
 ### 知识点
 
-- agent-book：MCP 协议入门
-- Harbor404：外部服务鉴权失败排查
+- [MCP 中台 Tool 数量治理：连接、发现、授权](https://harbor404.fushenlin.com/notes/mcp-tool-governance-architecture/)
+- [系统课入口：工具协议](https://g0-000.github.io/agent-book/)
 
 ### 验收
 

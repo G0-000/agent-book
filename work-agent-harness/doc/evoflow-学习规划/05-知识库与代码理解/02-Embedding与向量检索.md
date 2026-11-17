@@ -166,8 +166,8 @@ uv run pytest tests/chapters/test_ch05_02_vector.py -v
 
 ### 知识点
 
-- agent-book：Embedding 与相似度
-- Harbor404：检索召回率
+- [RAG 在线检索流水线：召回、排序、组装上下文](https://harbor404.fushenlin.com/notes/rag-online-pipeline/)
+- [系统课入口：向量与检索](https://g0-000.github.io/agent-book/)
 
 ### 验收
 

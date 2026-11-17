@@ -201,8 +201,8 @@ uv run pytest tests/chapters/test_ch05_04_code_index.py -v
 
 ### 知识点
 
-- agent-book：代码索引与符号检索
-- Harbor404：大仓索引的增量策略
+- [RAG 离线流水线：切块与增量更新（与代码索引同构的部分）](https://harbor404.fushenlin.com/notes/rag-offline-pipeline/)
+- [系统课入口：检索](https://g0-000.github.io/agent-book/)
 
 ### 验收
 

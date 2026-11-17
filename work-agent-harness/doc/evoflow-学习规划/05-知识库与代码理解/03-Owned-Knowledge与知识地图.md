@@ -145,8 +145,8 @@ uv run pytest tests/chapters/test_ch05_03_map.py -v
 
 ### 知识点
 
-- agent-book：Owned Knowledge 的组织方式
-- Harbor404：什么该进知识库
+- [RAG / GraphRAG / LightRAG 选型：知识为何要建图](https://harbor404.fushenlin.com/notes/rag-graphrag-lightrag-architecture/)
+- [系统课入口：知识组织](https://g0-000.github.io/agent-book/)
 
 ### 验收
 

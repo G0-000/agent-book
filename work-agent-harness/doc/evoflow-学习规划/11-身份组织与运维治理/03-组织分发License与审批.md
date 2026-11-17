@@ -157,8 +157,7 @@ print(has_feature(lic,'k','sso'), has_feature(lic,'k','tauri'))
 
 ### 知识点
 
-- Harbor404：许可与分发
-- agent-book：功能开关
+- [大模型网关：配额、分发与开关](https://harbor404.fushenlin.com/notes/llm-gateway-comprehensive-guide/)
 
 ### 验收
 

@@ -260,8 +260,8 @@ print(run_chain([AuditMiddleware()], 'echo', {'text':'hi'}, lambda n,a: a['text'
 
 ### 知识点
 
-- agent-book · LangGraph 课程：middleware 与 wrap 语义
-- Harbor404：日志脱敏
+- [LangGraph 课程：图、节点与执行顺序（正序进/逆序出的前提）](https://g0-000.github.io/agent-book/langgraph/)
+- [日志分析平台的演变：审计日志该记什么、怎么留](https://harbor404.fushenlin.com/notes/note-b7134f72/)
 
 ### 验收
 

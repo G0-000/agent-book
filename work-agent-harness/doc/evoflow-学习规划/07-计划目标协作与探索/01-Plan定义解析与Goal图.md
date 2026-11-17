@@ -183,8 +183,8 @@ uv run pytest tests/chapters/test_ch07_01_plan.py -v
 
 ### 知识点
 
-- agent-book：任务分解与 DAG
-- Harbor404：计划执行的失败复盘
+- [DeepAgent：复杂任务如何拆成可执行步骤](https://harbor404.fushenlin.com/notes/deepagent-complex-task-framework/)
+- [LangGraph 课程：DAG 与状态传递](https://g0-000.github.io/agent-book/langgraph/)
 
 ### 验收
 

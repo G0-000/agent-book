@@ -185,8 +185,8 @@ uv run pytest tests/chapters/test_ch11_05_eval.py -v
 
 ### 知识点
 
-- agent-book：Eval 设计
-- Harbor404：回归测试
+- [Agent 评测体系：指标、集与回归](https://harbor404.fushenlin.com/notes/agent-evaluation-system/)
+- [RAG 评测体系：检索类指标怎么定](https://harbor404.fushenlin.com/notes/rag-evaluation-system/)
 
 ### 验收
 

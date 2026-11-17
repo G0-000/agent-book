@@ -6,7 +6,7 @@
 让前端不直连后端细节，而通过一层稳定的 RPC / Provider 抽象。
 
 ## 最小闭环
-前端调用 `api.xxx` → 经 RPC 通道（HTTP / Tauri command / stdio）→ 后端路由 → 返回结构化结果。
+前端调用 `api.chat.send` / `api.session.list` → 经 RPC 通道（HTTP / Tauri command / stdio）→ 后端路由 → 返回结构化结果。
 
 ## 真实模块地图（已核对：路径 · 行数 · 符号）
 
@@ -128,8 +128,8 @@ print(r.call({'id':1,'method':'ping'}), r.call({'id':2,'method':'nope'}))
 
 ### 知识点
 
-- agent-book：JSON-RPC
-- Harbor404：桌面端通信
+- [大模型网关：统一入口与协议适配](https://harbor404.fushenlin.com/notes/llm-gateway-comprehensive-guide/)
+- [系统课入口：接口层](https://g0-000.github.io/agent-book/)
 
 ### 验收
 
