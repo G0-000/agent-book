@@ -1,6 +1,6 @@
 # 第 2 章　Agent 构造与单轮执行 / Agent Construction and Single-Turn Execution
 
-> **EvoFlow 对照状态 / Alignment status：** 📄 **原文迁移**——内容是教材版自研实现，完整迁移、未与 EvoFlow 源码核对。
+> **EvoFlow 对照状态 / Alignment status：** 以 EvoFlow `lead_agent` 的 LangGraph/LangChain 装配为结构参照；本章只实现单轮调用的教学最小图，不代表上游内部节点结构。
 >
 > ::: warning 与 EvoFlow 真实实现的差异
 > 本章是**手写 agent loop**（调模型 → 执行工具 → 再调模型）。EvoFlow 里没有这个循环：它由 `lead_agent/agent.py`（2002 行）编译成 LangGraph 图，外层再套一条中间件链 `build_lead_runtime_middlewares(lazy_init=True)`；`after_model` 是**逆序**执行的，Clarification 固定链尾。差异详见 [03/03 Middleware 调用链](../03-工具深化与上下文控制/03-Middleware调用链与工具审计.md)。
