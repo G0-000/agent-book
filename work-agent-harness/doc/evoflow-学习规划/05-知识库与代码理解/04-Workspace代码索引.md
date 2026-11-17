@@ -31,18 +31,18 @@ sequenceDiagram
 
 | 文件 | 行数 | 关键符号 | 模块常量 |
 |---|---|---|---|
-| `packages/harness/evoflow/code_index/store.py` | 1927 | `resolve_index_root`、`_workspace_hash`、`index_db_path` | CODE_INDEX_REL_DIR、CODE_INDEX_DB_NAME |
-| `packages/harness/evoflow/code_index/symbols.py` | 208 | `_append`、`_line_at`、`_regex_python_symbols` | — |
-| `packages/harness/evoflow/code_index/internal_refs.py` | 173 | `_append_ref`、`extract_python_internal_refs`、`extract_js_ts_internal_refs` | — |
-| `packages/harness/evoflow/code_index/import_bindings.py` | 144 | `python_import_aliases`、`_parse_js_named_bindings`、`js_ts_import_aliases` | — |
-| `packages/harness/evoflow/code_index/type_relations.py` | 552 | `_line_at`、`_strip_generics`、`_split_type_parts` | — |
-| `packages/harness/evoflow/code_index/tree_sitter_core.py` | 214 | `language_for_path`、`tree_sitter_available`、`parse_tree` | — |
-| `packages/harness/evoflow/code_index/tokenize.py` | 145 | `index_tokenizer_version`、`split_identifier`、`_segment_cjk` | — |
-| `packages/harness/evoflow/code_index/lsp_client.py` | 217 | `LspClient`；`_kind_name`、`flatten_document_symbols`、`_language_id` | — |
-| `packages/harness/evoflow/code_index/lsp_pool.py` | 91 | `_session_key`、`get_lsp_client`、`try_lsp_symbols` | — |
-| `packages/harness/evoflow/code_index/watcher.py` | 177 | `CodeIndexWatcherRegistry`；`_watch_key`、`start_index_watch`、`stop_index_watch` | — |
-| `packages/harness/evoflow/code_index/format_results.py` | 134 | `format_search_index_body` | — |
-| `packages/harness/evoflow/code_index/deps.py` | 395 | `_is_internal_spec`、`_discover_package_roots`、`_resolve_py_module` | — |
+| `packages/harness/evoflow/code_index/store.py:104` | 1927 | `resolve_index_root`、`_workspace_hash`、`index_db_path` | CODE_INDEX_REL_DIR、CODE_INDEX_DB_NAME |
+| `packages/harness/evoflow/code_index/symbols.py:38` | 208 | `_append`、`_line_at`、`_regex_python_symbols` | — |
+| `packages/harness/evoflow/code_index/internal_refs.py:19` | 173 | `_append_ref`、`extract_python_internal_refs`、`extract_js_ts_internal_refs` | — |
+| `packages/harness/evoflow/code_index/import_bindings.py:43` | 144 | `python_import_aliases`、`_parse_js_named_bindings`、`js_ts_import_aliases` | — |
+| `packages/harness/evoflow/code_index/type_relations.py:34` | 552 | `_line_at`、`_strip_generics`、`_split_type_parts` | — |
+| `packages/harness/evoflow/code_index/tree_sitter_core.py:79` | 214 | `language_for_path`、`tree_sitter_available`、`parse_tree` | — |
+| `packages/harness/evoflow/code_index/tokenize.py:22` | 145 | `index_tokenizer_version`、`split_identifier`、`_segment_cjk` | — |
+| `packages/harness/evoflow/code_index/lsp_client.py:81` | 217 | `LspClient`；`_kind_name`、`flatten_document_symbols`、`_language_id` | — |
+| `packages/harness/evoflow/code_index/lsp_pool.py:19` | 91 | `_session_key`、`get_lsp_client`、`try_lsp_symbols` | — |
+| `packages/harness/evoflow/code_index/watcher.py:93` | 177 | `CodeIndexWatcherRegistry`；`_watch_key`、`start_index_watch`、`stop_index_watch` | — |
+| `packages/harness/evoflow/code_index/format_results.py:8` | 134 | `format_search_index_body` | — |
+| `packages/harness/evoflow/code_index/deps.py:29` | 395 | `_is_internal_spec`、`_discover_package_roots`、`_resolve_py_module` | — |
 
 ## 核心概念
 - **FTS5 + 符号表**：文本检索给「大概位置」，符号表给「精确跳转」。

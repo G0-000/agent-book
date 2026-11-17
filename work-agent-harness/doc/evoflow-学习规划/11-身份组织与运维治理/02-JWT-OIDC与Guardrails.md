@@ -33,16 +33,16 @@ sequenceDiagram
 
 | 文件 | 行数 | 关键符号 | 模块常量 |
 |---|---|---|---|
-| `packages/harness/evoflow/webui/auth.py` | 731 | `_QrTokenData`、`QrTokenStore`；`hash_password`、`verify_password`、`generate_password` | WEBUI_DEFAULT_HTTP_PORT |
-| `packages/harness/evoflow/webui/middleware.py` | 190 | `_is_public_share_get`、`_is_public_path`、`_extract_token` | — |
-| `packages/harness/evoflow/webui/oidc.py` | 267 | `OidcStateStore`；`_b64url_no_pad`、`pkce_challenge`、`_fetch_discovery` | — |
-| `packages/harness/evoflow/webui/oidc_config.py` | 91 | `_normalize_config`、`get_oidc_config`、`set_oidc_config` | DEFAULT_OIDC_CONFIG |
-| `packages/harness/evoflow/guardrails/builtin.py` | 23 | `AllowlistProvider` | — |
-| `packages/harness/evoflow/guardrails/provider.py` | 56 | `GuardrailRequest`、`GuardrailReason`、`GuardrailDecision` | — |
-| `packages/harness/evoflow/agents/content_scanner.py` | 89 | `scan_content`、`scan_memory_entries` | — |
+| `packages/harness/evoflow/webui/auth.py:183` | 731 | `_QrTokenData`、`QrTokenStore`；`hash_password`、`verify_password`、`generate_password` | WEBUI_DEFAULT_HTTP_PORT |
+| `packages/harness/evoflow/webui/middleware.py:64` | 190 | `_is_public_share_get`、`_is_public_path`、`_extract_token` | — |
+| `packages/harness/evoflow/webui/oidc.py:27` | 267 | `OidcStateStore`；`_b64url_no_pad`、`pkce_challenge`、`_fetch_discovery` | — |
+| `packages/harness/evoflow/webui/oidc_config.py:34` | 91 | `_normalize_config`、`get_oidc_config`、`set_oidc_config` | DEFAULT_OIDC_CONFIG |
+| `packages/harness/evoflow/guardrails/builtin.py:6` | 23 | `AllowlistProvider` | — |
+| `packages/harness/evoflow/guardrails/provider.py:10` | 56 | `GuardrailRequest`、`GuardrailReason`、`GuardrailDecision` | — |
+| `packages/harness/evoflow/agents/content_scanner.py:45` | 89 | `scan_content`、`scan_memory_entries` | — |
 | `app/gateway/routers/security_settings.py` | 235 | `ExecutionSecurityPatchBody`；`_detect_runtime_versions`、`_merge_execution_security`、`get_execution_security_status` | — |
 | `app/gateway/routers/codex_auth.py` | 180 | `LoginStartRequest`、`LoginPollRequest`、`EnsureModelRequest`；`_http_from_auth_error`、`require_local_plan_admin`、`codex_auth_status` | — |
-| `packages/harness/evoflow/guardrails/provider.py` | 56 | `GuardrailRequest`、`GuardrailReason`、`GuardrailDecision` | — |
+| `packages/harness/evoflow/guardrails/provider.py:10` | 56 | `GuardrailRequest`、`GuardrailReason`、`GuardrailDecision` | — |
 
 ## 核心概念
 - **JWT 只做认证**，授权仍走 ACL（别把权限塞进 token）。

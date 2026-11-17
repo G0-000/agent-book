@@ -36,13 +36,13 @@ HTTP  → Gateway（Part 10）
 
 | 文件 | 行数 | 关键符号 | 模块常量 |
 |---|---|---|---|
-| `packages/harness/evoflow/cli/main.py` | 105 | `_peek_command`、`build_parser`、`main` | — |
-| `packages/harness/evoflow/cli/common.py` | 44 | `add_json_input_flags`、`load_json_payload`、`add_output_flags` | — |
-| `packages/harness/evoflow/app_server/stdio_rpc.py` | 719 | `StdioAppServer`；`_force_utf8_stdio`、`serve_stdio`、`serve_stdio_async` | PROTOCOL_VERSION |
-| `packages/harness/evoflow/app_server/embed.py` | 96 | `resolve_app_server_listen_port`、`resolve_gateway_base_url_for_embed`、`start_embedded_app_server` | — |
-| `packages/harness/evoflow/app_server/chat_bridge.py` | 396 | `_client_lock`、`_get_shared_gateway_client`、`reset_shared_gateway_client_for_tests` | — |
-| `packages/harness/evoflow/desktop_stdio.py` | 363 | `_UnclosableStdio`；`apply_windows_stdio_env`、`_stream_is_usable`、`_is_colorama_wrapped` | — |
-| `packages/harness/evoflow/app_server/stdio_rpc.py` | 719 | `StdioAppServer`；`_force_utf8_stdio`、`serve_stdio`、`serve_stdio_async` | PROTOCOL_VERSION |
+| `packages/harness/evoflow/cli/main.py:52` | 105 | `_peek_command`、`build_parser`、`main` | — |
+| `packages/harness/evoflow/cli/common.py:13` | 44 | `add_json_input_flags`、`load_json_payload`、`add_output_flags` | — |
+| `packages/harness/evoflow/app_server/stdio_rpc.py:26` | 719 | `StdioAppServer`；`_force_utf8_stdio`、`serve_stdio`、`serve_stdio_async` | PROTOCOL_VERSION |
+| `packages/harness/evoflow/app_server/embed.py:17` | 96 | `resolve_app_server_listen_port`、`resolve_gateway_base_url_for_embed`、`start_embedded_app_server` | — |
+| `packages/harness/evoflow/app_server/chat_bridge.py:21` | 396 | `_client_lock`、`_get_shared_gateway_client`、`reset_shared_gateway_client_for_tests` | — |
+| `packages/harness/evoflow/desktop_stdio.py:270` | 363 | `_UnclosableStdio`；`apply_windows_stdio_env`、`_stream_is_usable`、`_is_colorama_wrapped` | — |
+| `packages/harness/evoflow/app_server/stdio_rpc.py:26` | 719 | `StdioAppServer`；`_force_utf8_stdio`、`serve_stdio`、`serve_stdio_async` | PROTOCOL_VERSION |
 
 ## 核心概念
 - **stdio 协议要点**：stdout 只能放协议消息，日志必须走 stderr，否则宿主解析失败。

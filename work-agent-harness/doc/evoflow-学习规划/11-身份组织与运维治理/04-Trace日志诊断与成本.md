@@ -32,22 +32,22 @@ sequenceDiagram
 
 | 文件 | 行数 | 关键符号 | 模块常量 |
 |---|---|---|---|
-| `packages/harness/evoflow/observability/queries.py` | 2458 | `ObservabilityDiskFullError`；`disk_full_user_message`、`enrich_model_row_thinking`、`_store` | — |
-| `packages/harness/evoflow/eval/dashboard.py` | 252 | `_clamp`、`_safe_score`、`_ts_str` | — |
-| `packages/harness/evoflow/observability/latency_waterfall.py` | 522 | `_parse_iso_ms`、`_load_trace_events`、`_load_model_invocations_for_timeline` | — |
-| `packages/harness/evoflow/observability/agent_trace_load.py` | 292 | `_store`、`_parse_payload_json`、`trace_events_by_lane` | — |
-| `packages/harness/evoflow/observability/compaction_file_log.py` | 424 | `compaction_trace_now_str`、`_file_logging_disabled`、`_console_mirror_enabled` | — |
-| `packages/harness/evoflow/observability/cache_pricing.py` | 174 | `CachePriceRule`；`_rule`、`detect_platform`、`resolve_cache_price` | ALIYUN_IMPLICIT_CACHE_READ_FRACTION、VOLCENGINE_RULES、ALIYUN_RULES |
-| `packages/harness/evoflow/observability/cache_metrics.py` | 222 | `compute_cache_hit_rate`、`_row_cache_triplet`、`cache_triplet_from_row` | — |
-| `packages/harness/evoflow/observability/model_list_projection.py` | 50 | `compute_model_list_projection`、`parse_stored_response_summary` | — |
-| `packages/harness/evoflow/persistence/usage_ledger.py` | 1886 | `_day_utc`、`_f`、`_s` | CATEGORY_LLM、CATEGORY_MEDIA、CATEGORY_TOOL |
-| `packages/harness/evoflow/persistence/usage_by_module.py` | 642 | `classify_session_module`、`resolve_usage_attribution`、`_load_session_map` | MODULE_CHAT、MODULE_EMPLOYEE、MODULE_WORKFLOW |
-| `packages/harness/evoflow/persistence/session_context_usage.py` | 190 | `build_context_usage_snapshot`、`load_session_context_usage`、`load_last_observed_active_tokens` | — |
+| `packages/harness/evoflow/observability/queries.py:23` | 2458 | `ObservabilityDiskFullError`；`disk_full_user_message`、`enrich_model_row_thinking`、`_store` | — |
+| `packages/harness/evoflow/eval/dashboard.py:25` | 252 | `_clamp`、`_safe_score`、`_ts_str` | — |
+| `packages/harness/evoflow/observability/latency_waterfall.py:26` | 522 | `_parse_iso_ms`、`_load_trace_events`、`_load_model_invocations_for_timeline` | — |
+| `packages/harness/evoflow/observability/agent_trace_load.py:15` | 292 | `_store`、`_parse_payload_json`、`trace_events_by_lane` | — |
+| `packages/harness/evoflow/observability/compaction_file_log.py:120` | 424 | `compaction_trace_now_str`、`_file_logging_disabled`、`_console_mirror_enabled` | — |
+| `packages/harness/evoflow/observability/cache_pricing.py:17` | 174 | `CachePriceRule`；`_rule`、`detect_platform`、`resolve_cache_price` | ALIYUN_IMPLICIT_CACHE_READ_FRACTION、VOLCENGINE_RULES、ALIYUN_RULES |
+| `packages/harness/evoflow/observability/cache_metrics.py:20` | 222 | `compute_cache_hit_rate`、`_row_cache_triplet`、`cache_triplet_from_row` | — |
+| `packages/harness/evoflow/observability/model_list_projection.py:14` | 50 | `compute_model_list_projection`、`parse_stored_response_summary` | — |
+| `packages/harness/evoflow/persistence/usage_ledger.py:59` | 1886 | `_day_utc`、`_f`、`_s` | CATEGORY_LLM、CATEGORY_MEDIA、CATEGORY_TOOL |
+| `packages/harness/evoflow/persistence/usage_by_module.py:53` | 642 | `classify_session_module`、`resolve_usage_attribution`、`_load_session_map` | MODULE_CHAT、MODULE_EMPLOYEE、MODULE_WORKFLOW |
+| `packages/harness/evoflow/persistence/session_context_usage.py:12` | 190 | `build_context_usage_snapshot`、`load_session_context_usage`、`load_last_observed_active_tokens` | — |
 | `app/gateway/routers/debug_agent_trace.py` | 2801 | `_debug_ui_enabled`、`_repo_root`、`_backend_dir` | — |
 | `app/gateway/routers/client_trace.py` | 159 | `_now_iso`、`trace_first_token_client`、`trace_stream_end_client` | — |
 | `app/gateway/hang_diagnostics.py` | 649 | `_flag_enabled`、`_float_env`、`diagnostics_enabled` | — |
 | `app/gateway/routers/observability.py` | 659 | `ObservabilityEnabledRequest`；`_obs_access_dep`、`_disk_full_http`、`_run_obs_or_disk_full` | — |
-| `packages/harness/evoflow/persistence/usage_ledger.py` | 1886 | `_day_utc`、`_f`、`_s` | CATEGORY_LLM、CATEGORY_MEDIA、CATEGORY_TOOL |
+| `packages/harness/evoflow/persistence/usage_ledger.py:59` | 1886 | `_day_utc`、`_f`、`_s` | CATEGORY_LLM、CATEGORY_MEDIA、CATEGORY_TOOL |
 
 ## 核心概念
 - **span 化**：模型调用、工具调用、压缩、落库各自一个 span，带父子关系。

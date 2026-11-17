@@ -43,11 +43,11 @@ sequenceDiagram
 | `app/gateway/cold_start_prewarm.py` | 167 | `mark_core_routers_ready`、`wait_core_routers_ready`、`core_routers_ready` | — |
 | `app/gateway/health_routes.py` | 150 | `register_health_routes` | — |
 | `app/gateway/routers/chat_sessions.py` | 2063 | `ForkSessionBody`、`TruncateSessionBody`；`_transcript_db_busy_http`、`_request_principal_id`、`_require_session_access` | — |
-| `packages/harness/evoflow/admin/sessions.py` | 355 | `_cutoff_iso`、`_get_db`、`_search_messages` | — |
-| `packages/harness/evoflow/assets/memory_runs.py` | 52 | `record_asset_phase_run` | — |
-| `packages/harness/evoflow/webui/middleware.py` | 190 | `_is_public_share_get`、`_is_public_path`、`_extract_token` | — |
-| `packages/harness/evoflow/mcp/oauth.py` | 217 | `_OAuthToken`、`OAuthTokenManager`；`build_oauth_tool_interceptor`、`get_initial_oauth_headers` | — |
-| `packages/harness/evoflow/code_index/deps.py` | 395 | `_is_internal_spec`、`_discover_package_roots`、`_resolve_py_module` | — |
+| `packages/harness/evoflow/admin/sessions.py:15` | 355 | `_cutoff_iso`、`_get_db`、`_search_messages` | — |
+| `packages/harness/evoflow/assets/memory_runs.py:13` | 52 | `record_asset_phase_run` | — |
+| `packages/harness/evoflow/webui/middleware.py:64` | 190 | `_is_public_share_get`、`_is_public_path`、`_extract_token` | — |
+| `packages/harness/evoflow/mcp/oauth.py:17` | 217 | `_OAuthToken`、`OAuthTokenManager`；`build_oauth_tool_interceptor`、`get_initial_oauth_headers` | — |
+| `packages/harness/evoflow/code_index/deps.py:29` | 395 | `_is_internal_spec`、`_discover_package_roots`、`_resolve_py_module` | — |
 | `app/gateway/db_async.py` | 25 | `run_db` | — |
 | `app/gateway/runtime_adapters.py` | 346 | `register_runtime_adapters` | — |
 | `app/gateway/lazy_langgraph.py` | 324 | `ExternalLangGraphProxy`、`LazyLangGraphMount`；`mount_langgraph_in_process`、`ensure_langgraph_mounted`、`_read_request_body` | — |

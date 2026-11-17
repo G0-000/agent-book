@@ -32,17 +32,17 @@ sequenceDiagram
 
 | 文件 | 行数 | 关键符号 | 模块常量 |
 |---|---|---|---|
-| `packages/harness/evoflow/a2a/adapter.py` | 811 | `_meeting_speak_backoff_seconds`、`_meeting_speak_user_error`、`_create_a2a_task_record` | — |
-| `packages/harness/evoflow/a2a/orchestrator.py` | 426 | `MeetingOrchestrator`；`create_meeting`、`get_meeting`、`update_meeting_status` | — |
-| `packages/harness/evoflow/a2a/models.py` | 161 | `TaskState`、`A2ATask`、`AgentCard` | — |
-| `packages/harness/evoflow/a2a/agent_card.py` | 108 | `_lookup_skill_metadata`、`_role_tool_names`、`role_to_agent_card` | — |
-| `packages/harness/evoflow/a2a/meeting_tool_speak.py` | 194 | `_clip`、`build_meeting_verify_tools`、`_tool_by_name` | — |
-| `packages/harness/evoflow/a2a/meeting_conclude.py` | 331 | `list_meeting_speak_turns`、`_parse_conclude_json`、`_normalize_conclusion` | — |
-| `packages/harness/evoflow/external_agents/registry.py` | 167 | `ExternalAgentFactory`；`register_active_agent`、`get_active_agent`、`unregister_active_agent` | — |
-| `packages/harness/evoflow/external_agents/base.py` | 360 | `BaseExternalAgent` | — |
-| `packages/harness/evoflow/external_agents/trae.py` | 403 | `TraeAgent` | — |
+| `packages/harness/evoflow/a2a/adapter.py:35` | 811 | `_meeting_speak_backoff_seconds`、`_meeting_speak_user_error`、`_create_a2a_task_record` | — |
+| `packages/harness/evoflow/a2a/orchestrator.py:148` | 426 | `MeetingOrchestrator`；`create_meeting`、`get_meeting`、`update_meeting_status` | — |
+| `packages/harness/evoflow/a2a/models.py:18` | 161 | `TaskState`、`A2ATask`、`AgentCard` | — |
+| `packages/harness/evoflow/a2a/agent_card.py:14` | 108 | `_lookup_skill_metadata`、`_role_tool_names`、`role_to_agent_card` | — |
+| `packages/harness/evoflow/a2a/meeting_tool_speak.py:18` | 194 | `_clip`、`build_meeting_verify_tools`、`_tool_by_name` | — |
+| `packages/harness/evoflow/a2a/meeting_conclude.py:34` | 331 | `list_meeting_speak_turns`、`_parse_conclude_json`、`_normalize_conclusion` | — |
+| `packages/harness/evoflow/external_agents/registry.py:70` | 167 | `ExternalAgentFactory`；`register_active_agent`、`get_active_agent`、`unregister_active_agent` | — |
+| `packages/harness/evoflow/external_agents/base.py:21` | 360 | `BaseExternalAgent` | — |
+| `packages/harness/evoflow/external_agents/trae.py:34` | 403 | `TraeAgent` | — |
 | `app/gateway/routers/a2a.py` | 297 | `_rpc_result`、`_rpc_error`、`_filter_agent_cards` | — |
-| `packages/harness/evoflow/a2a/agent_card.py` | 108 | `_lookup_skill_metadata`、`_role_tool_names`、`role_to_agent_card` | — |
+| `packages/harness/evoflow/a2a/agent_card.py:14` | 108 | `_lookup_skill_metadata`、`_role_tool_names`、`role_to_agent_card` | — |
 
 ## 核心概念
 - **Agent Card**：能力、端点、鉴权方式的自我描述，是互操作的前提。

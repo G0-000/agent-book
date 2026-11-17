@@ -48,7 +48,7 @@ sequenceDiagram
 
 | # | 事实 | 证据 |
 |---|---|---|
-| 1 | 运行时公共链由一个函数产出 | `build_lead_runtime_middlewares(lazy_init=True)`（在 `tool_error_handling_middleware.py:1087`） |
+| 1 | 运行时公共链由一个函数产出 | `build_lead_runtime_middlewares(lazy_init=True)`（在 `agents/middlewares/tool_error_handling_middleware.py:1087`） |
 | 2 | 子代理用另一套：不带 uploads、不带 dangling patch | `build_subagent_runtime_middlewares()` |
 | 3 | `after_model` 按列表**逆序**执行 | 源码注释：「after_model runs in reverse list order」 |
 | 4 | 因此「要最后跑的 after_model」必须放在链**最前面** | `CheckpointTranscriptSlimMiddleware` 用 `insert(0, ...)`，注释写明「First in chain ⇒ after_agent runs last」 |

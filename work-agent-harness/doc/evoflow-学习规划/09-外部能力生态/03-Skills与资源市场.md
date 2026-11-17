@@ -32,21 +32,21 @@ sequenceDiagram
 
 | 文件 | 行数 | 关键符号 | 模块常量 |
 |---|---|---|---|
-| `packages/harness/evoflow/skills/loader.py` | 814 | `clear_skills_cache`、`get_cached_skills_prompt_section`、`_build_mtime_map` | — |
-| `packages/harness/evoflow/skills/parser.py` | 66 | `parse_skill_file` | — |
-| `packages/harness/evoflow/skills/frontmatter.py` | 49 | `split_skill_frontmatter` | — |
-| `packages/harness/evoflow/skills/selection.py` | 66 | `extract_skill_mentions`、`select_skills_for_turn` | — |
-| `packages/harness/evoflow/skills/injection.py` | 126 | `skill_injection_execution_hint`、`_stat_signature`、`_read_skill_body` | — |
-| `packages/harness/evoflow/skills/active.py` | 20 | `set_active_skills`、`reset_active_skills`、`get_active_skills` | — |
-| `packages/harness/evoflow/skills/bound.py` | 184 | `is_bound_meta`、`is_bound_registry`、`list_bound_skill_dirs` | INSTALL_MODE_BOUND |
-| `packages/harness/evoflow/skills/installer.py` | 488 | `SkillAlreadyExistsError`；`is_link_or_junction`、`path_occupied`、`remove_link_or_junction` | MAX_ZIP_ENTRIES、MAX_ZIP_FILES |
-| `packages/harness/evoflow/skills/user_install.py` | 415 | `get_user_skills_root`、`_skills_root_from_source_tree`、`resolve_system_skills_source` | — |
-| `packages/harness/evoflow/skills/skillhub_pack.py` | 517 | `SkillInstallResult`、`ExpertPackInstallResult`；`_http_get`、`parse_skillset_slug`、`fetch_skillset` | SKILLHUB_API、AVATAR_CDN、AVATAR_VERSION |
-| `packages/harness/evoflow/skills/security.py` | 95 | `scan_for_security_issues`、`scan_skill_directory` | — |
-| `packages/harness/evoflow/skills/validation.py` | 108 | `_validate_skill_frontmatter` | ALLOWED_FRONTMATTER_PROPERTIES |
-| `packages/harness/evoflow/skills/skill_scope.py` | 23 | `SkillScope` | — |
-| `packages/harness/evoflow/config/paths.py` | 415 | `Paths`；`get_paths`、`reset_paths_cache`、`resolve_path` | VIRTUAL_PATH_PREFIX |
-| `packages/harness/evoflow/skills/skill_uri.py` | 162 | `parse_skill_uri`、`resolve_skill_uri`、`resolve_skill_path_for_command` | SKILL_URI_PREFIX |
+| `packages/harness/evoflow/skills/loader.py:33` | 814 | `clear_skills_cache`、`get_cached_skills_prompt_section`、`_build_mtime_map` | — |
+| `packages/harness/evoflow/skills/parser.py:13` | 66 | `parse_skill_file` | — |
+| `packages/harness/evoflow/skills/frontmatter.py:8` | 49 | `split_skill_frontmatter` | — |
+| `packages/harness/evoflow/skills/selection.py:13` | 66 | `extract_skill_mentions`、`select_skills_for_turn` | — |
+| `packages/harness/evoflow/skills/injection.py:42` | 126 | `skill_injection_execution_hint`、`_stat_signature`、`_read_skill_body` | — |
+| `packages/harness/evoflow/skills/active.py:10` | 20 | `set_active_skills`、`reset_active_skills`、`get_active_skills` | — |
+| `packages/harness/evoflow/skills/bound.py:23` | 184 | `is_bound_meta`、`is_bound_registry`、`list_bound_skill_dirs` | INSTALL_MODE_BOUND |
+| `packages/harness/evoflow/skills/installer.py:30` | 488 | `SkillAlreadyExistsError`；`is_link_or_junction`、`path_occupied`、`remove_link_or_junction` | MAX_ZIP_ENTRIES、MAX_ZIP_FILES |
+| `packages/harness/evoflow/skills/user_install.py:27` | 415 | `get_user_skills_root`、`_skills_root_from_source_tree`、`resolve_system_skills_source` | — |
+| `packages/harness/evoflow/skills/skillhub_pack.py:110` | 517 | `SkillInstallResult`、`ExpertPackInstallResult`；`_http_get`、`parse_skillset_slug`、`fetch_skillset` | SKILLHUB_API、AVATAR_CDN、AVATAR_VERSION |
+| `packages/harness/evoflow/skills/security.py:56` | 95 | `scan_for_security_issues`、`scan_skill_directory` | — |
+| `packages/harness/evoflow/skills/validation.py:37` | 108 | `_validate_skill_frontmatter` | ALLOWED_FRONTMATTER_PROPERTIES |
+| `packages/harness/evoflow/skills/skill_scope.py:8` | 23 | `SkillScope` | — |
+| `packages/harness/evoflow/config/paths.py:15` | 415 | `Paths`；`get_paths`、`reset_paths_cache`、`resolve_path` | VIRTUAL_PATH_PREFIX |
+| `packages/harness/evoflow/skills/skill_uri.py:10` | 162 | `parse_skill_uri`、`resolve_skill_uri`、`resolve_skill_path_for_command` | SKILL_URI_PREFIX |
 | `app/gateway/routers/skills.py` | 544 | `SkillResponse`、`SkillsListResponse`、`SkillUpdateRequest`；`_resolve_skills_base_path`、`_scope_skill_roots_from_request`、`_load_skills_for_request` | — |
 
 ## 核心概念

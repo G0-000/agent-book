@@ -31,23 +31,23 @@ sequenceDiagram
 
 | 文件 | 行数 | 关键符号 | 模块常量 |
 |---|---|---|---|
-| `packages/harness/evoflow/authz/principals.py` | 735 | `_row_dict`、`_parse_json_list`、`_parse_json_obj` | LOCAL_ADMIN_PRINCIPAL_ID |
-| `packages/harness/evoflow/authz/runtime_identity.py` | 265 | `set_current_principal_id`、`get_current_principal_id`、`principal_id_from_personal_scope` | — |
-| `packages/harness/evoflow/authz/agent_actor.py` | 341 | `set_current_agent_actor`、`get_current_agent_actor`、`normalize_agent_actor` | — |
-| `packages/harness/evoflow/authz/acl_store.py` | 247 | `encode_resource_ref`、`parse_resource_ref`、`principal_entitled_to_scope` | — |
-| `packages/harness/evoflow/authz/groups.py` | 121 | `create_group`、`get_group`、`list_groups` | — |
-| `packages/harness/evoflow/authz/membership.py` | 193 | `_member_row`、`list_scope_members`、`add_scope_member` | — |
-| `packages/harness/evoflow/authz/resource_visibility.py` | 118 | `owner_scope_visible_to_principal`、`stamp_kwargs_from_request`、`stamp_new_app_from_request` | — |
-| `packages/harness/evoflow/authz/scope.py` | 57 | `scope_id`、`org_scope`、`personal_scope` | — |
-| `packages/harness/evoflow/authz/scope_paths.py` | 188 | `_safe_segment`、`resolve_base_dir`、`scopes_root` | — |
-| `packages/harness/evoflow/authz/session_ownership.py` | 153 | `acl_session_list_filter_sql`、`stamp_session_ownership`、`add_session_participant` | — |
-| `packages/harness/evoflow/authz/skill_roots.py` | 36 | `scope_skill_roots_for_principal` | — |
-| `packages/harness/evoflow/authz/http_guard.py` | 549 | `resolve_authz_from_request`、`require_thread_visible`、`_has_auth_signals` | — |
-| `packages/harness/evoflow/authz/admin_grants.py` | 115 | `is_org_admin`、`list_org_admins`、`promote_org_admin` | — |
-| `packages/harness/evoflow/authz/mode.py` | 43 | `get_acl_mode`、`set_acl_mode`、`should_filter` | — |
+| `packages/harness/evoflow/authz/principals.py:19` | 735 | `_row_dict`、`_parse_json_list`、`_parse_json_obj` | LOCAL_ADMIN_PRINCIPAL_ID |
+| `packages/harness/evoflow/authz/runtime_identity.py:23` | 265 | `set_current_principal_id`、`get_current_principal_id`、`principal_id_from_personal_scope` | — |
+| `packages/harness/evoflow/authz/agent_actor.py:26` | 341 | `set_current_agent_actor`、`get_current_agent_actor`、`normalize_agent_actor` | — |
+| `packages/harness/evoflow/authz/acl_store.py:19` | 247 | `encode_resource_ref`、`parse_resource_ref`、`principal_entitled_to_scope` | — |
+| `packages/harness/evoflow/authz/groups.py:15` | 121 | `create_group`、`get_group`、`list_groups` | — |
+| `packages/harness/evoflow/authz/membership.py:17` | 193 | `_member_row`、`list_scope_members`、`add_scope_member` | — |
+| `packages/harness/evoflow/authz/resource_visibility.py:12` | 118 | `owner_scope_visible_to_principal`、`stamp_kwargs_from_request`、`stamp_new_app_from_request` | — |
+| `packages/harness/evoflow/authz/scope.py:10` | 57 | `scope_id`、`org_scope`、`personal_scope` | — |
+| `packages/harness/evoflow/authz/scope_paths.py:41` | 188 | `_safe_segment`、`resolve_base_dir`、`scopes_root` | — |
+| `packages/harness/evoflow/authz/session_ownership.py:15` | 153 | `acl_session_list_filter_sql`、`stamp_session_ownership`、`add_session_participant` | — |
+| `packages/harness/evoflow/authz/skill_roots.py:18` | 36 | `scope_skill_roots_for_principal` | — |
+| `packages/harness/evoflow/authz/http_guard.py:10` | 549 | `resolve_authz_from_request`、`require_thread_visible`、`_has_auth_signals` | — |
+| `packages/harness/evoflow/authz/admin_grants.py:16` | 115 | `is_org_admin`、`list_org_admins`、`promote_org_admin` | — |
+| `packages/harness/evoflow/authz/mode.py:13` | 43 | `get_acl_mode`、`set_acl_mode`、`should_filter` | — |
 | `app/gateway/routers/identity.py` | 411 | `CreatePrincipalBody`、`UpdatePrincipalBody`、`ResetPasswordBody`；`_require_admin`、`_require_self_or_admin`、`get_me` | — |
-| `packages/harness/evoflow/mcp/oauth.py` | 217 | `_OAuthToken`、`OAuthTokenManager`；`build_oauth_tool_interceptor`、`get_initial_oauth_headers` | — |
-| `packages/harness/evoflow/authz/acl_store.py` | 247 | `encode_resource_ref`、`parse_resource_ref`、`principal_entitled_to_scope` | — |
+| `packages/harness/evoflow/mcp/oauth.py:17` | 217 | `_OAuthToken`、`OAuthTokenManager`；`build_oauth_tool_interceptor`、`get_initial_oauth_headers` | — |
+| `packages/harness/evoflow/authz/acl_store.py:19` | 247 | `encode_resource_ref`、`parse_resource_ref`、`principal_entitled_to_scope` | — |
 
 ## 核心概念
 - **Principal = user | agent | service**，统一抽象后 ACL 只判 `principal → resource`。

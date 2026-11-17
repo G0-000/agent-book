@@ -38,16 +38,16 @@ sequenceDiagram
 |---|---|---|---|
 | `app/gateway/routers/background_bash.py` | 50 | `list_background_bash`、`background_bash_output`、`background_bash_stop` | — |
 | `app/gateway/routers/browser_bridge.py` | 145 | `BrowserExecuteRequest`、`BrowserLogEntry`、`BrowserLogBatch`；`_org_admin_guard`、`_bridge_token_guard`、`append_browser_log` | — |
-| `packages/harness/evoflow/tools/builtins/browser_stream.py` | 137 | `browser_session_name`、`browser_live_ws_path`、`_engine_screencast_active` | — |
+| `packages/harness/evoflow/tools/builtins/browser_stream.py:23` | 137 | `browser_session_name`、`browser_live_ws_path`、`_engine_screencast_active` | — |
 | `app/gateway/routers/browser_snapshots.py` | 38 | `get_browser_screenshot` | — |
 | `app/gateway/routers/browser_embed.py` | 63 | `BrowserEmbedCdpBody`；`put_browser_embed_cdp`、`delete_browser_embed_cdp`、`get_browser_embed_cdp` | — |
 | `app/gateway/routers/cua_bridge.py` | 327 | `CuaExecuteRequest`、`AppIconLocator`、`AppIconRequestBody`；`_org_admin_guard`、`_bridge_token_guard`、`_resolve_ps1` | — |
-| `packages/harness/evoflow/plugins/cua_helper.py` | 162 | `_helper_entry`、`_helper_addon`、`is_helper_runtime` | HELPER_RUNTIME_DIRNAME、HELPER_ENTRY_REL、HELPER_ADDON_REL |
-| `packages/harness/evoflow/plugins/bridge_auth.py` | 94 | `_token_file_path`、`reset_bridge_token_cache`、`get_bridge_token` | — |
-| `packages/harness/evoflow/plugins/runtime.py` | 342 | `_ulog`、`_iter_enabled_plugins`、`enabled_plugin_roots` | — |
-| `packages/harness/evoflow/plugins/node_repl.py` | 1111 | `_ulog`、`_sanitize_model_browser_js`、`_meta_envelope` | — |
-| `packages/harness/evoflow/plugins/node_repl_tool.py` | 564 | `NodeReplJsInput`；`_maybe_compact_browser_docs_dump`、`_get_thread_id`、`_decode_image` | — |
-| `packages/harness/evoflow/plugins/cua_helper.py` | 162 | `_helper_entry`、`_helper_addon`、`is_helper_runtime` | HELPER_RUNTIME_DIRNAME、HELPER_ENTRY_REL、HELPER_ADDON_REL |
+| `packages/harness/evoflow/plugins/cua_helper.py:40` | 162 | `_helper_entry`、`_helper_addon`、`is_helper_runtime` | HELPER_RUNTIME_DIRNAME、HELPER_ENTRY_REL、HELPER_ADDON_REL |
+| `packages/harness/evoflow/plugins/bridge_auth.py:33` | 94 | `_token_file_path`、`reset_bridge_token_cache`、`get_bridge_token` | — |
+| `packages/harness/evoflow/plugins/runtime.py:41` | 342 | `_ulog`、`_iter_enabled_plugins`、`enabled_plugin_roots` | — |
+| `packages/harness/evoflow/plugins/node_repl.py:30` | 1111 | `_ulog`、`_sanitize_model_browser_js`、`_meta_envelope` | — |
+| `packages/harness/evoflow/plugins/node_repl_tool.py:111` | 564 | `NodeReplJsInput`；`_maybe_compact_browser_docs_dump`、`_get_thread_id`、`_decode_image` | — |
+| `packages/harness/evoflow/plugins/cua_helper.py:40` | 162 | `_helper_entry`、`_helper_addon`、`is_helper_runtime` | HELPER_RUNTIME_DIRNAME、HELPER_ENTRY_REL、HELPER_ADDON_REL |
 
 ## 已核对的行为事实（REST 层）
 

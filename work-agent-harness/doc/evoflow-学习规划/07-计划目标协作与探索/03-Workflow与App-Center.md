@@ -33,15 +33,15 @@ W->>S: 从断点继续
 
 | 文件 | 行数 | 关键符号 | 模块常量 |
 |---|---|---|---|
-| `packages/harness/evoflow/scheduler/tool_executor.py` | 140 | `_preview`、`execute_op`、`log_scheduler_invocation` | — |
-| `packages/harness/evoflow/collab/app_engine.py` | 191 | `_render_text`、`_render_value`、`_render_steps` | PARAM_RE |
-| `packages/harness/evoflow/collab/app_generator.py` | 162 | `_merge_declared_parameters`、`generate_app_from_plan` | — |
-| `packages/harness/evoflow/collab/app_runner.py` | 1848 | `_dispatch_result_ok`、`is_workflow_bound_task`、`dispatch_workflow_task_now` | — |
-| `packages/harness/evoflow/collab/app_schema.py` | 608 | `_as_str`、`_as_str_list`、`normalize_parameter` | — |
-| `packages/harness/evoflow/collab/app_canvas.py` | 79 | `_default_position`、`canvas_from_steps` | START_NODE_ID、ANSWER_NODE_ID |
+| `packages/harness/evoflow/scheduler/tool_executor.py:17` | 140 | `_preview`、`execute_op`、`log_scheduler_invocation` | — |
+| `packages/harness/evoflow/collab/app_engine.py:26` | 191 | `_render_text`、`_render_value`、`_render_steps` | PARAM_RE |
+| `packages/harness/evoflow/collab/app_generator.py:23` | 162 | `_merge_declared_parameters`、`generate_app_from_plan` | — |
+| `packages/harness/evoflow/collab/app_runner.py:34` | 1848 | `_dispatch_result_ok`、`is_workflow_bound_task`、`dispatch_workflow_task_now` | — |
+| `packages/harness/evoflow/collab/app_schema.py:59` | 608 | `_as_str`、`_as_str_list`、`normalize_parameter` | — |
+| `packages/harness/evoflow/collab/app_canvas.py:14` | 79 | `_default_position`、`canvas_from_steps` | START_NODE_ID、ANSWER_NODE_ID |
 | `app/gateway/routers/apps.py` | 864 | `GenerateAppRequest`、`DryRunAppRequest`、`CreateAppKeyRequest`；`_audit_actor`、`_audit`、`_normalize_plan_for_storage` | — |
 | `app/gateway/routers/apps_debug.py` | 134 | `DebugRunStepRequest`、`DebugRunFromRequest`；`debug_run_step_endpoint`、`debug_run_from_endpoint`、`get_step_trace_endpoint` | — |
-| `packages/harness/evoflow/collab/app_engine.py` | 191 | `_render_text`、`_render_value`、`_render_steps` | PARAM_RE |
+| `packages/harness/evoflow/collab/app_engine.py:26` | 191 | `_render_text`、`_render_value`、`_render_steps` | PARAM_RE |
 
 ## 核心概念
 - **Workflow = 有 schema 的计划**：输入/输出可校验，才能被重复调用。

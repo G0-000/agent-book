@@ -32,8 +32,8 @@ sequenceDiagram
 
 | 文件 | 行数 | 关键符号 | 模块常量 |
 |---|---|---|---|
-| `packages/harness/evoflow/app_server/stdio_rpc.py` | 719 | `StdioAppServer`；`_force_utf8_stdio`、`serve_stdio`、`serve_stdio_async` | PROTOCOL_VERSION |
-| `packages/harness/evoflow/app_server/chat_bridge.py` | 396 | `_client_lock`、`_get_shared_gateway_client`、`reset_shared_gateway_client_for_tests` | — |
+| `packages/harness/evoflow/app_server/stdio_rpc.py:26` | 719 | `StdioAppServer`；`_force_utf8_stdio`、`serve_stdio`、`serve_stdio_async` | PROTOCOL_VERSION |
+| `packages/harness/evoflow/app_server/chat_bridge.py:21` | 396 | `_client_lock`、`_get_shared_gateway_client`、`reset_shared_gateway_client_for_tests` | — |
 | `app/gateway/routers/models.py` | 1156 | `ModelResponse`、`ModelsListResponse`、`SetPrimaryModelRequest`；`_to_model_response`、`list_models`、`get_primary_model` | — |
 | `app/gateway/routers/codex_auth.py` | 180 | `LoginStartRequest`、`LoginPollRequest`、`EnsureModelRequest`；`_http_from_auth_error`、`require_local_plan_admin`、`codex_auth_status` | — |
 

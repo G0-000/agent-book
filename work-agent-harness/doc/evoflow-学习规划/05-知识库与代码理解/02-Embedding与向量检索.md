@@ -33,8 +33,8 @@ sequenceDiagram
 
 | 文件 | 行数 | 关键符号 | 模块常量 |
 |---|---|---|---|
-| `packages/harness/evoflow/knowledge/service.py` | 687 | `_enrich_dataset`、`dataset_llm_index_enabled`、`list_datasets` | — |
-| `packages/harness/evoflow/knowledge/index_builder.py` | 77 | `build_document_summary`、`enrich_chunk_indexes`、`embedding_text_for_chunk` | — |
+| `packages/harness/evoflow/knowledge/service.py:39` | 687 | `_enrich_dataset`、`dataset_llm_index_enabled`、`list_datasets` | — |
+| `packages/harness/evoflow/knowledge/index_builder.py:9` | 77 | `build_document_summary`、`enrich_chunk_indexes`、`embedding_text_for_chunk` | — |
 | `app/gateway/routers/knowledge.py` | 418 | `CreateDatasetRequest`、`UpdateDatasetRequest`、`SyncLocalRequest`；`_org_admin_dep`、`list_knowledge_bases`、`create_knowledge_base` | — |
 
 ## 核心概念

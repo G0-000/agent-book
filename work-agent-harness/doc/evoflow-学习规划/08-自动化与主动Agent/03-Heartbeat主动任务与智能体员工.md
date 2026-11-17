@@ -37,15 +37,15 @@ sequenceDiagram
 
 | 文件 | 行数 | 关键符号 | 模块常量 |
 |---|---|---|---|
-| `packages/harness/evoflow/proactive/engine.py` | 1471 | `ProactiveEngine`；`_role_name_for_agent`、`_cancel_running_langgraph_runs`、`_is_execution_failure` | — |
-| `packages/harness/evoflow/proactive/decision_gate.py` | 1172 | `DecisionGate`；`_parse_iso_datetime` | — |
-| `packages/harness/evoflow/proactive/duty_runs.py` | 439 | `_new_run_id`、`_row_to_dict`、`start_duty_run` | — |
-| `packages/harness/evoflow/proactive/employee_automation.py` | 322 | `employee_via_automation_enabled`、`employee_automation_task_id`、`agent_code_from_employee_task` | EMPLOYEE_AUTOMATION_KIND |
+| `packages/harness/evoflow/proactive/engine.py:140` | 1471 | `ProactiveEngine`；`_role_name_for_agent`、`_cancel_running_langgraph_runs`、`_is_execution_failure` | — |
+| `packages/harness/evoflow/proactive/decision_gate.py:55` | 1172 | `DecisionGate`；`_parse_iso_datetime` | — |
+| `packages/harness/evoflow/proactive/duty_runs.py:26` | 439 | `_new_run_id`、`_row_to_dict`、`start_duty_run` | — |
+| `packages/harness/evoflow/proactive/employee_automation.py:36` | 322 | `employee_via_automation_enabled`、`employee_automation_task_id`、`agent_code_from_employee_task` | EMPLOYEE_AUTOMATION_KIND |
 | `packages/harness/evoflow/proactive/employee_prompt.py` | 52 |  | — |
 | `employee_prompting.py` | — | — | ✗ 源码树中未找到该文件 |
-| `packages/harness/evoflow/proactive/departments.py` | 608 | `DepartmentRepository`；`_sanitize_name`、`_new_id`、`_row_dict` | — |
-| `packages/harness/evoflow/proactive/cycle_limits.py` | 196 | `effective_max_initiatives`、`round_token`、`round_refs` | DEFAULT_MAX_INITIATIVES |
-| `packages/harness/evoflow/proactive/decision_gate.py` | 1172 | `DecisionGate`；`_parse_iso_datetime` | — |
+| `packages/harness/evoflow/proactive/departments.py:183` | 608 | `DepartmentRepository`；`_sanitize_name`、`_new_id`、`_row_dict` | — |
+| `packages/harness/evoflow/proactive/cycle_limits.py:39` | 196 | `effective_max_initiatives`、`round_token`、`round_refs` | DEFAULT_MAX_INITIATIVES |
+| `packages/harness/evoflow/proactive/decision_gate.py:55` | 1172 | `DecisionGate`；`_parse_iso_datetime` | — |
 
 ## 核心概念
 - **心跳不是轮询一切**：只跑「有 duty 的」检查项，避免空转。

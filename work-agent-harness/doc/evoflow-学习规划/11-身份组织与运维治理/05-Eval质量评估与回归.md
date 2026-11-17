@@ -32,18 +32,18 @@ sequenceDiagram
 
 | 文件 | 行数 | 关键符号 | 模块常量 |
 |---|---|---|---|
-| `packages/harness/evoflow/eval/eval_engine.py` | 907 | `_now_ms`、`_new_run_id`、`_new_alert_id` | — |
-| `packages/harness/evoflow/eval/case_spec.py` | 1251 | `CaseDesign`、`CaseSpec`；`_d`、`_spec`、`catalog_by_id` | FLOW_LABELS、PRIORITY_LABELS、LEVEL_LABELS |
-| `packages/harness/evoflow/eval/modules.py` | 132 | `resolve_module`、`module_label`、`enrich_case_row` | MODULE_LABELS、MODULE_CASE_DESIGN、MODULE_ORDER |
-| `packages/harness/evoflow/eval/performance.py` | 366 | `_since_ms`、`_iter_response_latencies`、`_count_messages_by_role` | — |
-| `packages/harness/evoflow/eval/business_quality.py` | 328 | `_clamp`、`evaluate_task_quality`、`evaluate_tool_reliability` | — |
-| `packages/harness/evoflow/eval/security.py` | 467 | `_table_exists`、`_columns`、`scan_data_leaks` | — |
-| `packages/harness/evoflow/observability/eval_metrics.py` | 498 | `fetch_invalid_tool_calls_summary`、`fetch_thread_tool_density`、`fetch_compress_kind_stats` | — |
-| `packages/harness/evoflow/eval/data_sources.py` | 776 | `_now_ms`、`_table_exists`、`_columns` | — |
-| `packages/harness/evoflow/eval/response_adapters.py` | 688 | `_ms_to_s`、`_fmt_duration_ms`、`_iso_now` | — |
-| `packages/harness/evoflow/eval/dashboard.py` | 252 | `_clamp`、`_safe_score`、`_ts_str` | — |
+| `packages/harness/evoflow/eval/eval_engine.py:36` | 907 | `_now_ms`、`_new_run_id`、`_new_alert_id` | — |
+| `packages/harness/evoflow/eval/case_spec.py:22` | 1251 | `CaseDesign`、`CaseSpec`；`_d`、`_spec`、`catalog_by_id` | FLOW_LABELS、PRIORITY_LABELS、LEVEL_LABELS |
+| `packages/harness/evoflow/eval/modules.py:62` | 132 | `resolve_module`、`module_label`、`enrich_case_row` | MODULE_LABELS、MODULE_CASE_DESIGN、MODULE_ORDER |
+| `packages/harness/evoflow/eval/performance.py:21` | 366 | `_since_ms`、`_iter_response_latencies`、`_count_messages_by_role` | — |
+| `packages/harness/evoflow/eval/business_quality.py:22` | 328 | `_clamp`、`evaluate_task_quality`、`evaluate_tool_reliability` | — |
+| `packages/harness/evoflow/eval/security.py:32` | 467 | `_table_exists`、`_columns`、`scan_data_leaks` | — |
+| `packages/harness/evoflow/observability/eval_metrics.py:14` | 498 | `fetch_invalid_tool_calls_summary`、`fetch_thread_tool_density`、`fetch_compress_kind_stats` | — |
+| `packages/harness/evoflow/eval/data_sources.py:29` | 776 | `_now_ms`、`_table_exists`、`_columns` | — |
+| `packages/harness/evoflow/eval/response_adapters.py:22` | 688 | `_ms_to_s`、`_fmt_duration_ms`、`_iso_now` | — |
+| `packages/harness/evoflow/eval/dashboard.py:25` | 252 | `_clamp`、`_safe_score`、`_ts_str` | — |
 | `app/gateway/routers/eval.py` | 574 | `_org_admin_dep`、`_ok`、`dashboard_summary` | — |
-| `packages/harness/evoflow/eval/security.py` | 467 | `_table_exists`、`_columns`、`scan_data_leaks` | — |
+| `packages/harness/evoflow/eval/security.py:32` | 467 | `_table_exists`、`_columns`、`scan_data_leaks` | — |
 
 ## 核心概念
 - **场景（scenario）即测试用例**：输入 + 期望性质（不含逐字答案）。

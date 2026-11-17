@@ -32,12 +32,12 @@ sequenceDiagram
 
 | 文件 | 行数 | 关键符号 | 模块常量 |
 |---|---|---|---|
-| `packages/harness/evoflow/automation/output_paths.py` | 147 | `_slug_segment`、`resolve_automation_outputs_root`、`_normalize_ext` | — |
+| `packages/harness/evoflow/automation/output_paths.py:15` | 147 | `_slug_segment`、`resolve_automation_outputs_root`、`_normalize_ext` | — |
 | `app/gateway/routers/automation_scheduler.py` | 665 | `_coerce_app_parameters`、`_apply_workflow_binding`、`_stamp_app_name` | — |
 | `app/gateway/automation_runner.py` | 2212 | `_scheduler_owner_id`、`_langgraph_run_semaphore`、`_task_wants_langgraph_run` | DEFAULT_INTERVAL_SECONDS、AUTOMATIONS_DIR |
 | `app/gateway/automation_chat_session.py` | 217 | `automation_session_key`、`_automation_session_title`、`_automation_session_context` | — |
-| `packages/harness/evoflow/persistence/automation_repositories.py` | 540 | `_row_dict`、`list_automations`、`load_automation` | SLOT_CLAIM_STALE_MS_DEFAULT |
-| `packages/harness/evoflow/persistence/channel_push_repositories.py` | 1473 | `new_push_id`、`_clip`、`_payload_to_json` | — |
+| `packages/harness/evoflow/persistence/automation_repositories.py:22` | 540 | `_row_dict`、`list_automations`、`load_automation` | SLOT_CLAIM_STALE_MS_DEFAULT |
+| `packages/harness/evoflow/persistence/channel_push_repositories.py:23` | 1473 | `new_push_id`、`_clip`、`_payload_to_json` | — |
 | `app/gateway/routers/sessions.py` | 159 | `SessionSearchRequest`、`SessionSearchResult`、`SessionSearchResponse`；`_filter_search_hits`、`search_sessions`、`search_sessions_get` | — |
 
 ## 核心概念

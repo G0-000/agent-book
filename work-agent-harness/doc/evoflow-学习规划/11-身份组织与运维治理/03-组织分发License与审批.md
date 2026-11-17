@@ -33,15 +33,15 @@ sequenceDiagram
 | 文件 | 行数 | 关键符号 | 模块常量 |
 |---|---|---|---|
 | `app/gateway/routers/organizations.py` | 293 | `SourceSpec`、`InstallOptions`、`PreflightRequest`；`_source_dict`、`_options_dict`、`api_preflight` | — |
-| `packages/harness/evoflow/license/gate.py` | 26 | `require_premium` | — |
-| `packages/harness/evoflow/license/entitlements.py` | 175 | `LicenseStatus`；`_parse_expires_at`、`get_license_status`、`is_premium_active` | ENFORCE_LICENSE_VERIFY |
-| `packages/harness/evoflow/license/machine.py` | 64 | `normalize_machine_id`、`_fingerprint_bytes`、`_windows_machine_guid` | — |
-| `packages/harness/evoflow/license/issued_store.py` | 215 | `_row_to_dict`、`_effective_status`、`_enrich` | STATUS_ACTIVE、STATUS_REVOKED、STATUS_EXPIRED |
+| `packages/harness/evoflow/license/gate.py:10` | 26 | `require_premium` | — |
+| `packages/harness/evoflow/license/entitlements.py:20` | 175 | `LicenseStatus`；`_parse_expires_at`、`get_license_status`、`is_premium_active` | ENFORCE_LICENSE_VERIFY |
+| `packages/harness/evoflow/license/machine.py:18` | 64 | `normalize_machine_id`、`_fingerprint_bytes`、`_windows_machine_guid` | — |
+| `packages/harness/evoflow/license/issued_store.py:18` | 215 | `_row_to_dict`、`_effective_status`、`_enrich` | STATUS_ACTIVE、STATUS_REVOKED、STATUS_EXPIRED |
 | `app/gateway/routers/license.py` | 212 | `ActivateBody`、`LicenseStatusResponse`、`IssueCodeBody`；`_parse_expires`、`_require_can_issue`、`license_status` | — |
-| `packages/harness/evoflow/authz/admin_grants.py` | 115 | `is_org_admin`、`list_org_admins`、`promote_org_admin` | — |
+| `packages/harness/evoflow/authz/admin_grants.py:16` | 115 | `is_org_admin`、`list_org_admins`、`promote_org_admin` | — |
 | `app/gateway/routers/audit.py` | 47 | `list_audit_actions_endpoint` | — |
-| `packages/harness/evoflow/persistence/audit_log.py` | 167 | `_ensure_table`、`record_action`、`list_actions` | — |
-| `packages/harness/evoflow/license/codec.py` | 329 | `LicenseCodecError`；`_b64url_decode`、`_normalize_payload_mid`、`_mid_to_bytes` | CODE_PREFIX、LEGACY_PREFIX、PAYLOAD_VERSION |
+| `packages/harness/evoflow/persistence/audit_log.py:46` | 167 | `_ensure_table`、`record_action`、`list_actions` | — |
+| `packages/harness/evoflow/license/codec.py:55` | 329 | `LicenseCodecError`；`_b64url_decode`、`_normalize_payload_mid`、`_mid_to_bytes` | CODE_PREFIX、LEGACY_PREFIX、PAYLOAD_VERSION |
 
 ## 核心概念
 - **entitlement（权益）** 与 **seat（席位）** 分离：功能开关 ≠ 人数限制。

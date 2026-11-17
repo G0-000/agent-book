@@ -32,8 +32,8 @@ sequenceDiagram
 
 | 文件 | 行数 | 关键符号 | 模块常量 |
 |---|---|---|---|
-| `packages/harness/evoflow/knowledge/folders.py` | 176 | `root_folder_id`、`ensure_root_folder`、`list_folders` | ROOT_NAME |
-| `packages/harness/evoflow/knowledge/service.py` | 687 | `_enrich_dataset`、`dataset_llm_index_enabled`、`list_datasets` | — |
+| `packages/harness/evoflow/knowledge/folders.py:14` | 176 | `root_folder_id`、`ensure_root_folder`、`list_folders` | ROOT_NAME |
+| `packages/harness/evoflow/knowledge/service.py:39` | 687 | `_enrich_dataset`、`dataset_llm_index_enabled`、`list_datasets` | — |
 | `app/gateway/routers/knowledge_owned.py` | 840 | `ReindexBaseBody`；`list_bases`、`create_base`、`get_base` | — |
 
 ## 核心概念

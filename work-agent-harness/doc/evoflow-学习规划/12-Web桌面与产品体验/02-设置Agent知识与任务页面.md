@@ -34,16 +34,16 @@ sequenceDiagram
 |---|---|---|---|
 | `app/gateway/routers/panel_settings.py` | 48 | `PanelSettingsResponse`、`PanelSettingsPatchBody`；`_principal_id`、`get_panel_ui_settings`、`patch_panel_ui_settings` | — |
 | `app/gateway/routers/models.py` | 1156 | `ModelResponse`、`ModelsListResponse`、`SetPrimaryModelRequest`；`_to_model_response`、`list_models`、`get_primary_model` | — |
-| `packages/harness/evoflow/models/factory.py` | 1245 | `_strip_provider_internal_keys`、`_is_local_noauth_endpoint`、`_normalize_reasoning_effort` | — |
+| `packages/harness/evoflow/models/factory.py:80` | 1245 | `_strip_provider_internal_keys`、`_is_local_noauth_endpoint`、`_normalize_reasoning_effort` | — |
 | `app/gateway/routers/agents.py` | 1555 | `AgentResponse`、`AgentsListResponse`、`AgentCreateRequest`；`_normalize_agent_tools_for_api`、`_matches_agent_list_filters`、`_agent_runtime_available_for_ui` | AGENT_NAME_PATTERN |
-| `packages/harness/evoflow/subagents/registry.py` | 223 | `_timeout_for_subagent`、`_resolve_subagent_system_prompt`、`_agent_config_to_subagent_config` | — |
+| `packages/harness/evoflow/subagents/registry.py:17` | 223 | `_timeout_for_subagent`、`_resolve_subagent_system_prompt`、`_agent_config_to_subagent_config` | — |
 | `app/gateway/routers/knowledge.py` | 418 | `CreateDatasetRequest`、`UpdateDatasetRequest`、`SyncLocalRequest`；`_org_admin_dep`、`list_knowledge_bases`、`create_knowledge_base` | — |
 | `app/gateway/routers/knowledge_owned.py` | 840 | `ReindexBaseBody`；`list_bases`、`create_base`、`get_base` | — |
-| `packages/harness/evoflow/admin/memory.py` | 62 | `_normalize_agent`、`list_memory_agents`、`get_memory` | — |
+| `packages/harness/evoflow/admin/memory.py:19` | 62 | `_normalize_agent`、`list_memory_agents`、`get_memory` | — |
 | `app/gateway/routers/sessions.py` | 159 | `SessionSearchRequest`、`SessionSearchResult`、`SessionSearchResponse`；`_filter_search_hits`、`search_sessions`、`search_sessions_get` | — |
 | `app/gateway/routers/automation_scheduler.py` | 665 | `_coerce_app_parameters`、`_apply_workflow_binding`、`_stamp_app_name` | — |
-| `packages/harness/evoflow/persistence/panel_settings.py` | 106 | `_panel_key`、`_deep_merge_defaults`、`get_panel_settings` | PANEL_SETTINGS_KEY、DEFAULT_PANEL_SETTINGS |
-| `packages/harness/evoflow/models/factory.py` | 1245 | `_strip_provider_internal_keys`、`_is_local_noauth_endpoint`、`_normalize_reasoning_effort` | — |
+| `packages/harness/evoflow/persistence/panel_settings.py:48` | 106 | `_panel_key`、`_deep_merge_defaults`、`get_panel_settings` | PANEL_SETTINGS_KEY、DEFAULT_PANEL_SETTINGS |
+| `packages/harness/evoflow/models/factory.py:80` | 1245 | `_strip_provider_internal_keys`、`_is_local_noauth_endpoint`、`_normalize_reasoning_effort` | — |
 
 ## 核心概念
 - **配置三层**：文件配置（启动项）→ 数据库配置（用户可改）→ 会话级覆盖（临时）。

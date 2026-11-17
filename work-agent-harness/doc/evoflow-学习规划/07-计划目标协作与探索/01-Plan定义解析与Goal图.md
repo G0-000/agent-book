@@ -31,11 +31,11 @@ sequenceDiagram
 
 | 文件 | 行数 | 关键符号 | 模块常量 |
 |---|---|---|---|
-| `packages/harness/evoflow/tools/builtins/plan_tool.py` | 585 | `PlanStepInput`、`PlanInput`；`_json_loads_if_string`、`_coerce_string_list_field`、`_coerce_to_str` | — |
+| `packages/harness/evoflow/tools/builtins/plan_tool.py:143` | 585 | `PlanStepInput`、`PlanInput`；`_json_loads_if_string`、`_coerce_string_list_field`、`_coerce_to_str` | — |
 | `app/gateway/routers/goal.py` | 473 | `StartGoalRequest`、`AfterChatTurnRequest`、`SubmitFeedbackRequest`；`get_goal_service`、`_require_goal_session_visible`、`start_goal` | — |
 | `app/gateway/v4/goal_engine.py` | 989 | `V4GoalEngine`、`GoalRejectedError`；`escape_goal_prompt_text`、`build_goal_verification_prompt`、`build_goal_continuation_prompt` | MAX_CONTINUATIONS、MAX_SAME_NEXT_ACTION_STREAK、VERIFIER_HISTORY_LIMIT |
 | `app/gateway/routers/plans.py` | 137 | `CreateBindingBody`、`PatchBindingBody`、`VerifyBindingBody`；`_http_error`、`get_catalog`、`get_bindings` | — |
-| `packages/harness/evoflow/tools/builtins/plan_tool.py` | 585 | `PlanStepInput`、`PlanInput`；`_json_loads_if_string`、`_coerce_string_list_field`、`_coerce_to_str` | — |
+| `packages/harness/evoflow/tools/builtins/plan_tool.py:143` | 585 | `PlanStepInput`、`PlanInput`；`_json_loads_if_string`、`_coerce_string_list_field`、`_coerce_to_str` | — |
 
 ## 核心概念
 - **计划结构**：`{steps:[{id, goal, inputs, outputs, done_when, depends_on}]}`。
