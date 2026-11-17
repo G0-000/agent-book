@@ -203,10 +203,10 @@ async def chat(body: ChatIn) -> StreamingResponse:
 
     from myagentflow.agents.lead_agent.graph import build_graph
     from myagentflow.config.app_config import get_app_config
-    from myagentflow.models.factory import build_chat_model
+    from myagentflow.models.factory import create_chat_model
     from myagentflow.runtime.streaming import stream_graph
 
-    graph = build_graph(build_chat_model(get_app_config().get_model()))
+    graph = build_graph(create_chat_model())
 
     async def gen():
         # 断线时 StreamingResponse 会取消这个生成器，资源随 with 清理

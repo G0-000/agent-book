@@ -99,3 +99,19 @@
 | 12/02 | `read_settings()` / `write_settings()` 带版本号 | `get_app_setting:1113` / `set_app_setting:1132`；无版本号字段 |
 
 已核验通过、未改动的：`utils/model_context_length.py` 三个阈值常量、`agents/lead_agent/agent.py:939` 澄清中间件在链尾、430 条源码路径存在性、298 组「文件+符号」配对、54 个本章测试断言。
+
+## 配置层：按 EvoFlow 文件布局拆分（2026-11-17）
+
+用户三次纠偏：`settings.py` → 单文件 `app_config.py` → **必须拆成 EvoFlow 的四个文件**。已按原布局落地，文件名/类名/函数名/字段名照抄，只做减法：
+
+| EvoFlow | 复刻 | 抄 / 裁 |
+|---|---|---|
+| `config/app_config.py:94 AppConfig`（14 分区） | `config/app_config.py` | 5 分区：`log_level`/`models`/`primary_model`/`checkpointer`/`storage` |
+| `config/model_config.py:78 ModelConfig`（30 列） | `config/model_config.py` | 13 列，`name`（条目名）与 `model`（模型 ID）分开；含 `_drop_reserved_model_config_key`、`resolve_model_max_output_tokens` |
+| `config/checkpointer_config.py:10` | 同名文件 | 整份含模块单例 `get/set_checkpointer_config()` |
+| `config/storage_config.py:10` | 同名文件 | `backend`/`sqlite_path`；`DEFAULT_APP_DB_REL` 暂内联 |
+| `models/resolver.py:38/63` | `models/resolver.py` | `NoChatModelConfiguredError`、`resolve_run_model`、`get_app_config_safe`、`_global_default_model`（只留两层来源） |
+| `models/factory.py:879` | `models/factory.py` | `create_chat_model(name=None, thinking_enabled=False, **kwargs)`，只实现 openai |
+
+测试从 54 → 57 passed，ruff 清零；`01/01` 的示例代码、五个 Step、对照表全部按四文件重写，`10/01`、`10/02`、`02/03` 的调用示例同步为 `create_chat_model()`。
+
