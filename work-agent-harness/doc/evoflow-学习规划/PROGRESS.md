@@ -133,3 +133,9 @@
 - 新增测试 `test_providers_layout_is_flattened`（provider 层 base_url/api_key 下传、条目字段覆盖、name 顺序），本章 6 例、全书 58 passed；
 - `config.example.yaml` 补 providers 写法注释，`01/01` 对照表与示例代码补 `models_yaml.py` 一节。
 
+## 注释去噪（2026-11-17）
+
+用户指出「（EvoFlow 同名字段 `_checkpointer_config`）」这类句子没必要。已清理：代码里不再写「EvoFlow 同名字段 / 同名函数 / 对齐某某行」，出处统一放文档对照表；受影响的 13 个文件（四个 config、resolver、factory、provider、budget、lifecycle、workspace_path_guard、测试 docstring）改为只讲行为与理由。
+
+规则写入 `00-导论/04-实现手册体例.md` 3.3：注释不写对齐出处，文件头 docstring 最多说明「负责什么、为什么单独成文件」。
+
