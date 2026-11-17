@@ -139,3 +139,15 @@
 
 规则写入 `00-导论/04-实现手册体例.md` 3.3：注释不写对齐出处，文件头 docstring 最多说明「负责什么、为什么单独成文件」。
 
+## 第 2 章代码核对（2026-11-17）
+
+用户问「第 2 章相关代码都实现了么」。核对结论：手把手三步都已落地——`agents/lead_agent/graph.py`（`build_graph(model, checkpointer=None)`，`MessagesState` + 单节点 `call_model`）与 `tests/chapters/test_ch01_02_graph.py`（2 例，实测 2 passed）。但文档上一版的「示例代码」贴的是一个 `Agent` 类（`render_prompt`/`start_run`/`execute`/`Redactor`/`Store`/`ToolRegistry`），仓库里从未有过，EvoFlow 也没有这个类——已删除并替换为真实的 `graph.py` 全文 + `chat.py` 调用节选。
+
+同时修正：
+- 章首「本章是手写 agent loop」→「只造单节点图，没有工具循环/中间件/system prompt」；
+- 「本章目标 / 最小闭环 / 调用逻辑」三节从 run_id/事件流改写为 `invoke` 路径；
+- 新增「代码实现状态」表（✅ graph.py 与 2 个测试；🟡 chat 路由接了图但未接 checkpointer；❌ 提示词注入、工具循环、run 生命周期分属 3/03、1/04、02/02）；
+- 验收清单改成真实用例名（`test_single_turn`、`test_same_thread_keeps_history`）；
+- 常见坑补 `build_graph(model, checkpointer=None)` 的第二个位置参数；
+- 顺带清掉虚构的 `Redactor`：01/01 与 02 都改为「EvoFlow 用 `models/credential_sanitize.py` 的 `sanitize_api_key`/`sanitize_base_url`」。
+

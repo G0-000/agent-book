@@ -3,124 +3,161 @@
 > **EvoFlow 对照状态 / Alignment status：** 以 EvoFlow `lead_agent` 的 LangGraph/LangChain 装配为结构参照；本章只实现单轮调用的教学最小图，不代表上游内部节点结构。
 >
 > ::: warning 与 EvoFlow 真实实现的差异
-> 本章是**手写 agent loop**（调模型 → 执行工具 → 再调模型）。EvoFlow 里没有这个循环：它由 `lead_agent/agent.py`（2002 行）编译成 LangGraph 图，外层再套一条中间件链 `build_lead_runtime_middlewares(lazy_init=True)`；`after_model` 是**逆序**执行的，Clarification 固定链尾。差异详见 [03/03 Middleware 调用链](../03-工具深化与上下文控制/03-Middleware调用链与工具审计.md)。
+> 本章**只造一张单节点图**：没有工具循环、没有中间件、没有 system prompt 注入。EvoFlow 也不是手写循环——它由 `create_agent(...)`（`agents/lead_agent/agent.py:1502`、`:1953`）把「模型节点 + 中间件链」编译成图，`after_model` 逆序执行、Clarification 固定链尾，详见 [03/03 Middleware 调用链](../03-工具深化与上下文控制/03-Middleware调用链与工具审计.md)。
 > :::
 
 
 
 ## 本章目标 / Goals
-- 一个 **Agent** = role prompt + model + tools + store。
-- 一次 **run** 是一个可观察的执行单元：有 `run_id`、状态、事件序列。
-- 同一个 Agent 实例可以被多个 session 复用，**不共享会话状态**。
+- 造出第一张 LangGraph 图：`StateGraph(MessagesState)` + 单节点 + 两条边。
+- 弄明白 `messages` 通道靠 reducer 追加，节点只返回新消息。
+- 用假模型（不联网）验证单轮，再用 `InMemorySaver()` 验证「同 thread 累积历史」。
 
 ## 最小闭环 / Minimal closed loop
-`start_run(session) → execute() → 事件: run_start → token... → done`
+`build_graph(model) → invoke({"messages":[HumanMessage]}) → {"messages":[..., AIMessage]}`
 
-没有工具调用时，循环第一轮就结束，这就是「单轮执行」。
+一条消息进、一条回复出，没有工具、没有循环——这就是「单轮执行」。
 
 ## 调用逻辑 / Invocation logic
 ```mermaid
 sequenceDiagram
-    participant C as Caller
-    participant A as Agent
-    participant S as Store
-    participant M as Model
-    C->>A: run(session_id, text)
-    A->>S: create_run / add_message(user)
-    A->>S: get_messages(session)
-    A->>M: stream([system]+history, tools)
-    M-->>A: tokens
-    A->>S: add_message(assistant) + events
-    A-->>C: run_id (结果在 events 里)
+    participant C as Caller（chat 路由 / 测试）
+    participant G as build_graph 编译出的图
+    participant M as Model（真模型或 EchoModel）
+    C->>G: invoke({"messages":[HumanMessage]}, {"configurable":{"thread_id": tid}})
+    G->>G: call_model：读 state["messages"]
+    G->>M: model.invoke(messages)
+    M-->>G: AIMessage
+    G-->>C: {"messages":[..., AIMessage]}
+    Note over G: 挂了 checkpointer 时，状态按 thread_id 存/取
 ```
 
-## 2.1 Agent 构造与角色提示 / Construction and role prompt
-**核心概念**
-- **role prompt**：system message，**每轮动态渲染、不入库**。这样改提示词不会污染历史。
-- **slots**：`"You are {role}."` 这类变量槽，由 `render_prompt(**slots)` 填充。
-- **max_steps**：防止模型与工具无限循环（第 4 章详述）。
+## 2.1 这一章实际造了什么 / What we actually build
 
-## 2.2 单轮执行与结果返回 / Single-turn execution and result return
-**为什么返回 run_id 而不是文本：** 结果以 **事件流** 交付（第 5 章），同步调用方可在 `done` 事件里读取最终文本；异步调用方通过 SSE 订阅。这样同步与流式共用同一条路径。
+**先纠正一个常见误解：EvoFlow 里没有 `Agent` 类。**
 
-**错误处理 / Error handling：** 任何异常都被转成 `error` 事件，并把 run 状态置为 `failed`；错误消息会先经过 `Redactor`。
+| EvoFlow 的做法 | 来源 |
+|---|---|
+| agent = **LangGraph 图 + 中间件链**，由 `create_agent(...)` 编译，不是自己 `new Agent()` | `agents/lead_agent/agent.py:1502`、`:1953` |
+| 角色提示（system prompt）由中间件**每轮动态注入**，不写进历史消息 | `agents/middlewares/dynamic_system_prompt_middleware.py` |
+| 模型调用是 LangChain 内部的 model 节点，外面套 `before_model` / `wrap_model_call` / `after_model` | `agents/lead_agent/agent.py:685-941`（装配） |
+
+我们这一章也只造一个东西：
+
+```text
+build_graph(model, checkpointer=None)
+    └─ StateGraph(MessagesState)
+         └─ 单节点 call_model：把 state["messages"] 交给 model.invoke，回复塞回 messages
+```
+
+**刻意不做的**（后面章节各自负责）：
+- 工具循环（1.4）
+- system prompt 注入与中间件链（3.3）
+- 事件流与 SSE（1.5、10/01）
+- run 登记 / 取消（02/02）
+
+## 2.2 一次单轮执行发生了什么 / What happens in one turn
+
+```text
+chat router → create_chat_model() → build_graph(model) → graph.invoke(
+    {"messages": [HumanMessage(text)]},
+    {"configurable": {"thread_id": tid}},
+)
+→ call_model 调 model.invoke(messages)
+→ 返回 {"messages": [..., AIMessage]}
+```
+
+- **同步**：本章只有 `invoke`，没有 run_id、没有事件；HTTP 层怎么把它变成 SSE 见 1.5。
+- **thread_id**：同一 `thread_id` + 挂 checkpointer 才会累积历史；不挂时每次都是新对话（见 Step 3 的测试）。
+- **失败**：异常直接抛给调用方，本章不做脱敏。EvoFlow 侧也没有 `Redactor` 类，脱敏在 `models/credential_sanitize.py`（`sanitize_api_key` / `sanitize_base_url`）。
 
 ## 示例代码 / Sample code
-### 我方实现：`agents/lead_agent/graph.py`
 
-> **EvoFlow 对应**：`agents/lead_agent/agent.py`（LangGraph 装配 + middleware 链）。下面为我方实现，单节点两边的简化图。
+### `agents/lead_agent/graph.py`（全文，35 行）
+
 ```python
-"""Agent: role prompt + model + tools + store. One run = loop until the model stops. (Chapters 1.2 and 1.4)"""
+"""最小 Agent：一个节点 + 两条边。
+
+刻意不做工具循环：先把「单轮」跑通，后面每章只在这张图上加节点/加边。
+"""
 from __future__ import annotations
-from dataclasses import dataclass
-from .config import Redactor
-from .store import Store
-from .tools import ToolRegistry
 
-TERMINAL = ("done", "error")
+from typing import Any
 
-class Agent:
-    def __init__(self, model, registry: ToolRegistry, store: Store, role_prompt: str = "You are a helpful assistant.",
-                 max_steps: int = 6, redactor: Redactor | None = None):
-        self.model, self.registry, self.store = model, registry, store
-        self.role_prompt, self.max_steps = role_prompt, max_steps
-        self.redact = redactor or Redactor()
+from langgraph.graph import END, START, MessagesState, StateGraph
 
-    def render_prompt(self, **slots) -> str:
-        return self.role_prompt.format(**slots) if slots else self.role_prompt
 
-    def start_run(self, session_id: str) -> str:
-        if not self.store.session_exists(session_id):
-            raise KeyError(f"unknown session: {session_id}")
-        return self.store.create_run(session_id)
+def build_graph(model: Any, checkpointer: Any = None):
+    graph = StateGraph(MessagesState)
 
-    def execute(self, session_id: str, run_id: str, user_text: str) -> None:
-        emit = lambda t, d=None: self.store.append_event(run_id, t, d or {})
-        try:
-            emit("run_start", {"session_id": session_id})
-            self.store.add_message(session_id, "user", user_text)
-            total = {"input": 0, "output": 0}
-            for _ in range(self.max_steps):
-                messages = [{"role": "system", "content": self.render_prompt()}] + self.store.get_messages(session_id)
-                text, calls = [], []
-                for kind, payload in self.model.stream(messages, self.registry.specs()):
-                    if kind == "token":
-                        text.append(payload); emit("token", {"text": payload})
-                    elif kind == "tool_call":
-                        calls.append(payload)
-                    elif kind == "done":
-                        for k in total: total[k] += payload.get("usage", {}).get(k, 0)
-                self.store.add_message(session_id, "assistant", "".join(text),
-                                       tool_calls=[{"id": c.id, "name": c.name, "arguments": c.arguments} for c in calls] or None)
-                if not calls:
-                    self.store.set_run_status(run_id, "done")
-                    emit("done", {"text": "".join(text), "usage": total}); return
-                for c in calls:
-                    emit("tool_start", {"id": c.id, "name": c.name, "arguments": c.arguments})
-                    res = self.registry.call(c.name, c.arguments)
-                    body = res.content if res.ok else f"ERROR: {res.error}"
-                    self.store.add_message(session_id, "tool", body, tool_call_id=c.id, name=c.name)
-                    emit("tool_end", {"id": c.id, "ok": res.ok, "truncated": res.truncated, "content": body})
-            raise RuntimeError(f"max_steps ({self.max_steps}) reached")
-        except Exception as e:
-            self.store.set_run_status(run_id, "failed")
-            emit("error", {"message": self.redact(f"{type(e).__name__}: {e}")})
+    def call_model(state: MessagesState):
+        # 唯一职责：把当前历史交给模型，把回复塞回 messages
+        reply = model.invoke(state["messages"])
+        return {"messages": [reply]}
 
-    def run(self, session_id: str, user_text: str) -> str:
-        rid = self.start_run(session_id)
-        self.execute(session_id, rid, user_text)
-        return rid
+    graph.add_node("call_model", call_model)
+    graph.add_edge(START, "call_model")
+    graph.add_edge("call_model", END)
+
+    # checkpointer 允许 None：本章先不落盘，02/01 再注入
+    return graph.compile(checkpointer=checkpointer)
 ```
 
+三个设计点：
+
+| 写法 | 为什么 |
+|---|---|
+| `MessagesState` | 它自带 `messages` 通道 + `add_messages` reducer，节点返回的 AIMessage 会被**追加**而不是覆盖（少了这句就会出现 `InvalidUpdateError`） |
+| `checkpointer` 默认 `None` | 本章先证明「一条消息进、一条回复出」；持久化留给 02/01，不在这里耦合 |
+| 节点只做 `model.invoke` | 把「调模型」和「图」分开：换模型（真模型/假模型）不影响图结构，测试才能不联网 |
+
+### 调用方：`app/gateway/routers/chat.py`（节选）
+
+```python
+from myagentflow.agents.lead_agent.graph import build_graph
+from myagentflow.models.factory import create_chat_model
+from myagentflow.runtime.streaming import stream_graph
+
+graph = build_graph(create_chat_model())     # 模型由 1.1 的配置层解析
+
+async for chunk in stream_graph(
+    graph,
+    {"messages": [HumanMessage(content=body.text)]},
+    {"configurable": {"thread_id": body.thread_id}},
+):
+    yield chunk
+```
+
+> 注意：这条路由目前**没传 checkpointer**，所以同一 `thread_id` 也不会累积历史——接持久化是 02/01 的事。本章测试里显式传了 `InMemorySaver()`，验证的是「checkpointer 挂上就累积」这一点。
+
+## 代码实现状态 / Code status
+
+> 直接回答「这一章的代码都实现了吗」：**手把手三步全部落地**，下面的「旧版示例」已清掉。
+
+| 内容 | 状态 | 证据 |
+|---|---|---|
+| `agents/lead_agent/graph.py` 的 `build_graph(model, checkpointer=None)` | ✅ 已实现 | 全文见上；`uv run python -c "from ... import build_graph"` 通过 |
+| `tests/chapters/test_ch01_02_graph.py` 两个用例 | ✅ 已实现 | `uv run pytest ... -q` → **2 passed** |
+| chat 路由调用图 | 🟡 半接 | `app/gateway/routers/chat.py:20` 已 `build_graph(create_chat_model())`，但**未传 checkpointer**，同 thread 不累积；接持久化在 02/01 |
+| 系统提示 / 角色 prompt | ❌ 本章不做 | EvoFlow 由 `agents/middlewares/dynamic_system_prompt_middleware.py` 每轮注入，我们在 3/03 复刻 |
+| 工具循环 | ❌ 不做 | 1/04 才有 `ToolRegistry` 与工具节点 |
+| run 登记 / 事件流 / 取消 | ❌ 不做 | 1/05（事件）与 02/02（生命周期） |
+| 旧版示例里的 `Agent` 类与 `Redactor` | ❌ 从未存在于本仓库 | 上一版文档残留，本轮已删；EvoFlow 也没有 `Agent` 类，脱敏是 `models/credential_sanitize.py` 的函数，不是 `Redactor` |
+
 ## 业务规则 / Business rules
-1. 未知 `session_id` → `KeyError`（HTTP 层映射为 404）。
-2. 用户消息先落库，再调用模型 —— 即使模型失败，用户输入也不丢。
-3. 事件是 **追加写**，永不修改。
-4. 终止事件只有 `done` 与 `error` 两种（`TERMINAL`）。
+1. **一张图只做一次模型调用**：没有工具时，图跑完就结束，不存在「循环直到模型停」。
+2. **history 由 `MessagesState` 通道维护**：节点只返回新消息，追加由 reducer 完成，不手工 `messages + [reply]`。
+3. **checkpointer 可为空**：不传时图无状态，每次 `invoke` 各自独立；传了才按 `thread_id` 累积。
+4. **异常不吞**：`model.invoke` 抛什么就传什么，本周不做错误分类/脱敏。
 
 ## 验收 / Acceptance
-- [x] FakeModel 单轮返回预期结果（`Ch2Agent.test_single_turn`）
-- [x] 同一 Agent 跨 session 无状态串扰（`test_role_prompt_slots_and_isolation`）
+- [x] 单轮：一条消息进、`echo: 你好` 出（`test_single_turn`）
+- [x] 同 `thread_id` 挂 `InMemorySaver()` 后，第二次 invoke 能看到 4 条消息（`test_same_thread_keeps_history`）
+
+```bash
+cd backend && uv run pytest tests/chapters/test_ch01_02_graph.py -q
+# 期望：2 passed
+```
 
 ## 对照 EvoFlow 核对清单
 - [ ] EvoFlow 中「Agent 角色」的数据结构（岗位、提示词、工具集、模型绑定）
@@ -132,7 +169,7 @@ class Agent:
 | 症状 | 原因 | 动作 |
 |---|---|---|
 | `ModuleNotFoundError: langgraph` | 依赖没装或不在 workspace 里 | `cd backend && uv sync`；确认 `pyproject.toml` 有 `langgraph` |
-| 第二次 `invoke` 只有 2 条消息（没有累积） | 没传 `configurable.thread_id`，或压根没挂 checkpointer | 传 `{"configurable": {"thread_id": "t1"}}`，并 `build_graph(model, InMemorySaver())` |
+| 第二次 `invoke` 只有 2 条消息（没有累积） | 没传 `configurable.thread_id`，或压根没挂 checkpointer | 传 `{"configurable": {"thread_id": "t1"}}`，并 `build_graph(model, InMemorySaver())`（本仓库 `build_graph(model, checkpointer=None)`，checkpointer 是第二个位置参数） |
 | `InvalidUpdateError: Expected dict, got AIMessage` | 图的状态里 `messages` 少了 `add_messages` reducer | 用 `Annotated[list, add_messages]` 声明 messages 通道 |
 
 ## 从零实现（手把手）
