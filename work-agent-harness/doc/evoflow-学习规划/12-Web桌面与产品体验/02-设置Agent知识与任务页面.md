@@ -23,7 +23,7 @@ sequenceDiagram
     A->>S: 下次请求取新配置
 ```
 
-- **入口**：`read_settings()` / `write_settings()` 成对出现，写操作带版本号，避免并发覆盖。
+- **入口**：**没有 `read_settings()` / `write_settings()`**。EvoFlow 的设置读写是 `persistence/config_repositories.py:1113` `get_app_setting(key)` 与 `:1132` `set_app_setting(key, value)`，存储落在 `evoflow_app_settings` 键值表；另有 `persistence/runtime_settings.py:71` `overlay_runtime_settings_from_db()` 在启动时把库里的值覆盖到 YAML 配置上。**没有版本号字段**，并发覆盖靠 SQLite 事务而不是乐观锁。
 - **关键节点**：密钥类字段写入时脱敏、读出时只回 `masked`；变更要记审计（谁改了什么）。
 - **出口**：下一次 run 立即生效，不要求重启进程。
 - **最容易断的地方**：配置缓存在模块级变量里不失效；把明文密钥回显到前端。

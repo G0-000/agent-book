@@ -247,8 +247,8 @@ uv run pytest tests/chapters/test_ch01_02_graph.py -v
 
 | 我们的做法 | EvoFlow | 为什么 |
 |---|---|---|
-| `StateGraph(MessagesState)` | `lead_agent/agent.py` 的建图部分 | 消息列表就是最小状态 |
-| 单节点 `call_model` | 同文件 `call_model` 节点 | 先复刻主干，再叠中间件 |
+| `StateGraph(MessagesState)` | **EvoFlow 不手写 StateGraph**：它调 `create_agent(...)`（`agents/lead_agent/agent.py:1502`、`:1953` 两处），图由 LangChain 内部编译 | 我们要看懂「图长什么样」，所以显式建一遍；EvoFlow 是「配中间件就给图」 |
+| 单节点 `call_model` | **没有 `call_model` 这个节点**：模型调用是 LangChain 的 model 节点，前后由 `before_model` / `wrap_model_call` / `after_model` 中间件包裹 | 手写节点是为了看清 state 怎么进出；EvoFlow 把这些塞进中间件 |
 
 ### 知识点
 

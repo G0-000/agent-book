@@ -80,3 +80,22 @@
 | **C 不做** | 明确不做，连解释也不必 | 与内核无关 | 10 余张 `*_repositories` 分表拆库（我们采用单库少表）、历史 YAML 迁移兼容路径、多端打包产物 |
 
 > 第 12 部分第 4 章（Tauri）属于 **B 仅解释**：读它，是为了知道桌面端如何复用同一套 RPC 与权限模型，不是为了把安装包做出来。
+
+## 源码语义核验（2026-11-17）
+
+逐一回 `/Users/main/EvoFlow` 读代码核对「行为断言」，不只核对路径存在性。查出并改正 9 处：
+
+| 章 | 原文（错） | 真实情况 |
+|---|---|---|
+| 01/01 | `AppConfig.redactor()`、`RedactingFilter`、`ModelRecord.__repr__` | 三者都不存在；真实脱敏是 `models/vendor_roundtrip.py:124 _redact_secrets`、`admin/platform_handlers.py:3650 _redact_channel_secrets`、`plans/service.py:172 redact_key` |
+| 01/01 | `model_store.py` 自造建表列 | 换成 `persistence/schema.py:1031` 真实 DDL，并写明本复刻不复刻（模型放 config.yaml） |
+| 01/02 | `StateGraph` 与 `call_model` 节点在 `agent.py` | EvoFlow 调 `create_agent`（`:1502`/`:1953`），无 `call_model` 节点 |
+| 02/04 | `ShareStore.create()` 生成 token 并 hash 落库 | token 在 `routers/share.py:71` 生成、**明文**入库（`chat_share_repositories.py:121/172`）；`ShareStore` 不存在 |
+| 03/03 | 中间件 71 个；装配在 705–760 | 70 个；`_build_middlewares:685-941`；逆序由 `langchain/agents/factory.py:1551` 连边实现，非 EvoFlow |
+| 03/04 | 压缩后目标是 `refill_target()` | 该函数不存在；真实是 `compaction_trigger.py:20 POST_COMPRESS_REFILL_RATIO=1.22` / `:24 SAME_TURN_REFILL_RATIO=1.5` |
+| 04/01 | 命名空间 `user/workspace/session/agent` | 实际是 `user/agent/workspace/person`（`memory/namespaces.py:6/10/17/27`），无 session |
+| 10/02 | `completions()`、`_last_user()` | 两个 `chat_completions()`（`openai_compat_apps.py:274` / `openai_compat_models.py:49`）；无 `_last_user` |
+| 10/03 | `Bus.inbound()` / `Bus.outbound()` | `publish_inbound:151` / `publish_outbound:341` |
+| 12/02 | `read_settings()` / `write_settings()` 带版本号 | `get_app_setting:1113` / `set_app_setting:1132`；无版本号字段 |
+
+已核验通过、未改动的：`utils/model_context_length.py` 三个阈值常量、`agents/lead_agent/agent.py:939` 澄清中间件在链尾、430 条源码路径存在性、298 组「文件+符号」配对、54 个本章测试断言。

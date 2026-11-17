@@ -17,13 +17,13 @@ sequenceDiagram
     participant A as can
     participant W as Workspace
     U->>P: 解析身份（token → principal）
-    U->>A: can(principal, Resource(ws, kind))
+    U->>A: can_access_ref(principal, owner_scope_id, ref, need)
     A-->>U: True / False + 理由
     U->>W: 通过才读写资源
 ```
 
-- **入口**：`can(principal, resource)` 是唯一判定入口，路由层不许自己写 `if role == "admin"`。
-- **关键节点**：`Resource` 带 workspace + 资源类型，判定按「主体 → 资源 → 动作」三元组，缺一不可。
+- **入口**：真实入口是 `authz/acl_store.py:213` 的 `can_access_ref(principal, *, owner_scope_id, ref, need="read", org_id=...)`——**EvoFlow 里没有叫 `can()` 的函数**（原文这里写的是想象中的 API）。路由层不直接判角色，而是调 `authz/http_guard.py` 的一组 `require_*_visible()`（`require_thread_visible:39`、`require_item_visible:132`、`require_agent_visible:210` 等）。
+- **关键节点**：判定参数是「主体 + owner scope + 资源引用 + 权限（read/write）」，不是「资源对象」；`can_access_ref` 的 docstring 写明「Owner always can; otherwise need a grant to a scope the principal is entitled to」，即先判 owner，再看 scope 成员资格（`membership.py` 的 `can_read_scope` / `can_write_scope`），最后逐个 grant 判 grantee scope。
 - **出口**：拒绝时返回「缺哪个权限」，而不是笼统 403。
 - **最容易断的地方**：只在入口校验、资源内部再取数据时不复查；workspace 隔离靠前端传参。
 
