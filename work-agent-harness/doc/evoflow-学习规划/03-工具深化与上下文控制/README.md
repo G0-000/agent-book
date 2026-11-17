@@ -8,7 +8,7 @@
 |---|---|---|
 | [1](01-文件终端与宿主边界.md) | 文件/终端与宿主边界 | `tools/tools.py`、`tools/host_direct/`、`tools/builtins/` |
 | [2](02-后台命令浏览器桥与Computer-Use.md) | 后台命令、浏览器桥、Computer Use | `plugins/`、`routers/browser_bridge.py`、`routers/cua_bridge.py` |
-| [3](03-Middleware调用链与工具审计.md) ✅ | Middleware 调用链与工具审计 | `agents/middlewares/`（71 个）、`agents/tool_approval_*.py` |
+| [3](03-Middleware调用链与工具审计.md) ✅ | Middleware 调用链与工具审计 | `agents/middlewares/`（70 个 `.py`）、`agents/tool_approval_*.py` |
 | [4](04-上下文预算压缩与自动后续.md) | 上下文预算、压缩、自动后续动作 | `context/`、`agents/context_compaction_core.py`、`tools/tool_output_truncation.py` |
 
 ## 关键认知

@@ -1,6 +1,6 @@
 # 第 3 章　Middleware 调用链与工具审计
 
-> **对照状态** ✅ **已核对源码**：`agents/middlewares/`（71 个条目）、`agents/lead_agent/agent.py`（2002 行，装配逻辑在 705–760 行附近）。顺序注释、反向执行规则均来自源码原文。
+> **对照状态** ✅ **已核对源码**：`agents/middlewares/`（70 个 `.py` 条目）、`agents/lead_agent/agent.py`（2002 行，装配函数 `_build_middlewares` 在 `:685`–`:941`）。**顺序注释来自 EvoFlow 源码；「after_model 逆序执行」不是 EvoFlow 写的，是 LangChain `create_agent` 编译图时连边连出来的**——见下方第 9 条。
 
 ## 本章目标
 看懂 EvoFlow 的「Agent 循环」其实是一条**约 60 个中间件组成的流水线**，并理解注册顺序与执行顺序**方向相反**这一关键事实。
@@ -32,7 +32,7 @@ sequenceDiagram
 
 ## 1. 先纠正一个数字
 
-`agents/middlewares/` 下有 **71 个条目**，但不是 71 个中间件：
+`agents/middlewares/` 下有 **70 个 `.py`**，但不是 70 个中间件（有些是模块级工具函数，不是 `AgentMiddleware` 子类）：
 
 | 类别 | 举例 | 说明 |
 |---|---|---|
@@ -55,7 +55,8 @@ sequenceDiagram
 | 5 | 状态瘦身中间件放在最前，是为了让最终检查点丢掉 transcript | 同注释：「final checkpoint (esp. durability=exit) drops transcript blobs」 |
 | 6 | 转写落库（Transcript）放得「早」，是为了它的 after_model 最后跑 | 注释：「Placed early so its after_model runs last ... capturing the final state」 |
 | 7 | TokenUsage 在子代理链最后 append，所以它最先执行 | 注释：「after_model runs in reverse list order, so TokenUsageMiddleware (appended last) runs first」 |
-| 8 | 澄清（Clarification）必须最后拦截 | 注释：「ClarificationMiddleware should be last to intercept clarification requests after model calls」 |
+| 8 | 澄清（Clarification）必须最后拦截 | `agent.py:939` 最后一句 `middlewares.append(ClarificationMiddleware())`，上一条注释「ClarificationMiddleware should always be last」 |
+| 9 | **逆序不是 EvoFlow 实现的**，是 LangChain 编译图时接的边 | `langchain/agents/factory.py:1551`：`graph.add_edge("model", f"{middleware_w_after_model[-1].name}.after_model")`，随后 `for idx in range(len(...)-1, 0, -1)` 逐条倒着连 |
 | 9 | Todo 必须排在澄清之前，否则待办管理被拦掉 | 注释：「TodoListMiddleware should be before ClarificationMiddleware」 |
 | 10 | 图片细节注入必须早于澄清 | `ViewImageMiddleware` 注释 |
 | 11 | 工具异常必须早于澄清转成 ToolMessage | `ToolErrorHandlingMiddleware` 注释 |
