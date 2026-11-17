@@ -8,6 +8,26 @@
 ## 最小闭环
 注册一个外部 Agent（能力卡）→ 发一条任务 → 收到结构化结果 → 并入本地任务账本。
 
+## 调用逻辑 / Invocation logic
+
+```mermaid
+sequenceDiagram
+    participant L as 本地 Agent
+    participant A as ExternalAgent
+    participant X as 外部 Agent
+    participant B as 协作账本
+    L->>A: to_request(task, capability)
+    A->>X: 发任务（能力卡约定的格式）
+    X-->>A: 结构化结果
+    A->>A: to_summary(result)
+    A->>B: 记一条外部任务
+```
+
+- **入口**：`to_request()` 把本地任务转成对方约定的请求，能力不匹配就拒绝派发。
+- **关键节点**：`to_summary()` 把对方返回压成本地统一结构，缺字段要显式标 `partial`。
+- **出口**：结果并入本地账本，来源标为外部，便于追责。
+- **最容易断的地方**：直接信任外部返回的字段（注入/幻觉）；超时不设上限。
+
 ## 真实模块地图（已核对：路径 · 行数 · 符号）
 
 | 文件 | 行数 | 关键符号 | 模块常量 |

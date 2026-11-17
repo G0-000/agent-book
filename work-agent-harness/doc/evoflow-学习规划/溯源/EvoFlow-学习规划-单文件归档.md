@@ -314,7 +314,7 @@ model = model_factory(store)                                         # ③ 取�
 sequenceDiagram
     participant App
     participant C as config.py
-    participant S as ModelStore (SQLite)
+    participant S as ModelStore (SQLite
     participant F as model_factory
     App->>C: load_config(path?)
     C->>C: 解析路径 → safe_load → $ENV 替换 → 校验各节
@@ -1491,9 +1491,9 @@ def calculator_tool() -> Tool:
 ```mermaid
 sequenceDiagram
     participant C as Client
-    participant S as Server (WSGI)
+    participant S as Server (WSGI
     participant L as events 表
-    participant A as Agent (线程)
+    participant A as Agent (线程
     C->>S: POST /runs {text}
     S->>A: 后台执行 execute()
     S-->>C: 202 {run_id}

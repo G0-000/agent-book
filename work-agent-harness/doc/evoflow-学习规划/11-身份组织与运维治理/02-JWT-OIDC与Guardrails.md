@@ -8,6 +8,27 @@
 ## 最小闭环
 OIDC 登录换 JWT → 请求带 token → 校验 → 进入业务；命中护栏规则 → 拦截并记录。
 
+## 调用逻辑 / Invocation logic
+
+```mermaid
+sequenceDiagram
+    participant C as 客户端
+    participant I as OIDC Provider
+    participant V as verify
+    participant B as _b64d
+    participant G as 业务接口
+    C->>I: 登录换 id_token
+    C->>V: 请求带 Authorization: Bearer
+    V->>B: 解码 header/payload
+    V->>V: 校验 alg / exp / iss / 签名
+    V-->>G: principal 或 401
+```
+
+- **入口**：所有受保护路由先 `verify(token)`，校验不通过直接 401，不进业务。
+- **关键节点**：`alg` 必须白名单（禁 `none`）；`exp/iss/aud` 逐项校验；`_b64d` 处理 URL-safe base64 补齐。
+- **出口**：返回 principal（sub/scope），护栏规则在此之后、业务之前执行。
+- **最容易断的地方**：只解码不验签；把公钥硬编码在代码里而不走 JWKS。
+
 ## 真实模块地图（已核对：路径 · 行数 · 符号）
 
 | 文件 | 行数 | 关键符号 | 模块常量 |

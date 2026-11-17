@@ -9,6 +9,22 @@
 `evoflow --chat "算一下 2+3"` → 标准输出 SSE 事件 → 退出码 0；同一套逻辑通过 stdio JSON-RPC 被宿主程序调用。
 
 ## 调用逻辑
+
+```mermaid
+sequenceDiagram
+    participant U as 用户
+    participant CLI as cli.main
+    participant GR as 图执行
+    participant H as 宿主程序
+    participant S as app_server.stdio
+    U->>CLI: evoflow --chat "算一下 2+3"
+    CLI->>GR: _chat() → 执行
+    CLI-->>U: 标准输出 SSE 事件，退出码 0
+    H->>S: JSON-RPC 请求（stdin）
+    S->>S: handle(req) → serve()
+    S-->>H: JSON-RPC 响应（stdout）
+```
+
 ```text
 CLI  → 直接调用 harness 会话服务 → 流事件打印
 stdio → 宿主进程 spawn → JSON-RPC 2.0 over stdin/stdout → chat_bridge → harness

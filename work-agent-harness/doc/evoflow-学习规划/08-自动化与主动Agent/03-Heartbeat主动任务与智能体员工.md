@@ -8,6 +8,31 @@
 ## 最小闭环
 心跳周期到 → 决策门判断「是否值得打扰用户」→ 是则生成一条主动消息 → 否则静默记录。
 
+## 调用逻辑 / Invocation logic
+
+```mermaid
+sequenceDiagram
+    participant C as 心跳周期
+    participant H as Heartbeat
+    participant F as fingerprint
+    participant G as 决策门
+    participant U as 用户
+    C->>H: should_run(now)
+    H->>F: fingerprint(上下文)
+    F-->>H: 指纹
+    H->>G: 与上次比对 → 值得打扰吗
+    alt 值得
+        G->>U: 主动消息
+    else 不值得
+        G->>H: 静默记录
+    end
+```
+
+- **入口**：每个心跳周期先 `should_run()`：时间到 + 上下文有变化才继续。
+- **关键节点**：`fingerprint()` 把「任务状态/未读变化」压成一个指纹，指纹相同就不打扰——这是防骚扰的核心。
+- **出口**：值得打扰才发消息，否则只写日志，用户无感。
+- **最容易断的地方**：指纹包含时间戳（每分钟都不同）；没有任何阈值，变成定时推送。
+
 ## 真实模块地图（已核对：路径 · 行数 · 符号）
 
 | 文件 | 行数 | 关键符号 | 模块常量 |

@@ -8,6 +8,26 @@
 ## 最小闭环
 定义 10 个场景 → 跑基线 → 改提示词/工具 → 再跑 → 对比通过率与成本。
 
+## 调用逻辑 / Invocation logic
+
+```mermaid
+sequenceDiagram
+    participant D as 开发者
+    participant E as eval.run
+    participant C as Case
+    participant S as score
+    D->>E: run(cases)
+    E->>C: 逐条执行（固定输入）
+    C-->>E: 输出
+    E->>S: score(case, output)
+    S-->>D: 通过率 + 成本 + 失败清单
+```
+
+- **入口**：`run(cases)` 批量跑，用例固定输入与期望，不允许每次临时改。
+- **关键节点**：`score()` 支持精确匹配与规则匹配两类；成本一并记录，否则「变好但贵十倍」看不出来。
+- **出口**：结果落基线文件，下次对比通过率与成本变化。
+- **最容易断的地方**：用例依赖真实模型导致不可复现；只看总分不看失败清单。
+
 ## 真实模块地图（已核对：路径 · 行数 · 符号）
 
 | 文件 | 行数 | 关键符号 | 模块常量 |

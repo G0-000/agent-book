@@ -8,6 +8,25 @@
 ## 最小闭环
 打开工作区 → 建索引 → 「函数 X 定义在哪」→「谁调用了 X」→ 给出文件:行号。
 
+## 调用逻辑 / Invocation logic
+
+```mermaid
+sequenceDiagram
+    participant T as 工具入口
+    participant I as index_file
+    participant C as CodeIndex
+    participant Q as 查询
+    T->>I: index_file(path, text)
+    I-->>C: add_file(path, symbols, calls)
+    Q->>C: find(symbol)
+    C-->>Q: [{path, line, kind}]
+```
+
+- **入口**：`index_file()` 只做「一个文件 → 符号表」，不递归、不读 git，扫描由上层决定。
+- **关键节点**：索引里必须存 `path:line`，只存文件名等于没索引；同名符号要按 kind（def/class）区分。
+- **出口**：`find()` 返回带行号的定义列表，「谁调用了 X」来自 calls 边。
+- **最容易断的地方**：改文件不增量更新；把注释里的同名文本当成定义。
+
 ## 真实模块地图（已核对：路径 · 行数 · 符号）
 
 | 文件 | 行数 | 关键符号 | 模块常量 |

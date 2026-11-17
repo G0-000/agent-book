@@ -8,6 +8,30 @@
 ## 最小闭环
 启动后台命令 → 轮询输出 → 结束后读取完整日志；打开浏览器 → 截图 → 点击。
 
+## 调用逻辑 / Invocation logic
+
+```mermaid
+sequenceDiagram
+    participant T as 工具
+    participant B as BgManager
+    participant P as BgProc
+    participant A as verify_bridge_token
+    participant H as 宿主进程/浏览器
+    T->>B: start(cmd)
+    B->>P: Popen(..., stdout=PIPE)
+    B-->>T: proc_id
+    T->>B: poll(proc_id)
+    P-->>T: 增量输出 / exit_code
+    T->>B: kill(proc_id)（超时或取消）
+    T->>A: verify_bridge_token(token, secret)
+    A-->>T: True/False → 放行桥接请求
+```
+
+- **入口**：`BgManager.start()` 起进程并立刻返回 id，工具层拿 id 轮询，不阻塞事件循环。
+- **关键节点**：`poll()` 要能返回「还没结束」和「已结束+退出码」两种状态；桥接侧每个请求先过 `verify_bridge_token`，不信任来源 IP。
+- **出口**：`kill()` 负责收割进程组，`close()` 前必须全部 kill，否则测试结束残留子进程。
+- **最容易断的地方**：只 kill 父进程不管子进程；token 用固定字符串或漏校验重放。
+
 ## 真实模块地图（已核对：路径 · 行数 · 符号）
 
 | 文件 | 行数 | 关键符号 | 模块常量 |

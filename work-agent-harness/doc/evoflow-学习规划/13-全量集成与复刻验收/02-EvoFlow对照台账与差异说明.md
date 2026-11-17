@@ -26,6 +26,25 @@
 2. **不要抄「到处 patched_*」**：`models/` 里的厂商补丁是被现实逼出来的，先做统一适配层。
 3. **不要抄许可边界之外的东西**：PolyForm Noncommercial 1.0.0，商用需授权；自研代码保持独立实现。
 
+## 调用逻辑 / Invocation logic
+
+```mermaid
+sequenceDiagram
+    participant D as 运行者
+    participant S as scan
+    participant C as classify
+    participant R as 台账输出
+    D->>S: scan(evoflow_root, our_root)
+    S-->>C: 两侧模块清单（路径 + 行数）
+    C-->>R: 四态：新增/空壳/已实现/部分
+    R-->>D: 对照表 + 差异原因
+```
+
+- **入口**：`scan()` 只读目录与行数，不执行对方代码，避免误触副作用。
+- **关键节点**：`classify()` 用四态而不是「有/无」，因为「有文件但没实现」是最常见的假对齐。
+- **出口**：表格直接贴进文档，差异列必须写「为什么不做」，不能留空。
+- **最容易断的地方**：只比文件数不比行为；把 EvoFlow 的行数当成我们的进度。
+
 ## 验收
 - [ ] 每条差异有「为什么」而不只是「不同」
 - [ ] 有明确的「不实现」清单

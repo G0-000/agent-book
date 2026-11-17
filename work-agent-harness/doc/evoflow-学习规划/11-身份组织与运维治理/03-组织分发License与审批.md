@@ -8,6 +8,26 @@
 ## 最小闭环
 管理员创建组织 → 分配席位 → 用户激活 License → 使用受限功能 → 审批流记录。
 
+## 调用逻辑 / Invocation logic
+
+```mermaid
+sequenceDiagram
+    participant A as Admin
+    participant L as license
+    participant U as 用户
+    participant F as 功能门
+    A->>L: issue(org, seats, features) → _sign
+    U->>L: parse(key)
+    L-->>U: License 对象（org/seats/features/exp）
+    F->>L: has_feature(license, "sso")
+    L-->>F: True/False → 放行或提示升级
+```
+
+- **入口**：`issue()` 由管理员签发，`_sign()` 做签名，客户端拿到的是不可篡改的 key。
+- **关键节点**：`parse()` 验签 + 校验过期与席位；`has_feature()` 只判功能位，不判具体用量。
+- **出口**：功能门返回布尔 + 原因，UI 据此展示「需要升级」。
+- **最容易断的地方**：只在前端隐藏按钮、后端不校验；席位统计用客户端上报。
+
 ## 真实模块地图（已核对：路径 · 行数 · 符号）
 
 | 文件 | 行数 | 关键符号 | 模块常量 |

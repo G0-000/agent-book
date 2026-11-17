@@ -8,6 +8,26 @@
 ## 最小闭环
 创建知识库 → 导入资料 → 看到目录树 → 在对话中按知识库范围检索。
 
+## 调用逻辑 / Invocation logic
+
+```mermaid
+sequenceDiagram
+    participant A as 知识库 API
+    participant B as build_map
+    participant D as describe
+    participant R as 检索
+    A->>B: build_map(entries)
+    B-->>A: 目录树（库 → 目录 → 文档）
+    A->>D: describe(map)
+    D-->>R: 范围描述（用于限定检索范围）
+    R->>R: 只在指定库内检索
+```
+
+- **入口**：导入资料后 `build_map()` 由条目元数据（库 id、目录、文档名）构建树，不读正文。
+- **关键节点**：树只做展示与范围裁剪，不参与召回排序；`describe()` 输出一段可读的范围说明，用于告诉模型「你看到的是哪个库」。
+- **出口**：检索时把库/目录作为过滤条件传给向量检索，而不是检索完再筛。
+- **最容易断的地方**：把知识地图当成索引本体（改了树但没重建索引）；空库时 `describe` 返回空串导致 prompt 出现空段落。
+
 ## 真实模块地图（已核对：路径 · 行数 · 符号）
 
 | 文件 | 行数 | 关键符号 | 模块常量 |

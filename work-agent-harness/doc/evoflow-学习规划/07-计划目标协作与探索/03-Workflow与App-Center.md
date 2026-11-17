@@ -8,6 +8,27 @@
 ## 最小闭环
 定义 workflow（步骤 + 输入 schema）→ 用同一输入跑两次得到结构一致的结果 → 应用中心可查看。
 
+## 调用逻辑 / Invocation logic
+
+```mermaid
+sequenceDiagram
+participant C as 调用方
+participant W as Workflow
+participant S as 步骤
+participant R as StepResult
+C->>W: run(input)
+W->>S: 按序执行（schema 校验输入）
+S-->>W: StepResult(status, output)
+W-->>C: 汇总结果（同输入 → 同结构）
+C->>W: resume_from(step_index, state)
+W->>S: 从断点继续
+```
+
+- **入口**：`run(input)` 先按 `input_schema` 校验，再逐步执行；`resume_from()` 从指定步骤带状态续跑。
+- **关键节点**：每步产出 `StepResult`，失败要标 `status` 而不是抛异常中断整个 workflow。
+- **出口**：同一输入两次运行结构必须一致（可重放），这是 app center 能展示的前提。
+- **最容易断的地方**：步骤间靠全局变量传值；恢复时重跑已完成步骤造成副作用重复。
+
 ## 真实模块地图（已核对：路径 · 行数 · 符号）
 
 | 文件 | 行数 | 关键符号 | 模块常量 |

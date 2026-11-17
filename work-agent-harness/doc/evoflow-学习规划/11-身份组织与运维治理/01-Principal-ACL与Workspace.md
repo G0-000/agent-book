@@ -8,6 +8,25 @@
 ## 最小闭环
 用户登录 → 得到 principal → 访问某 workspace 资源 → ACL 判定 → 允许/拒绝并可解释。
 
+## 调用逻辑 / Invocation logic
+
+```mermaid
+sequenceDiagram
+    participant U as 请求
+    participant P as principal
+    participant A as can
+    participant W as Workspace
+    U->>P: 解析身份（token → principal）
+    U->>A: can(principal, Resource(ws, kind))
+    A-->>U: True / False + 理由
+    U->>W: 通过才读写资源
+```
+
+- **入口**：`can(principal, resource)` 是唯一判定入口，路由层不许自己写 `if role == "admin"`。
+- **关键节点**：`Resource` 带 workspace + 资源类型，判定按「主体 → 资源 → 动作」三元组，缺一不可。
+- **出口**：拒绝时返回「缺哪个权限」，而不是笼统 403。
+- **最容易断的地方**：只在入口校验、资源内部再取数据时不复查；workspace 隔离靠前端传参。
+
 ## 真实模块地图（已核对：路径 · 行数 · 符号）
 
 | 文件 | 行数 | 关键符号 | 模块常量 |

@@ -8,6 +8,27 @@
 ## 最小闭环
 建索引 → 查询 → top-k 片段 → 注入上下文 → 回答带引用。
 
+## 调用逻辑 / Invocation logic
+
+```mermaid
+sequenceDiagram
+    participant U as 检索调用方
+    participant V as VectorStore
+    participant E as 嵌入模型
+    participant C as _cos
+    U->>E: embed(query)
+    E-->>U: q_vec
+    U->>V: search(q_vec, k)
+    V->>C: _cos(q_vec, doc_vec) × N
+    V-->>U: top-k(top_k, score)
+    U->>U: 片段拼进上下文 + 引用 id
+```
+
+- **入口**：`VectorStore.add(ids, vectors)` 建索引，`search(q_vec, k)` 查询；嵌入由调用方做，store 不依赖网络。
+- **关键节点**：`_cos` 自己算余弦，不引 numpy（少一个依赖、也方便手写理解）；维度不一致必须早失败，不能悄悄截断。
+- **出口**：返回 `(id, score)` 列表，低于阈值直接丢弃，宁少勿滥。
+- **最容易断的地方**：入库与查询用了两个不同嵌入模型；top-k 取回后没有引用 id，回答无法溯源。
+
 ## 真实模块地图（已核对：路径 · 行数 · 符号）
 
 | 文件 | 行数 | 关键符号 | 模块常量 |

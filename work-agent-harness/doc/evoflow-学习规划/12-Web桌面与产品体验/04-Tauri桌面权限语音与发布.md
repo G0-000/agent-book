@@ -10,6 +10,27 @@
 ## 最小闭环
 桌面端启动 → 申请必要权限 → 语音输入转文字 → 对话 → 升级包可平滑更新。
 
+## 调用逻辑 / Invocation logic
+
+```mermaid
+sequenceDiagram
+    participant U as 用户
+    participant T as Tauri 壳
+    participant P as 权限申请
+    participant R as RPC 后端
+    participant S as 语音服务
+    U->>T: 启动桌面端
+    T->>P: 申请麦克风/文件权限
+    U->>S: 语音输入
+    S-->>R: 转写文本
+    R-->>T: 对话结果
+```
+
+- **入口**：桌面端不新写业务逻辑，所有能力仍走 `/my-agent-flow` 同一套 RPC。
+- **关键节点**：权限按需申请（首次用麦克风时才弹），`tauri.conf.json` 里 allowlist 只开用到的命令。
+- **出口**：升级包走签名的更新通道，配置与数据留在用户目录。
+- **最容易断的地方**：allowlist 全开（等于没有沙箱）；把桌面端做成第二套后端，逻辑分叉。
+
 ## 真实模块地图（已核对：路径 · 行数 · 符号）
 
 | 文件 | 行数 | 关键符号 | 模块常量 |

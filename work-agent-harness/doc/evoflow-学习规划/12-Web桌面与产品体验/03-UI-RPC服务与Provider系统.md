@@ -8,6 +8,26 @@
 ## 最小闭环
 前端调用 `api.chat.send` / `api.session.list` → 经 RPC 通道（HTTP / Tauri command / stdio）→ 后端路由 → 返回结构化结果。
 
+## 调用逻辑 / Invocation logic
+
+```mermaid
+sequenceDiagram
+    participant F as 前端
+    participant R as Rpc
+    participant M as method / deco
+    participant B as 业务实现
+    F->>R: call("chat.send", params)
+    R->>M: 查注册表 + 参数校验
+    M->>B: 调用真实方法
+    B-->>R: 结构化结果
+    R-->>F: {ok, data} / {ok:false, error}
+```
+
+- **入口**：前端只认 `api.chat.send` 这类「点号方法名」，`Rpc.call()` 统一分发，不暴露 HTTP 细节。
+- **关键节点**：`method()` 装饰器注册方法并声明参数；`deco()` 负责统一异常 → 错误码。
+- **出口**：返回 `{ok, data}`，错误带可读 message 与 code，前端不需要解析异常栈。
+- **最容易断的地方**：方法名与实际实现漂移（文档写 `api.xxx`）；一个方法内部调另一个方法绕过校验。
+
 ## 真实模块地图（已核对：路径 · 行数 · 符号）
 
 | 文件 | 行数 | 关键符号 | 模块常量 |

@@ -8,6 +8,25 @@
 ## 最小闭环
 用户说「做一份竞品分析报告」→ 生成 4 步计划 → 每步有验收标准 → 执行时按依赖推进。
 
+## 调用逻辑 / Invocation logic
+
+```mermaid
+sequenceDiagram
+    participant U as 用户目标
+    participant P as parse
+    participant C as check_cycles
+    participant E as 执行器
+    U->>P: parse(plan_text)
+    P-->>U: Step[]（id/goal/accept/depends）
+    P->>C: check_cycles(steps) → visit()
+    C-->>E: 无环 → 按依赖拓扑推进
+```
+
+- **入口**：`parse()` 把文本计划转成 `Step` 列表，每步必须带验收标准，没有验收标准就解析失败。
+- **关键节点**：`check_cycles()` 用 DFS `visit()` 查环，环不报错而是给出环路径，方便改计划。
+- **出口**：执行器按依赖顺序推进，某步失败只阻塞依赖它的步骤。
+- **最容易断的地方**：步骤没有唯一 id（依赖对不上）；验收标准写成「完成即可」。
+
 ## 真实模块地图（已核对：路径 · 行数 · 符号）
 
 | 文件 | 行数 | 关键符号 | 模块常量 |

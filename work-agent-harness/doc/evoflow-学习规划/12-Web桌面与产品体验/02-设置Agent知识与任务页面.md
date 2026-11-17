@@ -8,6 +8,26 @@
 ## 最小闭环
 设置页改模型 → 保存 → 立即生效（下一次请求用新模型）→ 有变更记录。
 
+## 调用逻辑 / Invocation logic
+
+```mermaid
+sequenceDiagram
+    participant U as 设置页
+    participant R as read_settings / write_settings
+    participant S as 存储
+    participant A as 下一次 run
+    U->>R: GET 设置
+    R->>S: 读配置
+    U->>R: PUT 设置（模型/密钥）
+    R->>S: 写配置 + 记变更
+    A->>S: 下次请求取新配置
+```
+
+- **入口**：`read_settings()` / `write_settings()` 成对出现，写操作带版本号，避免并发覆盖。
+- **关键节点**：密钥类字段写入时脱敏、读出时只回 `masked`；变更要记审计（谁改了什么）。
+- **出口**：下一次 run 立即生效，不要求重启进程。
+- **最容易断的地方**：配置缓存在模块级变量里不失效；把明文密钥回显到前端。
+
 ## 真实模块地图（已核对：路径 · 行数 · 符号）
 
 | 文件 | 行数 | 关键符号 | 模块常量 |

@@ -8,6 +8,26 @@
 ## 最小闭环
 输入框发送 → 乐观消息上屏 → POST `/runs/stream` → 逐 token 渲染 → 工具卡片 → 完成。
 
+## 调用逻辑 / Invocation logic
+
+```mermaid
+sequenceDiagram
+    participant U as 用户
+    participant W as index.html
+    participant G as Gateway
+    participant S as SSE 流
+    U->>W: 输入并发送
+    W->>W: 乐观消息上屏
+    W->>G: POST /runs/stream
+    G-->>S: run_start → token → tool → done
+    S-->>W: 逐 token 渲染 + 工具卡片
+```
+
+- **入口**：页面只有一个入口 `POST /runs/stream`，历史靠 `GET /sessions/{id}/messages` 回填。
+- **关键节点**：先渲染本地消息再发请求（乐观 UI），失败要能回滚；工具事件单独渲染成卡片而不是文本。
+- **出口**：`done` 后把 run 状态置完成，断线重连带 `Last-Event-ID` 补齐。
+- **最容易断的地方**：等首 token 才上屏（体感慢）；断线后从头重放导致消息重复。
+
 ## 真实模块地图（已核对：路径 · 行数 · 符号）
 
 | 文件 | 行数 | 关键符号 | 模块常量 |

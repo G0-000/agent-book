@@ -8,6 +8,26 @@
 ## 最小闭环
 给一个 run_id → 看到完整 span 时间线（请求/模型/工具/落库）→ 看到 token 与费用 → 看到错误点。
 
+## 调用逻辑 / Invocation logic
+
+```mermaid
+sequenceDiagram
+    participant R as run 执行
+    participant T as Trace
+    participant S as span
+    participant D as dump
+    R->>T: span("model") / span("tool")
+    S->>S: ms(start→end)
+    R->>T: add_tokens(prompt, completion)
+    R->>D: dump(run_id)
+    D-->>R: 时间线 + token + 费用 + 错误点
+```
+
+- **入口**：每个节点包一层 `span()`，进出都记时间，嵌套靠上下文传递。
+- **关键节点**：`add_tokens()` 分别记 prompt/completion，费用按模型单价算；错误挂到对应 span 上而不是整条 run。
+- **出口**：`dump(run_id)` 输出可读时间线，定位「慢在哪一段、贵在哪一段」。
+- **最容易断的地方**：只记总耗时定位不到节点；token 记在全局导致多轮 run 无法归因。
+
 ## 真实模块地图（已核对：路径 · 行数 · 符号）
 
 | 文件 | 行数 | 关键符号 | 模块常量 |

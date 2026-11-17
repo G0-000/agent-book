@@ -8,6 +8,29 @@
 ## 最小闭环
 `/health` 返回依赖状态 → `POST /sessions/{key}/ensure-thread` 建线程 → `POST /runs/stream` 出流。
 
+## 调用逻辑 / Invocation logic
+
+```mermaid
+sequenceDiagram
+    participant C as 客户端
+    participant G as create_app
+    participant H as /health
+    participant R as routers.chat
+    participant A as Agent/图
+    C->>G: uvicorn 启动 → 装配路由
+    C->>H: GET /health
+    H-->>C: 依赖状态（db / checkpointer / model）
+    C->>R: POST /sessions/{key}/ensure-thread
+    C->>R: POST /runs/stream
+    R->>A: 执行 → 事件流
+    R-->>C: SSE（text/event-stream）
+```
+
+- **入口**：`create_app()` 只负责装配依赖与路由，不在启动时连接模型（起不来会拖死整个网关）。
+- **关键节点**：`/health` 逐个探依赖并返回结构化状态，便于部署时判断「哪一层没起来」；`ensure-thread` 幂等建线程。
+- **出口**：`/runs/stream` 用生成器 `gen()` 逐条 yield SSE，客户端断开即停止。
+- **最容易断的地方**：在 import 期初始化数据库/模型（测试无法离线跑）；SSE 忘了带 `Cache-Control: no-cache`。
+
 ## 真实模块地图（已核对：路径 · 行数 · 符号）
 
 | 文件 | 行数 | 关键符号 | 模块常量 |

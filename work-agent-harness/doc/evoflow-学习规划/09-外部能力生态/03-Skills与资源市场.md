@@ -8,6 +8,26 @@
 ## 最小闭环
 安装一个 skill 目录（含 `SKILL.md`）→ 触发时按描述命中 → 加载正文与脚本 → 执行后产出文件。
 
+## 调用逻辑 / Invocation logic
+
+```mermaid
+sequenceDiagram
+    participant U as 用户请求
+    participant R as SkillRegistry
+    participant M as read_manifest
+    participant K as SKILL.md
+    U->>R: 按描述匹配
+    R->>M: read_manifest(skill_dir)
+    M-->>R: name/description/triggers
+    R->>K: 读正文与脚本
+    K-->>U: 执行产出文件
+```
+
+- **入口**：`install()` 登记 skill 目录，`list()` 返回可用清单；匹配靠 description 而不是名字。
+- **关键节点**：`read_manifest()` 必须能容忍没有 frontmatter 的旧 skill；触发词与描述分开存。
+- **出口**：命中后加载正文，脚本按需执行，产物落到工作区。
+- **最容易断的地方**：只按名字匹配导致同义请求漏掉；把整篇 SKILL.md 无脑塞进上下文。
+
 ## 真实模块地图（已核对：路径 · 行数 · 符号）
 
 | 文件 | 行数 | 关键符号 | 模块常量 |

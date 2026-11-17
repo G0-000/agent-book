@@ -8,6 +8,27 @@
 ## 最小闭环
 配置一个 MCP server（stdio）→ 启动并握手 → 列出 tools → 调用一次 → 结果进上下文。
 
+## 调用逻辑 / Invocation logic
+
+```mermaid
+sequenceDiagram
+    participant A as Agent
+    participant M as McpClient
+    participant S as MCP Server
+    A->>M: initialize()
+    M->>S: 握手（协议版本 + 能力）
+    A->>M: list_tools()
+    M-->>A: tools[]（名称/描述/schema）
+    A->>M: call_tool(name, args)
+    M->>S: tools/call
+    S-->>A: 结果 → 进上下文
+```
+
+- **入口**：`initialize()` 先握手拿能力集，再 `list_tools()`，顺序不能反。
+- **关键节点**：`_request()` 统一封装 JSON-RPC 请求/响应与超时；工具 schema 直接交给模型，不在本地改描述。
+- **出口**：`call_tool()` 返回结构化结果，失败要区分「工具报错」与「连接断了」。
+- **最容易断的地方**：握手失败仍继续列工具；进程退出没 `close()` 留下僵尸子进程。
+
 ## 真实模块地图（已核对：路径 · 行数 · 符号）
 
 | 文件 | 行数 | 关键符号 | 模块常量 |

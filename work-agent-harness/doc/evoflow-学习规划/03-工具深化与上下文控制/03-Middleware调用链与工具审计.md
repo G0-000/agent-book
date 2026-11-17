@@ -8,6 +8,28 @@
 ## 最小闭环
 模型请求前注入动态 prompt → 工具调用前走审批 → 工具报错转成 ToolMessage → 循环检测 → 预算耗尽中止 → 澄清请求最后拦截。
 
+## 调用逻辑 / Invocation logic
+
+```mermaid
+sequenceDiagram
+    participant G as graph 执行器
+    participant CH as run_chain
+    participant M as Middleware(before_tool
+    participant AU as AuditMiddleware
+    participant T as 实际工具
+    G->>CH: run_chain(mws, "before_tool", ctx)
+    CH->>M: before_tool(ctx) 依次
+    CH->>AU: before_tool → 记录 tool/args
+    CH-->>G: 可能改写/拦截
+    G->>T: 执行
+    G->>CH: run_chain(mws, "after_tool", ctx) 逆序
+```
+
+- **入口**：图执行器只认 `run_chain()`，中间件顺序由列表决定，新增中间件不改执行器。
+- **关键节点**：`before_tool` 顺序执行、`after_tool` **逆序**执行——逆序是为了让审计包住真实耗时；`AuditMiddleware` 只记录 `_brief(args)`，不落全量参数。
+- **出口**：链可以返回「拦截」结果替代工具输出，此时工具根本不执行。
+- **最容易断的地方**：把 `after_tool` 也顺序跑，导致外层中间件看不到内层异常；以及审计把密钥写进日志。
+
 ## 1. 先纠正一个数字
 
 `agents/middlewares/` 下有 **71 个条目**，但不是 71 个中间件：

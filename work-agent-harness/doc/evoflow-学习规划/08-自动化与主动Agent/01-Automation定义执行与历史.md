@@ -8,6 +8,26 @@
 ## 最小闭环
 创建自动化（规则 + 指令 + 渠道）→ 到点生成 run → 结果写入会话并推送 → 历史里可查每次输出。
 
+## 调用逻辑 / Invocation logic
+
+```mermaid
+sequenceDiagram
+    participant U as 用户/定时器
+    participant A as AutomationStore
+    participant R as run 执行
+    participant H as 历史
+    U->>A: add(rule, instruction, channel)
+    U->>A: enabled(id, True)
+    A->>R: begin_run(id)
+    R->>H: finish_run(id, output)
+    U->>H: 查询每次输出
+```
+
+- **入口**：`add()` 存规则（触发条件 + 指令 + 渠道），启用状态由 `enabled()` 单独控制。
+- **关键节点**：每次触发 `begin_run()` 建一条运行记录，`finish_run()` 写输出与状态，历史不覆盖只追加。
+- **出口**：历史可按自动化 id 查，展示每次「跑了什么、产出什么」。
+- **最容易断的地方**：禁用后仍被调度器捞起；失败不写记录，历史看起来像「没跑过」。
+
 ## 真实模块地图（已核对：路径 · 行数 · 符号）
 
 | 文件 | 行数 | 关键符号 | 模块常量 |
