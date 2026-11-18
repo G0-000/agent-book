@@ -151,3 +151,17 @@
 - 常见坑补 `build_graph(model, checkpointer=None)` 的第二个位置参数；
 - 顺带清掉虚构的 `Redactor`：01/01 与 02 都改为「EvoFlow 用 `models/credential_sanitize.py` 的 `sanitize_api_key`/`sanitize_base_url`」。
 
+## 第 3 章仓储拆分（2026-11-17）
+
+用户指出我把 EvoFlow 的 `persistence/chat_message_repositories.py`（消息）与 `persistence/session_repositories.py`（会话）合并成了一个自造的 `persistence/messages.py`（`MessageStore` 类）。已按 EvoFlow 布局拆成三个文件：
+
+| 文件 | 函数 | 说明 |
+|---|---|---|
+| `persistence/db.py` | `get_db` / `db_connection_lock` / `reset_db` | 单例连接、WAL、busy_timeout、延迟建表 |
+| `persistence/session_repositories.py` | `upsert_session_row` / `get_session_row_for_ui` / `list_sessions_for_ui` / `delete_sessions_by_thread_id` | 表 `sessions` |
+| `persistence/chat_message_repositories.py` | `append_message` / `list_messages` / `count_messages` / `delete_messages_for_session` | 表 `chat_messages`，主键 `(thread_id, seq)` |
+
+- 删除 `persistence/messages.py`；`tests/chapters/test_ch01_03_messages.py` 重写为 3 例，`test_ch01_06_e2e.py`、`test_ch13_01_e2e.py` 改用函数式 API + `monkeypatch` 设库路径。
+- 文档同步：01/03 的示例代码、调用逻辑图、数据模型、业务规则、Step 1–4、对照表全部改成三文件叙述；01/06 与 13/01 的代码块同步改。
+- 测试 **60 passed**，ruff 全绿。
+
