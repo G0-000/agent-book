@@ -132,7 +132,7 @@ async for chunk in stream_graph(
 
 ## 代码实现状态 / Code status
 
-> 直接回答「这一章的代码都实现了吗」：**手把手三步全部落地**，下面的「旧版示例」已清掉。
+> 本章手把手三步均已落地；未做的能力列在表内，并标注归属章节。
 
 | 内容 | 状态 | 证据 |
 |---|---|---|
@@ -142,7 +142,6 @@ async for chunk in stream_graph(
 | 系统提示 / 角色 prompt | ❌ 本章不做 | EvoFlow 由 `agents/middlewares/dynamic_system_prompt_middleware.py` 每轮注入，我们在 3/03 复刻 |
 | 工具循环 | ❌ 不做 | 1/04 才有 `ToolRegistry` 与工具节点 |
 | run 登记 / 事件流 / 取消 | ❌ 不做 | 1/05（事件）与 02/02（生命周期） |
-| 旧版示例里的 `Agent` 类与 `Redactor` | ❌ 从未存在于本仓库 | 上一版文档残留，本轮已删；EvoFlow 也没有 `Agent` 类，脱敏是 `models/credential_sanitize.py` 的函数，不是 `Redactor` |
 
 ## 业务规则 / Business rules
 1. **一张图只做一次模型调用**：没有工具时，图跑完就结束，不存在「循环直到模型停」。
