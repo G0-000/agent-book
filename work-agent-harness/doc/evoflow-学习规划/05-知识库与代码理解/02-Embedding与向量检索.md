@@ -79,10 +79,10 @@ retrieve(q): vec_top20 + fts_top20 → 去重 → rerank → 取 5 → 附 chunk
 
 ## 从零实现（手把手）
 > 读完这章你能把块向量化存进 SQLite，并按余弦相似度召回 top-k。
-> 路径均相对 `backend/`，代码注释写「为什么」。
+> 文件路径一律写仓库全路径（`backend/...`），代码注释写「为什么」。
 
 ### Step 1　新建 vector_store.py：存 + 查
-**文件**：`packages/harness/myagentflow/knowledge/vector_store.py（新建）`
+**文件**：`backend/packages/harness/myagentflow/knowledge/vector_store.py（新建）`
 **要写的逻辑**：向量以 JSON 存 TEXT 列（先不引向量库）；检索在 Python 里算余弦。数据量大再换 FAISS。
 
 **代码**
@@ -152,7 +152,7 @@ print(s.search([1,0], 1))
 ```
 
 ### Step 2　写测试：同一向量排第一
-**文件**：`tests/chapters/test_ch05_02_vector.py（新建）`
+**文件**：`backend/tests/chapters/test_ch05_02_vector.py（新建）`
 **要写的逻辑**：查询向量与某块完全一致时，该块 score≈1 且排第一。
 
 **代码**

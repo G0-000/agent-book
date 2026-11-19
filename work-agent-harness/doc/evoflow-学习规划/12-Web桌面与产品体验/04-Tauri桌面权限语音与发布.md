@@ -75,7 +75,7 @@ sidecar: spawn backend → 等 health ready（超时 30s）→ 连接
 
 ## 从零实现（手把手）
 > 读完这章你知道 Tauri 外壳要配什么，以及为什么它属于「仅解释、不复刻」。
-> 路径均相对 `backend/`，代码注释写「为什么」。
+> 文件路径一律写仓库全路径（`backend/...`），代码注释写「为什么」。
 
 ### Step 1　新建 tauri.conf.json：只配最小字段
 **文件**：`src-tauri/tauri.conf.json（新建，示例配置，不在本章实现）`

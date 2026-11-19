@@ -82,10 +82,10 @@ RpcClient: http | tauri | stdio 三种 transport，同一 method 表
 
 ## 从零实现（手把手）
 > 读完这章你能给桌面端做一层 JSON-RPC：一个入口、一组方法、统一错误码。
-> 路径均相对 `backend/`，代码注释写「为什么」。
+> 文件路径一律写仓库全路径（`backend/...`），代码注释写「为什么」。
 
 ### Step 1　新建 rpc.py：方法表 + 统一错误
-**文件**：`packages/harness/myagentflow/webui/rpc.py（新建）`
+**文件**：`backend/packages/harness/myagentflow/webui/rpc.py（新建）`
 **要写的逻辑**：`{id, method, params}` → `{id, result}` 或 `{id, error:{code,message}}`；方法不存在返回 `-32601`（照 JSON-RPC 规范，别自创）。
 
 **代码**

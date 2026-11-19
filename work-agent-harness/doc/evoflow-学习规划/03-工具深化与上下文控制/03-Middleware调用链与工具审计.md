@@ -170,10 +170,10 @@ class Chain:
 
 ## 从零实现（手把手）
 > 读完这章你知道中间件「谁先谁后」为什么重要，并写出一个能记录每次工具调用的审计中间件。
-> 路径均相对 `backend/`，代码注释写「为什么」。
+> 文件路径一律写仓库全路径（`backend/...`），代码注释写「为什么」。
 
 ### Step 1　新建 chain.py：顺序 + 反向收尾
-**文件**：`packages/harness/myagentflow/agents/middlewares/chain.py（新建）`
+**文件**：`backend/packages/harness/myagentflow/agents/middlewares/chain.py（新建）`
 **要写的逻辑**：`before` 正序、`after` 逆序（洋葱模型）；任何一层抛异常都要保证已进入的层能收尾。
 
 **代码**
@@ -222,7 +222,7 @@ uv run python -c "from myagentflow.agents.middlewares.chain import Middleware, r
 ```
 
 ### Step 2　加审计中间件：记录谁调了什么
-**文件**：`packages/harness/myagentflow/agents/middlewares/audit.py（新建）`
+**文件**：`backend/packages/harness/myagentflow/agents/middlewares/audit.py（新建）`
 **要写的逻辑**：只记录工具名、参数摘要、耗时、成功与否；参数要截断，避免把密钥写进日志。
 
 **代码**

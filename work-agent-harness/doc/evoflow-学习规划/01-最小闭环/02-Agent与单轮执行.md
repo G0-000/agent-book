@@ -173,10 +173,10 @@ cd backend && uv run pytest tests/chapters/test_ch01_02_graph.py -q
 
 ## 从零实现（手把手）
 > 读完这章你能编译出第一张 LangGraph 图：输入一条消息，返回一条回复——没有工具、没有循环，只有一条边。
-> 路径均相对 `backend/`，代码注释写「为什么」。
+> 文件路径一律写仓库全路径（`backend/...`），代码注释写「为什么」。
 
 ### Step 1　新建 graph.py：一个节点、两条边
-**文件**：`packages/harness/myagentflow/agents/lead_agent/graph.py（新建）`
+**文件**：`backend/packages/harness/myagentflow/agents/lead_agent/graph.py（新建）`
 **要写的逻辑**：用 `MessagesState` 做状态；节点只负责把历史消息交给模型；checkpointer 允许为空（先不接持久化）。
 
 **代码**
@@ -216,7 +216,7 @@ uv run python -c "from myagentflow.agents.lead_agent.graph import build_graph; p
 ```
 
 ### Step 2　用假模型跑通一条消息
-**文件**：`tests/chapters/test_ch01_02_graph.py（新建）`
+**文件**：`backend/tests/chapters/test_ch01_02_graph.py（新建）`
 **要写的逻辑**：假模型只实现 `invoke`，这样测试不花 token、不依赖网络。
 
 **代码**
@@ -250,7 +250,7 @@ uv run pytest tests/chapters/test_ch01_02_graph.py -v
 ```
 
 ### Step 3　接上 checkpointer，验证「同 thread 能续上」
-**文件**：`tests/chapters/test_ch01_02_graph.py（追加用例）`
+**文件**：`backend/tests/chapters/test_ch01_02_graph.py（追加用例）`
 **要写的逻辑**：两次 invoke 用同一个 thread_id；第二次的历史里应包含第一轮的两条消息。
 
 **代码**

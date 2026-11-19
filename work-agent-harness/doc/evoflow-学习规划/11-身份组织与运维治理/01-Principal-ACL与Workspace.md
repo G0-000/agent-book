@@ -121,10 +121,10 @@ visible(principal, path) -> bool; can_write(principal, path) -> bool
 
 ## 从零实现（手把手）
 > 读完这章你能判断「这个人能不能看这个 workspace」：角色 → 权限 → 资源。
-> 路径均相对 `backend/`，代码注释写「为什么」。
+> 文件路径一律写仓库全路径（`backend/...`），代码注释写「为什么」。
 
 ### Step 1　新建 acl.py：角色映射 + 判定
-**文件**：`packages/harness/myagentflow/authz/acl.py（新建）`
+**文件**：`backend/packages/harness/myagentflow/authz/acl.py（新建）`
 **要写的逻辑**：`role → permissions` 用集合；`can()` 先查 owner（资源所有者永远有权），再查权限集。
 
 **代码**
@@ -171,7 +171,7 @@ print(can('alice', {}, r, 'delete'), can('bob', {'bob':'viewer'}, r, 'write'), c
 ```
 
 ### Step 2　写测试：owner / 角色 / 无角色
-**文件**：`tests/chapters/test_ch11_01_acl.py（新建）`
+**文件**：`backend/tests/chapters/test_ch11_01_acl.py（新建）`
 **要写的逻辑**：owner 能删；viewer 不能写；无角色全拒。
 
 **代码**

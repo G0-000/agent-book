@@ -121,10 +121,10 @@ sequenceDiagram
 
 ## 从零实现（手把手）
 > 读完这章你能把「长时间运行的命令」和「需要鉴权的桥接调用」做出来：进程可查、token 不对就 403。
-> 路径均相对 `backend/`，代码注释写「为什么」。
+> 文件路径一律写仓库全路径（`backend/...`），代码注释写「为什么」。
 
 ### Step 1　新建后台命令管理：三入口 + 404/409
-**文件**：`packages/harness/myagentflow/tools/host_direct/background_bash.py（新建）`
+**文件**：`backend/packages/harness/myagentflow/tools/host_direct/background_bash.py（新建）`
 **要写的逻辑**：`start` 起子进程并登记；`poll` 不存在给 404、未在运行给 409；`kill` 幂等。
 
 **代码**
@@ -189,7 +189,7 @@ print(m.poll(rid)['status'])
 ```
 
 ### Step 2　新建桥接鉴权：token 比对 + 常量时间
-**文件**：`packages/harness/myagentflow/tools/host_direct/bridge_auth.py（新建）`
+**文件**：`backend/packages/harness/myagentflow/tools/host_direct/bridge_auth.py（新建）`
 **要写的逻辑**：token 从环境变量注入；比较用 `secrets.compare_digest`，防止时序侧信道。
 
 **代码**

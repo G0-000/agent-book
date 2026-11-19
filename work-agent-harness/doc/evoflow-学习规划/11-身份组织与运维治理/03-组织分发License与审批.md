@@ -102,10 +102,10 @@ license(codec, machine_fp, issued_at, revoked)
 
 ## 从零实现（手把手）
 > 读完这章你能做一份「离线许可」：内容 + 签名，校验不过就不开功能。
-> 路径均相对 `backend/`，代码注释写「为什么」。
+> 文件路径一律写仓库全路径（`backend/...`），代码注释写「为什么」。
 
 ### Step 1　新建 license.py：签发 + 验签 + 功能位
-**文件**：`packages/harness/myagentflow/authz/license.py（新建）`
+**文件**：`backend/packages/harness/myagentflow/authz/license.py（新建）`
 **要写的逻辑**：payload 里放 `features` 与 `expires`；验签用 HMAC；`has_feature()` 同时查有效期，过期一律 False。
 
 **代码**

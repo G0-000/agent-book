@@ -104,10 +104,10 @@ tasks(task_id, peer_id, state, artifacts[], updated_at)
 
 ## 从零实现（手把手）
 > 读完这章你能把「外部 Agent」包装成内部可调用的子代理：输入转协议、输出转摘要。
-> 路径均相对 `backend/`，代码注释写「为什么」。
+> 文件路径一律写仓库全路径（`backend/...`），代码注释写「为什么」。
 
 ### Step 1　新建 adapter.py：协议转换 + 超时
-**文件**：`packages/harness/myagentflow/subagents/adapter.py（新建）`
+**文件**：`backend/packages/harness/myagentflow/subagents/adapter.py（新建）`
 **要写的逻辑**：`adapter` 只负责三件事：拼请求、发请求（带超时）、把响应转成 `summarize()` 能吃的文本。
 
 **代码**

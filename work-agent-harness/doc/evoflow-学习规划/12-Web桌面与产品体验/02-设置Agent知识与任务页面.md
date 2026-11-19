@@ -104,10 +104,10 @@ PUT /settings → 校验 → 落库 → 发布变更事件
 
 ## 从零实现（手把手）
 > 读完这章你能做设置页：改模型、开关记忆、看任务历史，改动立刻生效（不重启）。
-> 路径均相对 `backend/`，代码注释写「为什么」。
+> 文件路径一律写仓库全路径（`backend/...`），代码注释写「为什么」。
 
 ### Step 1　新建 settings.py 路由：读 + 写 + 热生效
-**文件**：`app/gateway/routers/settings.py（新建）`
+**文件**：`backend/app/gateway/routers/settings.py（新建）`
 **要写的逻辑**：`GET` 返回脱敏配置（不返回 api_key）；`PUT` 只允许改白名单字段；改完清一次 checkpointer 单例，让新配置生效。
 
 **代码**

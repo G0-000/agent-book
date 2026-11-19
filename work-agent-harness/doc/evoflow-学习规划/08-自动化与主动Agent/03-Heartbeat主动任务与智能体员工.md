@@ -101,10 +101,10 @@ gate: 判断 result 是否有新信息 + 是否超频 → send or record
 
 ## 从零实现（手把手）
 > 读完这章你能让 Agent 每隔一段时间「自己看一眼」，但空闲时不烧 token。
-> 路径均相对 `backend/`，代码注释写「为什么」。
+> 文件路径一律写仓库全路径（`backend/...`），代码注释写「为什么」。
 
 ### Step 1　新建 heartbeat.py：变化检测 + 节流
-**文件**：`packages/harness/myagentflow/automation/heartbeat.py（新建）`
+**文件**：`backend/packages/harness/myagentflow/automation/heartbeat.py（新建）`
 **要写的逻辑**：每轮只算「世界状态指纹」；指纹没变就跳过（不调模型）；变了才触发任务，并限制每小时最多 N 次。
 
 **代码**
@@ -158,7 +158,7 @@ print(h.should_run({'ci':'green'}), h.should_run({'ci':'green'}), h.should_run({
 ```
 
 ### Step 2　写测试：不变不跑 + 超频被拦
-**文件**：`tests/chapters/test_ch08_03_heartbeat.py（新建）`
+**文件**：`backend/tests/chapters/test_ch08_03_heartbeat.py（新建）`
 **要写的逻辑**：同状态第二次 False；连续 7 次变化只有 6 次通过。
 
 **代码**

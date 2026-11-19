@@ -124,10 +124,10 @@ middleware: trace_id → auth → rate_limit → route
 
 ## 从零实现（手把手）
 > 读完这章你能起一个真正的 HTTP 网关：一个聊天接口，返回 SSE 流。
-> 路径均相对 `backend/`，代码注释写「为什么」。
+> 文件路径一律写仓库全路径（`backend/...`），代码注释写「为什么」。
 
 ### Step 1　新建 main.py：装配路由与健康检查
-**文件**：`app/gateway/main.py（新建，路径相对 `backend/`）`
+**文件**：`backend/app/gateway/main.py（新建）`
 **要写的逻辑**：`create_app()` 只做装配；健康检查要能反映「检查点能否打开」，否则重启后挂的是别的东西。
 
 **代码**
@@ -176,7 +176,7 @@ uv run uvicorn app.gateway.main:app --port 8070
 ```
 
 ### Step 2　新建 chat.py：SSE 流式接口
-**文件**：`app/gateway/routers/chat.py（新建）`
+**文件**：`backend/app/gateway/routers/chat.py（新建）`
 **要写的逻辑**：`POST /api/chat` 收 `{thread_id, text}`；用 `StreamingResponse` 吐 SSE；`event_stream` 里必须处理客户端断开。
 
 **代码**

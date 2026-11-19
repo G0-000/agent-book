@@ -109,10 +109,10 @@ baseline.json 对比 → delta
 
 ## 从零实现（手把手）
 > 读完这章你能写一个最小 eval：固定用例 + 关键词断言 + 通过率，改动后一跑就知道有没有退化。
-> 路径均相对 `backend/`，代码注释写「为什么」。
+> 文件路径一律写仓库全路径（`backend/...`），代码注释写「为什么」。
 
 ### Step 1　新建 runner.py：用例 + 打分
-**文件**：`packages/harness/myagentflow/eval/runner.py（新建）`
+**文件**：`backend/packages/harness/myagentflow/eval/runner.py（新建）`
 **要写的逻辑**：用例是 `(输入, 必须包含的关键词)`；打分只判「包含/不包含」，不做主观评分——主观评分不稳定，回归时会误导。
 
 **代码**
@@ -166,7 +166,7 @@ print(run(cases, lambda p: '你好'))
 ```
 
 ### Step 2　写测试：通过率与异常隔离
-**文件**：`tests/chapters/test_ch11_05_eval.py（新建）`
+**文件**：`backend/tests/chapters/test_ch11_05_eval.py（新建）`
 **要写的逻辑**：一条命中一条不命中，rate=0.5；抛异常的用例被记为失败而不是中断整轮。
 
 **代码**

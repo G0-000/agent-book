@@ -102,10 +102,10 @@ guard(input|output|tool, ctx) → pass | block(reason, rule_id) | redact
 
 ## 从零实现（手把手）
 > 读完这章你能自己校验 JWT（不引库）：验签、验过期、验 issuer，任何一项不过就拒。
-> 路径均相对 `backend/`，代码注释写「为什么」。
+> 文件路径一律写仓库全路径（`backend/...`），代码注释写「为什么」。
 
 ### Step 1　新建 jwt.py：HS256 验签 + 声明校验
-**文件**：`packages/harness/myagentflow/authz/jwt.py（新建）`
+**文件**：`backend/packages/harness/myagentflow/authz/jwt.py（新建）`
 **要写的逻辑**：base64url 解码 → `hmac.compare_digest` 验签 → 校验 `exp` / `iss` / `aud`；顺序不能反，先验签再读声明。
 
 **代码**
@@ -166,7 +166,7 @@ print(verify(f'{h}.{b}.{sig}', 'k', 'myaf', 'myaf')['sub'])
 ```
 
 ### Step 2　新建测试辅助：helpers_jwt.py
-**文件**：`tests/chapters/helpers_jwt.py（新建）`
+**文件**：`backend/tests/chapters/helpers_jwt.py（新建）`
 **要写的逻辑**：测试里造合法 token 不能靠复制粘贴 Step 1 的 bash 片段，抽成一个可复用的 `make_token()`；**辅助代码不是被测代码**，所以放 `tests/` 而不是 `myagentflow/authz/`。
 
 **代码**
@@ -212,7 +212,7 @@ print(make_token()[:24], '...')
 ```
 
 ### Step 3　写测试：篡改 payload 必失败
-**文件**：`tests/chapters/test_ch11_02_jwt.py（新建）`
+**文件**：`backend/tests/chapters/test_ch11_02_jwt.py（新建）`
 **要写的逻辑**：改一位 payload 后验签失败；过期 token 报错。
 
 **代码**

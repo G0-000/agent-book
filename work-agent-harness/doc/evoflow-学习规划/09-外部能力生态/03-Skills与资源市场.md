@@ -115,10 +115,10 @@ match(query): 描述关键词 + 语义 → top1 → 读正文 → 注入
 
 ## 从零实现（手把手）
 > 读完这章你能把「技能包」做成可安装的目录：manifest + 入口 + 版本，安装时校验。
-> 路径均相对 `backend/`，代码注释写「为什么」。
+> 文件路径一律写仓库全路径（`backend/...`），代码注释写「为什么」。
 
 ### Step 1　新建 registry.py：manifest 校验 + 安装
-**文件**：`packages/harness/myagentflow/skills/registry.py（新建）`
+**文件**：`backend/packages/harness/myagentflow/skills/registry.py（新建）`
 **要写的逻辑**：`manifest.json` 至少要有 name/version/entry；安装时检查重名与版本格式，缺字段直接拒绝。
 
 **代码**

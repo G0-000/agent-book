@@ -121,10 +121,10 @@ call: 取连接（池化）→ 序列化请求 → 超时 → 结果整形 → �
 
 ## 从零实现（手把手）
 > 读完这章你能连上一个 stdio MCP 服务：发 initialize、列工具、调工具，并处理 OAuth 缺失。
-> 路径均相对 `backend/`，代码注释写「为什么」。
+> 文件路径一律写仓库全路径（`backend/...`），代码注释写「为什么」。
 
 ### Step 1　新建 client.py：JSON-RPC 三步
-**文件**：`packages/harness/myagentflow/mcp/client.py（新建）`
+**文件**：`backend/packages/harness/myagentflow/mcp/client.py（新建）`
 **要写的逻辑**：一行 JSON 一个请求；`initialize` → `tools/list` → `tools/call`；错误码统一翻译成异常。
 
 **代码**

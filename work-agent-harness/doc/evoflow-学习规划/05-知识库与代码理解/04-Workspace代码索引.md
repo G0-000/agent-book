@@ -108,10 +108,10 @@ query: name = "run" → 精确 → 前缀 → FTS
 
 ## 从零实现（手把手）
 > 读完这章你能用 `ast` 扫出自己的代码地图：模块、类、函数、行号，供 Agent 精确跳转。
-> 路径均相对 `backend/`，代码注释写「为什么」。
+> 文件路径一律写仓库全路径（`backend/...`），代码注释写「为什么」。
 
 ### Step 1　新建 store.py：ast 遍历 + 落表
-**文件**：`packages/harness/myagentflow/code_index/store.py（新建）`
+**文件**：`backend/packages/harness/myagentflow/code_index/store.py（新建）`
 **要写的逻辑**：只索引定义（模块/类/函数/方法），不索引语句；存 `path, kind, name, line`，供「跳到哪一行」用。
 
 **代码**
@@ -182,7 +182,7 @@ print(i.find('index_file'))
 ```
 
 ### Step 2　写测试：类与函数都能找到，行号对得上
-**文件**：`tests/chapters/test_ch05_04_code_index.py（新建）`
+**文件**：`backend/tests/chapters/test_ch05_04_code_index.py（新建）`
 **要写的逻辑**：临时写一个样例 py，索引后按名字查，行号必须有值。
 
 **代码**

@@ -118,10 +118,10 @@ usage(run_id, model, prompt_tokens, completion_tokens, cost, ts)
 
 ## 从零实现（手把手）
 > 读完这章你能给每次运行记一条 trace：耗时、token、工具调用数，出问题能按 id 查。
-> 路径均相对 `backend/`，代码注释写「为什么」。
+> 文件路径一律写仓库全路径（`backend/...`），代码注释写「为什么」。
 
 ### Step 1　新建 trace.py：span + 汇总
-**文件**：`packages/harness/myagentflow/observability/trace.py（新建）`
+**文件**：`backend/packages/harness/myagentflow/observability/trace.py（新建）`
 **要写的逻辑**：`Span` 记录开始/结束；`Trace` 聚合子 span，输出一条 JSON；关键字段固定，方便日志检索。
 
 **代码**

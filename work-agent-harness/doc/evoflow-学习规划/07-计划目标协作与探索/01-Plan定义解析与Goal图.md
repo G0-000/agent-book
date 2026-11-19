@@ -84,10 +84,10 @@ step(id, plan_id, seq, goal, done_when, status, output_ref)
 
 ## 从零实现（手把手）
 > 读完这章你能把一段 Markdown 计划解析成步骤列表，并把步骤连成有依赖的 DAG。
-> 路径均相对 `backend/`，代码注释写「为什么」。
+> 文件路径一律写仓库全路径（`backend/...`），代码注释写「为什么」。
 
 ### Step 1　新建 parser.py：解析 + 建图
-**文件**：`packages/harness/myagentflow/plans/parser.py（新建）`
+**文件**：`backend/packages/harness/myagentflow/plans/parser.py（新建）`
 **要写的逻辑**：认 `- [ ] 步骤` 行；`depends:` 写依赖；解析后检测环，有环直接报错而不是跑起来才死锁。
 
 **代码**
@@ -161,7 +161,7 @@ print([ (s.id, s.title, s.depends) for s in parse('- [ ] 读代码\n- [ ] 写实
 ```
 
 ### Step 2　写测试：正常依赖 + 环报错
-**文件**：`tests/chapters/test_ch07_01_plan.py（新建）`
+**文件**：`backend/tests/chapters/test_ch07_01_plan.py（新建）`
 **要写的逻辑**：两步依赖解析正确；`A depends: B` 且 `B depends: A` 必须抛 ValueError。
 
 **代码**

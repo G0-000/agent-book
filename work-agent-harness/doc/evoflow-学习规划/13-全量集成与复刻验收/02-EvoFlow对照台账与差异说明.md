@@ -64,10 +64,10 @@ sequenceDiagram
 
 ## 从零实现（手把手）
 > 读完这章你能自动生成一份「模块对照表」：哪些有、哪些缺、哪些只解释。
-> 路径均相对 `backend/`，代码注释写「为什么」。
+> 文件路径一律写仓库全路径（`backend/...`），代码注释写「为什么」。
 
 ### Step 1　新建 diff_ledger.py：扫两棵树对比
-**文件**：`tools/diff_ledger.py（新建，路径相对 `backend/`）`
+**文件**：`backend/tools/diff_ledger.py（新建）`
 **要写的逻辑**：扫 EvoFlow 与 myagentflow 的包目录，输出「已有 / 空壳 / 缺失」三态表；空壳判断用「目录存在但只有 __init__.py」。
 
 **代码**

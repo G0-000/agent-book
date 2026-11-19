@@ -79,10 +79,10 @@ send(): optimistic(msg) → ensureThread() → POST runs/stream → onEvent(seq)
 
 ## 从零实现（手把手）
 > 读完这章你能用一个 HTML 页面把网关跑起来：发消息、看流式回复、切会话。
-> 路径均相对 `backend/`，代码注释写「为什么」。
+> 文件路径一律写仓库全路径（`backend/...`），代码注释写「为什么」。
 
 ### Step 1　新建 index.html：一个页面三件事
-**文件**：`app/webui/static/index.html（新建，路径相对 `backend/`）`
+**文件**：`backend/app/webui/static/index.html（新建）`
 **要写的逻辑**：用原生 `fetch` + `ReadableStream` 读 SSE，不引前端框架；会话切换就是换 `thread_id`。
 
 **代码**

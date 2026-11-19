@@ -92,10 +92,10 @@ run(run_id, session_id, started_at, status, artifact_refs)
 
 ## 从零实现（手把手）
 > 读完这章你能定义一条自动化规则（何时、做什么），并留下每次执行的记录。
-> 路径均相对 `backend/`，代码注释写「为什么」。
+> 文件路径一律写仓库全路径（`backend/...`），代码注释写「为什么」。
 
 ### Step 1　新建 store.py：定义表 + 历史表
-**文件**：`packages/harness/myagentflow/automation/store.py（新建）`
+**文件**：`backend/packages/harness/myagentflow/automation/store.py（新建）`
 **要写的逻辑**：`automations(id, cron, prompt, enabled)` 存规则；`runs(automation_id, status, started_at)` 存每次执行；执行前先写 `running`，避免崩溃后无法判断是否跑过。
 
 **代码**
@@ -166,7 +166,7 @@ r = s.begin_run(a); s.finish_run(r, 'ok'); print(s.enabled())
 ```
 
 ### Step 2　写测试：历史可查 + 禁用不返回
-**文件**：`tests/chapters/test_ch08_01_automation.py（新建）`
+**文件**：`backend/tests/chapters/test_ch08_01_automation.py（新建）`
 **要写的逻辑**：执行一条后 runs 里有记录；把 enabled 置 0 后不再出现在列表。
 
 **代码**

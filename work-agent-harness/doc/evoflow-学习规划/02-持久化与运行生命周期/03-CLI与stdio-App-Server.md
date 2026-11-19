@@ -96,10 +96,10 @@ HTTP  → Gateway（Part 10）
 
 ## 从零实现（手把手）
 > 读完这章你有两个入口：一个命令行，一个 JSON-Lines 的 stdio 服务，共用同一套图。
-> 路径均相对 `backend/`，代码注释写「为什么」。
+> 文件路径一律写仓库全路径（`backend/...`），代码注释写「为什么」。
 
 ### Step 1　新建 CLI：两个子命令
-**文件**：`packages/harness/myagentflow/cli/main.py（新建）`
+**文件**：`backend/packages/harness/myagentflow/cli/main.py（新建）`
 **要写的逻辑**：`chat` 跑一轮并打印回复；`state` 用 02/01 的 `read_thread_state` 直接读，不编译图。
 
 **代码**
@@ -171,7 +171,7 @@ uv run python -m myagentflow.cli.main state --thread demo
 ```
 
 ### Step 2　新建 stdio 服务：一行一请求
-**文件**：`packages/harness/myagentflow/app_server/stdio.py（新建）`
+**文件**：`backend/packages/harness/myagentflow/app_server/stdio.py（新建）`
 **要写的逻辑**：从 stdin 读 JSON 行，回一行 JSON；异常也回一行（带 error 字段），绝不静默退出。
 
 **代码**

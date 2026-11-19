@@ -78,10 +78,10 @@ kb_doc(kb_id, doc_id); kb_node(node_id, kb_id, parent_id, title, ref_chunk_ids)
 
 ## 从零实现（手把手）
 > 读完这章你能把「自己的知识库」组织成一张地图：文档 → 标题树 → 块 id。
-> 路径均相对 `backend/`，代码注释写「为什么」。
+> 文件路径一律写仓库全路径（`backend/...`），代码注释写「为什么」。
 
 ### Step 1　新建 map.py：文档树 + 块索引
-**文件**：`packages/harness/myagentflow/knowledge/map.py（新建）`
+**文件**：`backend/packages/harness/myagentflow/knowledge/map.py（新建）`
 **要写的逻辑**：`build_map()` 输出 `{doc_id: {heading: [chunk_id...]}}`；`describe()` 给模型看的概览，限制条数避免爆上下文。
 
 **代码**
@@ -126,7 +126,7 @@ print(describe(tree))
 ```
 
 ### Step 2　写测试：结构正确 + 截断
-**文件**：`tests/chapters/test_ch05_03_map.py（新建）`
+**文件**：`backend/tests/chapters/test_ch05_03_map.py（新建）`
 **要写的逻辑**：两篇文档各自独立；`max_docs=1` 只输出一篇。
 
 **代码**

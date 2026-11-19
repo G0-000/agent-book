@@ -97,10 +97,10 @@ run(workflow_id, inputs) → run_id → 每步产物带 stage
 
 ## 从零实现（手把手）
 > 读完这章你能把「多步骤流程」定义成可复用对象，并按步骤顺序执行、记录每步产物。
-> 路径均相对 `backend/`，代码注释写「为什么」。
+> 文件路径一律写仓库全路径（`backend/...`），代码注释写「为什么」。
 
 ### Step 1　新建 workflow.py：定义 + 顺序执行
-**文件**：`packages/harness/myagentflow/plans/workflow.py（新建）`
+**文件**：`backend/packages/harness/myagentflow/plans/workflow.py（新建）`
 **要写的逻辑**：`Workflow` 持有步骤列表；`run()` 逐步执行，任一步失败即停，并把已完成步骤的产物保留下来。
 
 **代码**
@@ -165,7 +165,7 @@ print('resume:', w.resume_from(1)[-1].name)
 ```
 
 ### Step 2　写测试：失败即停 + 可续跑
-**文件**：`tests/chapters/test_ch07_03_workflow.py（新建）`
+**文件**：`backend/tests/chapters/test_ch07_03_workflow.py（新建）`
 **要写的逻辑**：第二步失败时第三步不执行；`resume_from(1)` 从第二步重试。
 
 **代码**
