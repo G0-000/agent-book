@@ -1060,7 +1060,7 @@ HTTP：鉴权 → 参数校验 → RunService → SSE/JSON
 
 ### ⑤⑥ 复写设计与步骤
 
-`authz/{principals.py, acl.py, guard.py}`、`observability/{trace.py, cost.py}`、`eval/runner.py`。
+`authz/{principals.py, acl.py, guard.py}`、`observability/{trace.py, cost.py}`、`backend/packages/harness/myagentflow/eval/runner.py`。
 
 - L1：无凭证拒绝；主体对资源 allow/deny 各一例。
 - L2：run 级 trace；token 与成本聚合。
@@ -1081,7 +1081,7 @@ HTTP：鉴权 → 参数校验 → RunService → SSE/JSON
 
 ### ② 教材代码地图
 
-行为入口看 `app/gateway/routers/`：`chat_sessions.py`（会话）、`agents.py`（Agent 管理）、`knowledge.py` / `knowledge_owned.py`（知识）、`apps.py`（应用）、`automation_scheduler.py`（自动化）、`models` 相关走 `config/app_config.py` 的 `add_model_to_config` 等。
+行为入口看 `app/gateway/routers/`：`chat_sessions.py`（会话）、`agents.py`（Agent 管理）、`knowledge.py` / `knowledge_owned.py`（知识）、`apps.py`（应用）、`automation_scheduler.py`（自动化）、`models` 相关走 `backend/packages/harness/myagentflow/config/app_config.py` 的 `add_model_to_config` 等。
 
 ### ③ 顺序执行链
 
@@ -1176,19 +1176,19 @@ ID:            MF-RUN-004
 
 ## 附录 E 分章源码阅读清单
 
-- 第 1 章：`config.example.yaml`、`config/app_config.py`、`config/data_paths.py`、`models/resolver.py`、`models/factory.py:create_chat_model`、`models/credential_loader.py`
+- 第 1 章：`config.example.yaml`、`backend/packages/harness/myagentflow/config/app_config.py`、`config/data_paths.py`、`backend/packages/harness/myagentflow/models/resolver.py`、`models/factory.py:create_chat_model`、`models/credential_loader.py`
 - 第 2 章：`backend/langgraph.json`、`agents/lead_agent/agent.py:1001`、`graph_cache.py`、`intent_tool_profile.py`、`prompt.py`、`docs/knowledge/02-core-runtime/01-runtime-entry运行入口.md`
-- 第 3 章：`agents/checkpointer/async_provider.py`（通读）、`persistence/chat_session_service.py`、`persistence/chat_message_repositories.py`
-- 第 4 章：`session_execution/{lifecycle.py, commands.py, queries.py}`、`cli/main.py`、`app_server/stdio_rpc.py`
+- 第 3 章：`agents/checkpointer/async_provider.py`（通读）、`persistence/chat_session_service.py`、`backend/packages/harness/myagentflow/persistence/chat_message_repositories.py`
+- 第 4 章：`session_execution/{lifecycle.py, commands.py, queries.py}`、`backend/packages/harness/myagentflow/cli/main.py`、`app_server/stdio_rpc.py`
 - 第 5 章：`tools/tool_catalog.py`、`arg_coerce.py`、`tool_result_shaper.py`、`tool_output_truncation.py`、`large_result_store.py`
 - 第 6 章：`agents/middlewares/tool_error_handling_middleware.py`（重点读 `_build_runtime_middlewares`）、`agents/tool_approval_*`
 - 第 7 章：`runtime/ports.py`、`app/gateway/routers/events.py`
 - 第 8 章：`agents/context_compaction_core.py`、`context/model_request_token_estimate.py`、`context/tool_history_merge.py`
 - 第 9 章：`memory/facade.py`、`recall_snapshot.py`、`stale_on_close.py`、`agents/middlewares/memory_middleware.py`
 - 第 10 章：`knowledge/service.py`、`chunker.py`、`index_builder.py`、`code_index/symbols.py`
-- 第 11 章：`subagents/registry.py`、`subagents/executor.py`、`sandbox/sandbox_provider.py`
+- 第 11 章：`backend/packages/harness/myagentflow/subagents/registry.py`、`subagents/executor.py`、`sandbox/sandbox_provider.py`
 - 第 12 章：`agents/goal/`、`plans/service.py`、`app/gateway/automation_runner.py`、`proactive/`
-- 第 13 章：`mcp/client.py`、`mcp/pool.py`、`skills/loader.py`、`skills/injection.py`
+- 第 13 章：`backend/packages/harness/myagentflow/mcp/client.py`、`mcp/pool.py`、`backend/packages/harness/myagentflow/skills/loader.py`、`skills/injection.py`
 - 第 14 章：`app/gateway/app.py:create_app/lifespan`、`app/channels/base.py`、`app/channels/manager.py`
 - 第 15 章：`authz/principals.py`、`authz/http_guard.py`、`observability/agent_activity_stream.py`、`observability/cache_pricing.py`
 - 第 16 章：`app/gateway/routers/`、`evopanel/`（只看行为）

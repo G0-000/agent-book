@@ -73,7 +73,7 @@ chat router → create_chat_model() → build_graph(model) → graph.invoke(
 
 ## 示例代码 / Sample code
 
-### `agents/lead_agent/graph.py`（全文，35 行）
+### `backend/packages/harness/myagentflow/agents/lead_agent/graph.py`（全文，35 行）
 
 ```python
 """最小 Agent：一个节点 + 两条边。
@@ -136,7 +136,7 @@ async for chunk in stream_graph(
 
 | 内容 | 状态 | 证据 |
 |---|---|---|
-| `agents/lead_agent/graph.py` 的 `build_graph(model, checkpointer=None)` | ✅ 已实现 | 全文见上；`uv run python -c "from ... import build_graph"` 通过 |
+| `backend/packages/harness/myagentflow/agents/lead_agent/graph.py` 的 `build_graph(model, checkpointer=None)` | ✅ 已实现 | 全文见上；`uv run python -c "from ... import build_graph"` 通过 |
 | `tests/chapters/test_ch01_02_graph.py` 两个用例 | ✅ 已实现 | `uv run pytest ... -q` → **2 passed** |
 | chat 路由调用图 | 🟡 半接 | `app/gateway/routers/chat.py:20` 已 `build_graph(create_chat_model())`，但**未传 checkpointer**，同 thread 不累积；接持久化在 02/01 |
 | 系统提示 / 角色 prompt | ❌ 本章不做 | EvoFlow 由 `agents/middlewares/dynamic_system_prompt_middleware.py` 每轮注入，我们在 3/03 复刻 |

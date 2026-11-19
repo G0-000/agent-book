@@ -100,7 +100,7 @@ PUT /settings → 校验 → 落库 → 发布变更事件
 
 ## 对照 EvoFlow 核对清单
 - [ ] `panel_settings.py` 的 schema 结构
-- [ ] `models/factory.py` 的模型热切换
+- [ ] `backend/packages/harness/myagentflow/models/factory.py` 的模型热切换
 
 ## 从零实现（手把手）
 > 读完这章你能做设置页：改模型、开关记忆、看任务历史，改动立刻生效（不重启）。

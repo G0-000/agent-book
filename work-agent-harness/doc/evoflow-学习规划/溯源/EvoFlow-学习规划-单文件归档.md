@@ -188,7 +188,7 @@ EvoFlow 使用 **PolyForm Noncommercial License 1.0.0**：源码可见；个人�
 ## 4. 各部分 → 真实模块 / Parts → real modules（🟡 按文件名推断）
 | Part | 主题 | 重点模块 |
 |---|---|---|
-| 1 | 最小闭环 | `config/app_config.py`、`models/factory.py`、`agents/lead_agent/*`、`agents/middlewares/*`、`persistence/{session,chat_message,live_run}_repositories.py`、`app/gateway/streaming/*`、`v4_demo/*` |
+| 1 | 最小闭环 | `backend/packages/harness/myagentflow/config/app_config.py`、`backend/packages/harness/myagentflow/models/factory.py`、`agents/lead_agent/*`、`agents/middlewares/*`、`persistence/{session,chat_message,live_run}_repositories.py`、`app/gateway/streaming/*`、`v4_demo/*` |
 | 2 | 持久化与生命周期 | `agents/checkpointer/*`、`session_execution/{lifecycle,commands,langgraph_cancel}.py`、`cancellation/*`、`zombie_run_sweeper.py`、`run_status_reconcile.py`、`cli/*`、`app_server/{stdio_rpc,embed,chat_bridge}.py`、`routers/share.py`、`persistence/chat_share_repositories.py` |
 | 3 | 工具与上下文 | `tools/{host_direct,zcode_port,builtins}/*`、`tool_output_truncation.py`、`large_result_store.py`、`context/*`、`agents/context_compaction_core.py`、`middlewares/{context_compaction,tool_history_ager,large_content_offload}_middleware.py` |
 | 4 | 记忆与资产 | `memory/*`、`agents/memory/*`、`agents/memory_plugins/*`、`assets/*`（含 `prompts/memories/*.md` 两阶段管线）、`person_*.py` |
@@ -257,7 +257,7 @@ store ───────────┘
 > **EvoFlow 对照状态 / Alignment status**
 > ✅ **已核对：** 配置文件格式、字段名、`$ENV` 规则、`use:` 路径、模型存放位置——来自 EvoFlow 公开仓库根目录的 `config.example.yaml`（796 行，已读全文）。
 > 🟡 **自研：** 文件里没写明的默认值、SQLite 列结构、API 返回格式、默认数据目录。下文逐条标出。
-> ⬜ **未读：** 解析这些配置的 EvoFlow 源码（`config/app_config.py` 等）。所以「校验细节」是我们自己的设计，不代表 EvoFlow 的校验行为。
+> ⬜ **未读：** 解析这些配置的 EvoFlow 源码（`backend/packages/harness/myagentflow/config/app_config.py` 等）。所以「校验细节」是我们自己的设计，不代表 EvoFlow 的校验行为。
 
 ## 本章目标 / Goals
 - 用 **YAML + `$ENV` 替换 + 类型化配置节** 描述应用配置，并在启动时 **fail fast**。
@@ -1018,10 +1018,10 @@ secrets_demo:
 运行：`cd code && python3 -m unittest discover -s tests -v`（合计 35 个测试）。
 
 ## 待核对清单 / Still to verify against EvoFlow source
-- [ ] `config/app_config.py`：真实的校验与默认值（尤其是示例里没写出的字段）
+- [ ] `backend/packages/harness/myagentflow/config/app_config.py`：真实的校验与默认值（尤其是示例里没写出的字段）
 - [ ] 对缺失环境变量的统一处理方式
-- [ ] `persistence/model_connections.py`、`config/models_yaml.py`：模型表的真实列、API 返回格式、密钥是否加密存储（`persistence/secret_store.py`）
-- [ ] `models/factory.py`、`resolver.py`：模型解析（含按会话覆盖）与厂商适配（`patched_*`）
+- [ ] `persistence/model_connections.py`、`backend/packages/harness/myagentflow/config/models_yaml.py`：模型表的真实列、API 返回格式、密钥是否加密存储（`persistence/secret_store.py`）
+- [ ] `backend/packages/harness/myagentflow/models/factory.py`、`resolver.py`：模型解析（含按会话覆盖）与厂商适配（`patched_*`）
 - [ ] 默认 `base_dir`（我们暂定 `.evoflow`；示例注释提到 `$EVOFLOW_HOME` 与 `backend/.evo-flow/`）
 - [ ] Gateway `/api/models` 的请求与响应字段、「测试连接」流程
 

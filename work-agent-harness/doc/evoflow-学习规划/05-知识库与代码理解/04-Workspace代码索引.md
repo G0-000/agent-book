@@ -103,7 +103,7 @@ query: name = "run" → 精确 → 前缀 → FTS
 > 本节只证明**路径、行数、符号存在**；调用顺序与边界条件仍属「行为」，未逐行核对。
 
 ## 对照 EvoFlow 核对清单
-- [ ] `code_index/store.py` 的表结构与 FTS5 用法
+- [ ] `backend/packages/harness/myagentflow/code_index/store.py` 的表结构与 FTS5 用法
 - [ ] LSP 与 tree-sitter 的降级策略
 
 ## 从零实现（手把手）
@@ -215,7 +215,7 @@ uv run pytest tests/chapters/test_ch05_04_code_index.py -v
 
 | 我们的做法 | EvoFlow | 为什么 |
 |---|---|---|
-| `ast.walk` 抽定义 | `code_index/store.py` | 正则会被注释/字符串骗 |
+| `ast.walk` 抽定义 | `backend/packages/harness/myagentflow/code_index/store.py` | 正则会被注释/字符串骗 |
 | 存 path/kind/name/line | 同文件 | 少 line 就没法跳转 |
 
 ### 知识点

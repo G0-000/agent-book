@@ -58,7 +58,7 @@
 | 章节 | 读过的源码 | 得到的关键结论 |
 |---|---|---|
 | 02/01 检查点与线程恢复 | `checkpointer/provider.py`（264）、`omit_transcript.py`（270）、`thread_state_reader.py`（172） | 检查点**不存 messages**（`_TRANSCRIPT_CHANNELS` = messages/ui_messages），唯一例外是存在未配对 tool_call；SQLite 长连接 + WAL + busy_timeout=5000 + `SELECT 1` 探活；读状态不编译图 |
-| 02/02 运行生命周期与取消 | `session_execution/lifecycle.py`（228）、`langgraph_cancel.py`（279） | 状态写入单一入口；取消走 LangGraph HTTP API（默认 `:8070/api/langgraph`），活跃状态含 `interrupted`；**4s/0.25s 扫描确认**；404 归一为 `already_gone` |
+| 02/02 运行生命周期与取消 | `backend/packages/harness/myagentflow/session_execution/lifecycle.py`（228）、`langgraph_cancel.py`（279） | 状态写入单一入口；取消走 LangGraph HTTP API（默认 `:8070/api/langgraph`），活跃状态含 `interrupted`；**4s/0.25s 扫描确认**；404 归一为 `already_gone` |
 | 03/03 Middleware 调用链与工具审计 | `agents/middlewares/`（71 条目）、`lead_agent/agent.py`（2002） | `after_model` **逆序**执行；需最后生效的放链头（`insert(0)`），需最先跑的放链尾（`append`）；澄清固定为链尾；压缩只在 `wrap_model_call` 临时折叠、不写检查点 |
 
 ## 下一批建议（按收益排序）
@@ -66,7 +66,7 @@
 1. **03/04 上下文预算与压缩** — `context_compaction_middleware.py`（1538 行）是全书最有复用价值的单体实现。
 2. **03/01 文件终端与宿主边界** — `workspace_guard_middleware.py` + `tools/` 路径围栏，决定安全下限。
 3. **06/02 沙箱与权限预设** — `execution_security/permission_preset.py` 三档权限，复刻必须先立。
-4. **05/04 代码索引** — `code_index/store.py` 的表设计与 FTS5 用法。
+4. **05/04 代码索引** — `backend/packages/harness/myagentflow/code_index/store.py` 的表设计与 FTS5 用法。
 5. **08/02 调度器** — `automation_scheduler.py` 的补偿与单飞。
 
 ## 范围三层（替代原来的「不做清单」）
@@ -106,12 +106,12 @@
 
 | EvoFlow | 复刻 | 抄 / 裁 |
 |---|---|---|
-| `config/app_config.py:94 AppConfig`（14 分区） | `config/app_config.py` | 5 分区：`log_level`/`models`/`primary_model`/`checkpointer`/`storage` |
-| `config/model_config.py:78 ModelConfig`（30 列） | `config/model_config.py` | 13 列，`name`（条目名）与 `model`（模型 ID）分开；含 `_drop_reserved_model_config_key`、`resolve_model_max_output_tokens` |
-| `config/checkpointer_config.py:10` | 同名文件 | 整份含模块单例 `get/set_checkpointer_config()` |
-| `config/storage_config.py:10` | 同名文件 | `backend`/`sqlite_path`；`DEFAULT_APP_DB_REL` 暂内联 |
-| `models/resolver.py:38/63` | `models/resolver.py` | `NoChatModelConfiguredError`、`resolve_run_model`、`get_app_config_safe`、`_global_default_model`（只留两层来源） |
-| `models/factory.py:879` | `models/factory.py` | `create_chat_model(name=None, thinking_enabled=False, **kwargs)`，只实现 openai |
+| `config/app_config.py:94 AppConfig`（14 分区） | `backend/packages/harness/myagentflow/config/app_config.py` | 5 分区：`log_level`/`models`/`primary_model`/`checkpointer`/`storage` |
+| `config/model_config.py:78 ModelConfig`（30 列） | `backend/packages/harness/myagentflow/config/model_config.py` | 13 列，`name`（条目名）与 `model`（模型 ID）分开；含 `_drop_reserved_model_config_key`、`resolve_model_max_output_tokens` |
+| `backend/packages/harness/myagentflow/config/checkpointer_config.py:10` | 同名文件 | 整份含模块单例 `get/set_checkpointer_config()` |
+| `backend/packages/harness/myagentflow/config/storage_config.py:10` | 同名文件 | `backend`/`sqlite_path`；`DEFAULT_APP_DB_REL` 暂内联 |
+| `models/resolver.py:38/63` | `backend/packages/harness/myagentflow/models/resolver.py` | `NoChatModelConfiguredError`、`resolve_run_model`、`get_app_config_safe`、`_global_default_model`（只留两层来源） |
+| `backend/packages/harness/myagentflow/models/factory.py:879` | `backend/packages/harness/myagentflow/models/factory.py` | `create_chat_model(name=None, thinking_enabled=False, **kwargs)`，只实现 openai |
 
 测试从 54 → 57 passed，ruff 清零；`01/01` 的示例代码、五个 Step、对照表全部按四文件重写，`10/01`、`10/02`、`02/03` 的调用示例同步为 `create_chat_model()`。
 
@@ -119,15 +119,15 @@
 
 用户指出 `CheckpointerType = Literal[...]` 没有注释。已把「每个符号都要有注释」写成硬规则：`00-导论/04-实现手册体例.md` 第 3 节扩成六条（命名照 EvoFlow / 每个符号必注释 / 注释写为什么 / 代码能跑 / 一步一验证 / 兜底显式），并附对象→必写内容→反例表。
 
-代码侧已补注释的裸符号：`CheckpointerType`（逐值说明与依赖）、`_LEGACY_DEFAULT_MAX_OUTPUT_TOKENS`、`DEFAULT_CONTEXT`/`AUTO_COMPACT_RATIO`/`ABSOLUTE_CAP`/两个 REFILL、`ROLES`、`PATTERNS`/`INVISIBLE`/`BLOCKED`、`POSTGRES_INSTALL`/`POSTGRES_CONN_REQUIRED`、`DANGEROUS`/`WRITE_MARKERS`、`DEFAULT`（记忆模板）、`_VER`、`BRIDGE_TOKEN_ENV`、`ALLOWED_END`、`ALLOWED`（审批终态），以及六处 `_SCHEMA` 建表 DDL 与 `plans/parser.py`、`knowledge/chunker.py` 的正则常量。
+代码侧已补注释的裸符号：`CheckpointerType`（逐值说明与依赖）、`_LEGACY_DEFAULT_MAX_OUTPUT_TOKENS`、`DEFAULT_CONTEXT`/`AUTO_COMPACT_RATIO`/`ABSOLUTE_CAP`/两个 REFILL、`ROLES`、`PATTERNS`/`INVISIBLE`/`BLOCKED`、`POSTGRES_INSTALL`/`POSTGRES_CONN_REQUIRED`、`DANGEROUS`/`WRITE_MARKERS`、`DEFAULT`（记忆模板）、`_VER`、`BRIDGE_TOKEN_ENV`、`ALLOWED_END`、`ALLOWED`（审批终态），以及六处 `_SCHEMA` 建表 DDL 与 `backend/packages/harness/myagentflow/plans/parser.py`、`backend/packages/harness/myagentflow/knowledge/chunker.py` 的正则常量。
 
 文件头规矩：反例 `CheckpointerType = Literal["memory", "sqlite", "postgres"]` 已写进体例文档，作为「类型别名必须逐个取值说明」的标准样例。
 
-## 补 `config/models_yaml.py`（2026-11-17）
+## 补 `backend/packages/harness/myagentflow/config/models_yaml.py`（2026-11-17）
 
 用户指出文档引了 `config/models_yaml.py:116 flatten_providers_dict()`，但复刻仓库里没有这个文件。已补：
 
-- 新建 `config/models_yaml.py`：`infer_vendor_from_connection`、`_coerce_model_entry`、`_ensure_vendor_field`、`flatten_providers_dict`、`_normalize_models_input`、`coerce_models_field_for_appconfig`，函数名与 EvoFlow 一致；
+- 新建 `backend/packages/harness/myagentflow/config/models_yaml.py`：`infer_vendor_from_connection`、`_coerce_model_entry`、`_ensure_vendor_field`、`flatten_providers_dict`、`_normalize_models_input`、`coerce_models_field_for_appconfig`，函数名与 EvoFlow 一致；
 - 未抄 `unflatten_models_to_providers_dict`（方向是「库里的模型 → yaml」，我们没有模型库）；
 - `AppConfig.models` 增加 `field_validator(mode="before")`，扁平列表与 `models.providers` 分组两种 yaml 都能读；
 - 新增测试 `test_providers_layout_is_flattened`（provider 层 base_url/api_key 下传、条目字段覆盖、name 顺序），本章 6 例、全书 58 passed；
@@ -141,7 +141,7 @@
 
 ## 第 2 章代码核对（2026-11-17）
 
-用户问「第 2 章相关代码都实现了么」。核对结论：手把手三步都已落地——`agents/lead_agent/graph.py`（`build_graph(model, checkpointer=None)`，`MessagesState` + 单节点 `call_model`）与 `tests/chapters/test_ch01_02_graph.py`（2 例，实测 2 passed）。但文档上一版的「示例代码」贴的是一个 `Agent` 类（`render_prompt`/`start_run`/`execute`/`Redactor`/`Store`/`ToolRegistry`），仓库里从未有过，EvoFlow 也没有这个类——已删除并替换为真实的 `graph.py` 全文 + `chat.py` 调用节选。
+用户问「第 2 章相关代码都实现了么」。核对结论：手把手三步都已落地——`backend/packages/harness/myagentflow/agents/lead_agent/graph.py`（`build_graph(model, checkpointer=None)`，`MessagesState` + 单节点 `call_model`）与 `tests/chapters/test_ch01_02_graph.py`（2 例，实测 2 passed）。但文档上一版的「示例代码」贴的是一个 `Agent` 类（`render_prompt`/`start_run`/`execute`/`Redactor`/`Store`/`ToolRegistry`），仓库里从未有过，EvoFlow 也没有这个类——已删除并替换为真实的 `graph.py` 全文 + `chat.py` 调用节选。
 
 同时修正：
 - 章首「本章是手写 agent loop」→「只造单节点图，没有工具循环/中间件/system prompt」；
@@ -153,13 +153,13 @@
 
 ## 第 3 章仓储拆分（2026-11-17）
 
-用户指出我把 EvoFlow 的 `persistence/chat_message_repositories.py`（消息）与 `persistence/session_repositories.py`（会话）合并成了一个自造的 `persistence/messages.py`（`MessageStore` 类）。已按 EvoFlow 布局拆成三个文件：
+用户指出我把 EvoFlow 的 `backend/packages/harness/myagentflow/persistence/chat_message_repositories.py`（消息）与 `backend/packages/harness/myagentflow/persistence/session_repositories.py`（会话）合并成了一个自造的 `persistence/messages.py`（`MessageStore` 类）。已按 EvoFlow 布局拆成三个文件：
 
 | 文件 | 函数 | 说明 |
 |---|---|---|
-| `persistence/db.py` | `get_db` / `db_connection_lock` / `reset_db` | 单例连接、WAL、busy_timeout、延迟建表 |
-| `persistence/session_repositories.py` | `upsert_session_row` / `get_session_row_for_ui` / `list_sessions_for_ui` / `delete_sessions_by_thread_id` | 表 `sessions` |
-| `persistence/chat_message_repositories.py` | `append_message` / `list_messages` / `count_messages` / `delete_messages_for_session` | 表 `chat_messages`，主键 `(thread_id, seq)` |
+| `backend/packages/harness/myagentflow/persistence/db.py` | `get_db` / `db_connection_lock` / `reset_db` | 单例连接、WAL、busy_timeout、延迟建表 |
+| `backend/packages/harness/myagentflow/persistence/session_repositories.py` | `upsert_session_row` / `get_session_row_for_ui` / `list_sessions_for_ui` / `delete_sessions_by_thread_id` | 表 `sessions` |
+| `backend/packages/harness/myagentflow/persistence/chat_message_repositories.py` | `append_message` / `list_messages` / `count_messages` / `delete_messages_for_session` | 表 `chat_messages`，主键 `(thread_id, seq)` |
 
 - 删除 `persistence/messages.py`；`tests/chapters/test_ch01_03_messages.py` 重写为 3 例，`test_ch01_06_e2e.py`、`test_ch13_01_e2e.py` 改用函数式 API + `monkeypatch` 设库路径。
 - 文档同步：01/03 的示例代码、调用逻辑图、数据模型、业务规则、Step 1–4、对照表全部改成三文件叙述；01/06 与 13/01 的代码块同步改。
