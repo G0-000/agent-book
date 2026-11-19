@@ -1,128 +1,107 @@
 # 第 3 章　CLI 与 stdio App Server
 
-> **EvoFlow 对照状态 / Alignment status：** 🔍 结构已核对（路径、行数、符号均取自源码实测），**行为**（调用顺序、边界条件）尚未逐行核对。
+> **本章状态**：🟡 最小实现。CLI 有 `chat` / `state` 两个子命令；stdio 有 `ping` / `state` 两个方法，**没有** `chat/send` 这类流式协议。
+> 基准：EvoFlow `f22af539`（v1.3.22）。
 
-## 本章目标
-让同一个 Agent 内核能被 **终端、编辑器、桌面端** 复用，而不必各自重写一遍逻辑。
+## 本章目标 / Goals
 
-## 最小闭环
-`evoflow --chat "算一下 2+3"` → 标准输出 SSE 事件 → 退出码 0；同一套逻辑通过 stdio JSON-RPC 被宿主程序调用。
+- 同一套内核有两个入口：终端（CLI）与宿主进程（stdio），不在入口层重写业务逻辑。
+- CLI 的 `state` 子命令**不编译图**：读状态不该拉起模型和中间件。
+- stdio 一行请求一行响应；坏行只回错误，不退出进程。
+- stdout 只放协议，日志走 stderr（否则宿主解析失败）。
 
-## 调用逻辑
+**本章不做**：JSON-RPC 的 `chat/send` / `chat/event` / `chat/resume` / `chat/cancel` 流式协议；stdio 的 TCP 监听；Windows UTF-8 包装；嵌入式 app server。这些在 EvoFlow 的 `stdio_rpc.py`（719 行）与 `chat_bridge.py`（396 行）里，属于后续「Gateway 与桌面端」范围。
+
+## EvoFlow 源码导读 / Source reading
+
+| 文件 | 行数 | 读什么 |
+|---|---|---|
+| `backend/packages/harness/evoflow/cli/main.py` | 105 | `_peek_command`、`build_parser`、`main`：子命令怎么分发 |
+| `.../cli/common.py` | 44 | `add_json_input_flags` / `load_json_payload` / `add_output_flags`：参数与 JSON 载荷约定 |
+| `.../app_server/stdio_rpc.py` | 719 | `StdioAppServer`、`serve_stdio`、`serve_stdio_async`、`PROTOCOL_VERSION`：方法表、通知、错误码 |
+| `.../app_server/chat_bridge.py` | 396 | chat 轮次怎么把 Gateway SSE 转成 RPC 通知 |
+| `.../desktop_stdio.py` | 363 | Windows 下强制 UTF-8、禁用 ANSI 颜色 |
+
+**EvoFlow 的事实**：stdio 是「桌面客户端 ↔ Gateway」的桥，chat 事件是**通知**（无 `id`），不是请求响应；CLI 自己也通过 Gateway 跑，不是直接调 harness。
+
+## 本章的取舍 / Scope trade-off
+
+| 能力 | EvoFlow | 本章 |
+|---|---|---|
+| CLI 跑对话 | 经 Gateway / LangGraph SSE | 直接 `build_graph().invoke()`，同步打印最后一条 |
+| CLI 读状态 | 调 Gateway API | `read_thread_state()` 本地读 saver |
+| stdio 方法 | 完整 chat 生命周期 | `ping` + `state` |
+| 传输 | stdio 或 local TCP | 仅 stdin/stdout |
+| 协议通知 | `chat/event` 流 | 无（本章没有流式 chat） |
+
+本章的选择是**先把两个入口的骨架跑通**；chat 流式协议等第 10 部分接 Gateway 时再补，避免现在造一套和最终协议不一致的消息格式。
+
+## 调用逻辑 / Invocation logic
 
 ```mermaid
 sequenceDiagram
     participant U as 用户
     participant CLI as cli.main
-    participant GR as 图执行
-    participant H as 宿主程序
-    participant S as app_server.stdio
-    U->>CLI: evoflow --chat "算一下 2+3"
-    CLI->>GR: _chat() → 执行
-    CLI-->>U: 标准输出 SSE 事件，退出码 0
-    H->>S: JSON-RPC 请求（stdin）
-    S->>S: handle(req) → serve()
-    S-->>H: JSON-RPC 响应（stdout）
+    participant G as build_graph
+    participant S as stdio.handle
+    participant R as read_thread_state
+    U->>CLI: myaf chat "你好" --thread t1
+    CLI->>G: invoke(messages, thread_id)
+    G-->>CLI: 最后一条 AIMessage
+    CLI-->>U: print(content)
+    U->>CLI: myaf state --thread t1
+    CLI->>R: read_thread_state(cp, t1)
+    R-->>CLI: checkpoint 快照 / null
+    Note over S: 宿主进程 spawn 后走 JSONL
+    S->>S: ping → pong
+    S->>R: state(params.thread_id)
+    S-->>S: {{"id": n, "result": ...}}
 ```
 
-```text
-CLI  → 直接调用 harness 会话服务 → 流事件打印
-stdio → 宿主进程 spawn → JSON-RPC 2.0 over stdin/stdout → chat_bridge → harness
-HTTP  → Gateway（Part 10）
-```
-三者共用 `session_execution` 与 `chat_session_service`，差别只在传输层。
+## 实现步骤 / Step by step
 
-## 真实模块地图（已核对：路径 · 行数 · 符号）
+### Step 1　`backend/packages/harness/myagentflow/cli/main.py`
 
-| 文件 | 行数 | 关键符号 | 模块常量 |
-|---|---|---|---|
-| `packages/harness/evoflow/cli/main.py:52` | 105 | `_peek_command`、`build_parser`、`main` | — |
-| `packages/harness/evoflow/cli/common.py:13` | 44 | `add_json_input_flags`、`load_json_payload`、`add_output_flags` | — |
-| `packages/harness/evoflow/app_server/stdio_rpc.py:26` | 719 | `StdioAppServer`；`_force_utf8_stdio`、`serve_stdio`、`serve_stdio_async` | PROTOCOL_VERSION |
-| `packages/harness/evoflow/app_server/embed.py:17` | 96 | `resolve_app_server_listen_port`、`resolve_gateway_base_url_for_embed`、`start_embedded_app_server` | — |
-| `packages/harness/evoflow/app_server/chat_bridge.py:21` | 396 | `_client_lock`、`_get_shared_gateway_client`、`reset_shared_gateway_client_for_tests` | — |
-| `packages/harness/evoflow/desktop_stdio.py:270` | 363 | `_UnclosableStdio`；`apply_windows_stdio_env`、`_stream_is_usable`、`_is_colorama_wrapped` | — |
-| `packages/harness/evoflow/app_server/stdio_rpc.py:26` | 719 | `StdioAppServer`；`_force_utf8_stdio`、`serve_stdio`、`serve_stdio_async` | PROTOCOL_VERSION |
+**职责**：解析 `chat` / `state`，各走一条路径。
 
-## 核心概念
-- **stdio 协议要点**：stdout 只能放协议消息，日志必须走 stderr，否则宿主解析失败。
-- **一次连接一条会话**：连接即 session，断开即结束；不做隐式全局状态。
-- **背压**：宿主读得慢时，事件要排队或合并，不能阻塞执行线程。
+**逻辑**
 
-## 自研实现要点
-```json
-{"jsonrpc":"2.0","id":1,"method":"chat/send","params":{"session":"s1","text":"hi"}}
-{"jsonrpc":"2.0","method":"chat/event","params":{"type":"delta","text":"你"}}
-```
-- 事件 `id` 单调递增，支持 `chat/resume` 从 last_id 续传。
-- 退出：`chat/cancel` → 等终态事件 → 关闭管道。
+1. `main()` 用 `argparse` 子解析器；`set_defaults(fn=...)` 把「解析」和「执行」分开，测试可以直接传 argv。
+2. `_chat()` 懒加载图与模型：只跑 `state` 的人不需要模型配置。
+3. `_state()` **绝不导入 `build_graph`**：读状态编译图会拉起中间件、模型客户端和 MCP，慢且可能报错。
+4. 默认 `--thread cli`：终端调试不用每次编一个线程名。
 
-## 业务规则
-- 错误也走 JSON-RPC error，不往 stdout 打人类可读堆栈。
-- 未授权方法直接拒绝，不暴露内部路径。
-
-## 常见坑
-- `print()` 调试污染 stdout。
-- 子进程未随父进程退出 → 僵尸积累。
-- 缓冲区不 flush → 宿主永远收不到最后一条事件。
-
-## 验收
-- [ ] CLI 与 HTTP 对同一输入产生等价事件序列
-- [ ] stdout 无任何非协议输出
-- [ ] 宿主 kill 后子进程同步退出
-
-### 源码核对记录（路径与符号实测）
-
-- `packages/harness/evoflow/cli/main.py`（105 行）；环境变量 `EVOFLOW_CONFIG_PATH`
-  - 模块自述：EvoFlow CLI — manage models, skills, agents, MCP, assets, and more.…
-- `packages/harness/evoflow/cli/common.py`（44 行）
-  - 模块自述：Shared argparse helpers for EvoFlow CLI.…
-- `packages/harness/evoflow/app_server/stdio_rpc.py`（719 行）：类 `StdioAppServer`；环境变量 `EVOFLOW_PSS_LOG`
-  - 模块自述：Newline-delimited JSON-RPC app-server (stdio or local TCP). Desktop clients use this pipe; the web UI keeps HT…
-- `packages/harness/evoflow/app_server/embed.py`（96 行）；环境变量 `EVOFLOW_APP_SERVER_HOST`、`EVOFLOW_APP_SERVER_PORT`、`EVOFLOW_GATEWAY_BIND_PORT`、`EVOFLOW_GATEWAY_PORT`
-  - 模块自述：Optional embedded app-server TCP listener inside Gateway (debug only). Desktop uses native-style: Tauri spawns…
-- `packages/harness/evoflow/app_server/chat_bridge.py`（396 行）；环境变量 `EVOFLOW_PSS_LOG`
-  - 模块自述：Proxy interactive chat turns to Gateway LangGraph SSE and re-emit as RPC notifications.…
-- `packages/harness/evoflow/desktop_stdio.py`（363 行）：类 `_UnclosableStdio`
-  - 模块自述：Windows desktop / frozen EXE: UTF-8 stdio and no ANSI colors for LangGraph logging. Chinese Windows defaults t…
-- `packages/harness/evoflow/app_server/stdio_rpc.py`（719 行）：类 `StdioAppServer`；环境变量 `EVOFLOW_PSS_LOG`
-  - 模块自述：Newline-delimited JSON-RPC app-server (stdio or local TCP). Desktop clients use this pipe; the web UI keeps HT…
-
-> 本节只证明**路径、行数、符号存在**；调用顺序与边界条件仍属「行为」，未逐行核对。
-
-## 对照 EvoFlow 核对清单
-- [ ] `stdio_rpc.py` 的方法清单与错误码
-- [ ] CLI 是否复用 Gateway 还是直连 harness
-
-## 从零实现（手把手）
-> 读完这章你有两个入口：一个命令行，一个 JSON-Lines 的 stdio 服务，共用同一套图。
-> 文件路径一律写仓库全路径（`backend/...`），代码注释写「为什么」。
-
-### Step 1　新建 CLI：两个子命令
-**文件**：`backend/packages/harness/myagentflow/cli/main.py（新建）`
-**要写的逻辑**：`chat` 跑一轮并打印回复；`state` 用 02/01 的 `read_thread_state` 直接读，不编译图。
-
-**代码**
+**代码（全文，68 行）**
 
 ```python
-"""CLI：最小两个子命令。
+"""一、文件说明
+    CLI：最小两个子命令。
+    为什么 CLI 要和 Gateway 共用代码：调试时想在终端复现线上问题，
+    两条代码路径一定会分叉。
 
-为什么 CLI 要和 Gateway 共用代码：调试时想在终端复现线上问题，
-两条代码路径一定会分叉。
+二、目录结构
+    packages/harness/myagentflow/cli/
+    ├── __init__.py
+    └── main.py  ← 本文件
+
+三、关键方法
+    _chat()   命令行跑一轮对话：读一条输入、调图、打印回复。
+    _state()  打印某线程的检查点状态；刻意不编译图。
+    main()    解析 chat/state 子命令并分发。
 """
 from __future__ import annotations
 
 import argparse
 import json
 
-from myagentflow.config.app_config import get_app_config
+from myagentflow.models.factory import create_chat_model
 
 
 def _chat(args: argparse.Namespace) -> int:
+    """命令行跑一轮对话：读一条输入、调图、打印回复。"""
     from langchain_core.messages import HumanMessage
 
     from myagentflow.agents.lead_agent.graph import build_graph
-    from myagentflow.models.factory import create_chat_model
 
     graph = build_graph(create_chat_model())
     out = graph.invoke(
@@ -134,6 +113,7 @@ def _chat(args: argparse.Namespace) -> int:
 
 
 def _state(args: argparse.Namespace) -> int:
+    """打印某线程的检查点状态；刻意不编译图。"""
     from myagentflow.agents.checkpointer import get_checkpointer
     from myagentflow.agents.checkpointer.thread_state_reader import read_thread_state
 
@@ -143,6 +123,7 @@ def _state(args: argparse.Namespace) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
+    """解析 chat/state 子命令并分发。"""
     parser = argparse.ArgumentParser(prog="myaf")
     sub = parser.add_subparsers(dest="cmd", required=True)
 
@@ -166,21 +147,42 @@ if __name__ == "__main__":
 **验证**
 
 ```bash
+cd /Users/main/my-agent-flow/backend
 uv run python -m myagentflow.cli.main state --thread demo
-# 期望：null（线程还没跑过），且不报「图编译失败」
+# 期望：null（没跑过这个线程），且没有模型相关的报错
 ```
 
-### Step 2　新建 stdio 服务：一行一请求
-**文件**：`backend/packages/harness/myagentflow/app_server/stdio.py（新建）`
-**要写的逻辑**：从 stdin 读 JSON 行，回一行 JSON；异常也回一行（带 error 字段），绝不静默退出。
+> `chat` 需要真实模型配置（第 1 部分的 `AppConfig`）。本章验收只跑 `state`，避免测试依赖网络。
 
-**代码**
+---
+
+### Step 2　`backend/packages/harness/myagentflow/app_server/stdio.py`
+
+**职责**：一行 JSON 进，一行 JSON 出。
+
+**逻辑**
+
+1. `handle()` 按 `method` 分派：`ping` 握手，`state` 读状态，其他一律 error（不泄露内部方法名）。
+2. `state` 的参数兼容 `thread_id` 与 `thread`，缺省 `cli`；返回 `read_thread_state()` 的结果或 `null`。
+3. `serve()` 逐行读；空行跳过；JSON 解析失败回 `{{"id": null, "error": ...}}` 并**继续下一行**。
+4. 每行 `flush()`：不 flush 父进程会一直等，看起来像「服务卡死」。
+
+**代码（全文，59 行）**
 
 ```python
-"""stdio app server：一行请求、一行响应。
+"""一、文件说明
+    stdio app server：一行请求、一行响应。
+    为什么用 JSONL 而不是 HTTP：桌面端/编辑器插件拉起子进程时没有端口可用，
+    stdin/stdout 是最稳的通道。
 
-为什么用 JSONL 而不是 HTTP：桌面端/编辑器插件拉起子进程时没有端口可用，
-stdin/stdout 是最稳的通道。
+二、目录结构
+    packages/harness/myagentflow/app_server/
+    ├── __init__.py
+    └── stdio.py  ← 本文件
+
+三、关键方法
+    handle()  处理一行 JSON-RPC 请求：ping 握手、state 读线程状态；其他方法回错误。
+    serve()   从 stdin 逐行读 JSON-RPC 并写回 stdout；坏行返回错误而不退出进程。
 """
 from __future__ import annotations
 
@@ -190,12 +192,29 @@ from typing import Any
 
 
 def handle(req: dict[str, Any]) -> dict[str, Any]:
-    if req.get("method") != "ping":
-        return {"id": req.get("id"), "error": f"未知方法：{req.get('method')}"}
-    return {"id": req.get("id"), "result": "pong"}
+    """处理一行 JSON-RPC 请求：ping 握手、state 读线程状态；其他方法回错误。"""
+    method = req.get("method")
+    req_id = req.get("id")
+
+    if method == "ping":
+        return {"id": req_id, "result": "pong"}
+
+    if method == "state":
+        # 懒加载：只用 ping 的宿主不该被迫初始化数据库连接
+        from myagentflow.agents.checkpointer import get_checkpointer
+        from myagentflow.agents.checkpointer.thread_state_reader import (
+            read_thread_state,
+        )
+
+        params = req.get("params") or {}
+        thread_id = str(params.get("thread_id") or params.get("thread") or "cli")
+        return {"id": req_id, "result": read_thread_state(get_checkpointer(), thread_id)}
+
+    return {"id": req_id, "error": f"未知方法：{method}"}
 
 
 def serve(stdin=sys.stdin, stdout=sys.stdout) -> None:
+    """从 stdin 逐行读 JSON-RPC 并写回 stdout；坏行返回错误而不退出进程。"""
     for line in stdin:
         line = line.strip()
         if not line:
@@ -206,29 +225,133 @@ def serve(stdin=sys.stdin, stdout=sys.stdout) -> None:
             resp = {"id": None, "error": str(exc)}
         stdout.write(json.dumps(resp, ensure_ascii=False) + "\n")
         stdout.flush()   # 不 flush 的话父进程会一直等
+
+
+if __name__ == "__main__":
+    serve()
 ```
 
 **验证**
 
 ```bash
-printf '{"id":1,"method":"ping"}\n' | uv run python -m myagentflow.app_server.stdio
-# 期望：{"id": 1, "result": "pong"}
+cd /Users/main/my-agent-flow/backend
+printf '{{"id":1,"method":"ping"}}\n{{"id":2,"method":"state","params":{{"thread_id":"demo"}}}}\nnot-json\n' | uv run python -m myagentflow.app_server.stdio
+# 期望三行：pong / null / error；进程不退出
 ```
 
-### 与 EvoFlow 对照
+---
 
-| 我们的做法 | EvoFlow | 为什么 |
-|---|---|---|
-| `chat` / `state` 两个子命令 | `cli/` 的命令划分 | 读状态与跑对话是两条不同路径 |
-| JSONL stdio | `app_server/` 的 stdio 通道 | 编辑器插件拉起子进程时无端口 |
+### Step 3　`backend/tests/chapters/test_ch02_03_cli_stdio.py`
 
-### 知识点
+覆盖：ping、state、未知方法、坏行恢复、CLI state 输出。
 
-- [agent-book](https://g0-000.github.io/agent-book/)：CLI 与 Agent 的交互形态
-- Harbor404：进程间通信与阻塞排查
+**代码（全文，65 行）**
 
-### 验收
+```python
+"""一、文件说明
+    02/03 CLI 与 stdio：命令行参数分发、stdin/stdout 一行一答。
+
+二、覆盖
+    test_stdio_ping()             ping 返回 pong，id 原样带回。
+    test_stdio_state_unknown()     state 读不存在的线程返回 None，不抛异常。
+    test_stdio_unknown_method()    未知方法回 error，id 不丢。
+    test_serve_bad_json()          坏行回 error，且后续好行仍能处理。
+    test_cli_state(capsys)         CLI state 子命令走通，输出 JSON null。
+
+三、运行
+    uv run pytest tests/chapters/test_ch02_03_cli_stdio.py -q
+"""
+
+from __future__ import annotations
+
+import io
+import json
+
+
+def test_stdio_ping():
+    """ping 返回 pong，id 原样带回。"""
+    from myagentflow.app_server.stdio import handle
+
+    resp = handle({"id": 1, "method": "ping"})
+    assert resp == {"id": 1, "result": "pong"}
+
+
+def test_stdio_state_unknown(monkeypatch, tmp_path):
+    """state 读不存在的线程返回 None，不抛异常。"""
+    monkeypatch.setenv("MYAF_CHECKPOINTER", "sqlite")
+    monkeypatch.setenv("MYAF_CHECKPOINT_SQLITE_PATH", str(tmp_path / "cp.sqlite"))
+    from myagentflow.app_server.stdio import handle
+
+    resp = handle({"id": 2, "method": "state", "params": {"thread_id": "no-such"}})
+    assert resp == {"id": 2, "result": None}
+
+
+def test_stdio_unknown_method():
+    """未知方法回 error，id 不丢。"""
+    from myagentflow.app_server.stdio import handle
+
+    resp = handle({"id": 3, "method": "chat/send"})
+    assert resp["id"] == 3 and "未知方法" in resp["error"]
+
+
+def test_serve_bad_json():
+    """坏行回 error，且后续好行仍能处理：一行坏不能拖垮整个管道。"""
+    from myagentflow.app_server.stdio import serve
+
+    stdin = io.StringIO('not-json\n{"id":4,"method":"ping"}\n')
+    stdout = io.StringIO()
+    serve(stdin=stdin, stdout=stdout)
+    lines = [json.loads(x) for x in stdout.getvalue().splitlines()]
+    assert "error" in lines[0] and lines[1] == {"id": 4, "result": "pong"}
+
+
+def test_cli_state(capsys, monkeypatch, tmp_path):
+    """CLI state 子命令走通，输出 JSON null。"""
+    monkeypatch.setenv("MYAF_CHECKPOINTER", "sqlite")
+    monkeypatch.setenv("MYAF_CHECKPOINT_SQLITE_PATH", str(tmp_path / "cp.sqlite"))
+    from myagentflow.cli.main import main
+
+    assert main(["state", "--thread", "no-such"]) == 0
+    assert capsys.readouterr().out.strip() == "null"
+```
+
+**验证**
 
 ```bash
-printf '{"id":2,"method":"x"}\n' | uv run python -m myagentflow.app_server.stdio
+cd /Users/main/my-agent-flow/backend
+uv run pytest tests/chapters/test_ch02_03_cli_stdio.py -q
+# 期望：5 passed
 ```
+
+## 与 EvoFlow 的差异 / Differences
+
+| 点 | EvoFlow | 本章 | 影响 |
+|---|---|---|---|
+| CLI chat 数据流 | Gateway SSE → 事件渲染 | 同步 `invoke`，只打印最终回复 | 没有 token 流、没有工具事件 |
+| stdio chat | `chat/send` + `chat/event` 通知 | 未实现 | 宿主只能握手和读状态 |
+| 协议版本 | `PROTOCOL_VERSION` | 无 | 还没有版本协商的必要 |
+| 错误码 | JSON-RPC 标准码 | 字符串 error | 够本地调试，接宿主前要统一 |
+| 日志隔离 | stderr + `_UnclosableStdio` | 代码里不 `print`，靠调用方自觉 | Windows 下仍需 UTF-8 包装 |
+
+## 常见坑 / Troubleshooting
+
+| 症状 | 原因 | 动作 |
+|---|---|---|
+| 宿主解析失败 | 代码里有 `print()` 混进 stdout | 日志改 `stderr`；stdout 只写协议 |
+| 最后一条永远收不到 | 没 `flush()` | 每行写完立即 flush |
+| 一行坏 JSON 导致进程退出 | `serve` 没包 `try` | 捕获后回 error，继续循环 |
+| `state` 很慢 / 报模型错误 | 误导入 `build_graph` | 只导入 `read_thread_state` |
+| `chat` 报没有 API key | 没配模型 | 先跑 `state`；`chat` 需要第 1 部分配置 |
+
+## 验收 / Acceptance
+
+```bash
+cd /Users/main/my-agent-flow/backend
+uv run pytest tests/chapters/test_ch02_03_cli_stdio.py -q     # 5 passed
+uv run python -m ruff check packages tests                   # All checks passed
+```
+
+## 知识点
+
+- [agent-book](https://g0-000.github.io/agent-book/)：CLI、stdio、HTTP 三种入口的分工
+- [Harbor404 · 流式输出](https://harbor404.fushenlin.com/)：为什么 stdout 只能放协议
