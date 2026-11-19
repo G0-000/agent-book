@@ -1,25 +1,36 @@
 # 第 3 部分　工具深化与上下文控制 / Tool Depth and Context Control
 
-> 状态：🟡→✅ 推进中。第 3 章（Middleware 链）已核对源码；第 1、2、4 章仍为骨架。这一部分决定 **能力上限** 与 **稳定性上限**，是 EvoFlow 与玩具 Agent 的真正分水岭。
+> 状态：✅ 四章最小实现均已落地并有测试（15 passed）。  
+> 边界：本部分只实现「可运行的最小闭环」，不把 EvoFlow 的 70 个中间件、浏览器桥、CUA 全量抄进来；未实现项在每章「未实现」小节列明。
+
+## 这部分解决什么
+
+前两部分解决「能跑、能存、能停」。这一部分解决三个更容易把 Agent 拖垮的问题：
+
+1. **工具碰宿主**：路径能不能出工作区？命令跑太久怎么办？
+2. **工具调用治理**：一次调用经过哪些层？失败会不会吞掉？审计留什么？
+3. **上下文预算**：结果太大是截断还是落盘？预算超了怎么压缩？
 
 ## 章节
 
-| 章 | 主题 | 真实模块 |
-|---|---|---|
-| [1](01-文件终端与宿主边界.md) | 文件/终端与宿主边界 | `tools/tools.py`、`tools/host_direct/`、`tools/builtins/` |
-| [2](02-后台命令浏览器桥与Computer-Use.md) | 后台命令、浏览器桥、Computer Use | `plugins/`、`routers/browser_bridge.py`、`routers/cua_bridge.py` |
-| [3](03-Middleware调用链与工具审计.md) ✅ | Middleware 调用链与工具审计 | `agents/middlewares/`（70 个 `.py`）、`agents/tool_approval_*.py` |
-| [4](04-上下文预算压缩与自动后续.md) | 上下文预算、压缩、自动后续动作 | `context/`、`agents/context_compaction_core.py`、`tools/tool_output_truncation.py` |
+| 章 | 主题 | 本项目文件 | 状态 |
+|---|---|---|---|
+| [1](01-文件终端与宿主边界.md) | 路径守卫与宿主边界判定 | `tools/host_direct/workspace_path_guard.py` | ✅ 4 测试 |
+| [2](02-后台命令浏览器桥与Computer-Use.md) | 后台任务表与桥接 token | `tools/host_direct/background_bash.py`、`bridge_auth.py` | ✅ 4 测试 |
+| [3](03-Middleware调用链与工具审计.md) | 洋葱式中间件链与审计 | `agents/middlewares/chain.py`、`audit.py` | ✅ 3 测试 |
+| [4](04-上下文预算压缩与自动后续.md) | 预算、截断、超大结果落盘 | `context/budget.py`、`context/tool_tokens.py`、`tools/tool_output_truncation.py`、`tools/large_result_store.py` | ✅ 4 测试 |
 
-## 关键认知
+## 统一口径
 
-1. **真实 Agent 循环不是 while 循环**，而是 LangGraph 图 + 中间件链；工具调用的「治理」几乎全在 middleware 里。
-2. **大结果一定落盘**：`<persisted-output>` 信封 + 截断，是上下文不爆的核心手段。
-3. **上下文是有预算的资源**：token 估算、压缩、老化、离线转存，是一整套机制而不是一个 `if len > N`。
-4. **宿主边界必须显式**：哪些工具在宿主执行、哪些进沙箱、哪些需要审批。
+- 代码根：`/Users/main/my-agent-flow/backend`
+- 包根：`/Users/main/my-agent-flow/backend/packages/harness/myagentflow`
+- EvoFlow 基准：`f22af53910a470ddba633be35e25878214c2984ec`（v1.3.22，PolyForm Noncommercial）
+- 测试：`cd /Users/main/my-agent-flow/backend && uv run pytest tests/chapters/test_ch03_*.py -q`
+- 静态检查：`uv run ruff check packages tests`
 
 ## 验收口径
-- 工具失败不污染后续轮次（悬空 tool_call 能被修复）。
-- 单次工具输出 1MB 时不撑爆上下文。
-- 上下文超预算时自动压缩且不丢关键结论。
-- 每个工具调用都可审计到「谁、何时、参数摘要、结果摘要」。
+
+- `confine` 下相对路径、`..`、软链逃逸都能给出正确结论。
+- 后台任务可登记、查询、停止；输出快照最多回灌 8KB。
+- 中间件顺序可预测；工具异常不被审计层吞掉。
+- 单次 20K 字符工具结果落盘，模型只收到信封与路径。

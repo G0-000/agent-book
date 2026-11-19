@@ -1,244 +1,413 @@
-# 第 2 章　后台命令、浏览器桥与 Computer Use
+# 第 2 章　后台命令与桥接鉴权
 
-> **EvoFlow 对照状态 / Alignment status：** 🔍 结构已核对（路径、行数、符号均取自源码实测），**行为**（调用顺序、边界条件）尚未逐行核对。
+> **状态：** ✅ 本章代码与测试已落地：`background_bash.py` + `bridge_auth.py` + 4 个测试用例。  
+> **范围：** 后台任务表（登记/查询/停止/输出快照）与桥接 token 校验。浏览器桥、CUA、HTTP 路由不在本章实现；原因见文末。
 
-## 本章目标
-让 Agent 能操作**长时间运行的进程**和**图形界面**，同时不把主对话阻塞。
+## 1. 为什么需要「后台任务表」
 
-## 最小闭环
-启动后台命令 → 轮询输出 → 结束后读取完整日志；打开浏览器 → 截图 → 点击。
+一条 `npm install` 可能跑 3 分钟，一条 `pytest` 可能跑 10 分钟。同步等待会带来三个问题：
 
-## 调用逻辑 / Invocation logic
+1. 主对话被阻塞，用户看不到任何进度；
+2. 网关/客户端超时，任务被误判失败；
+3. 进程还在跑，但调用栈已经没了，之后没人能停它。
 
-```mermaid
-sequenceDiagram
-    participant T as 工具
-    participant B as BgManager
-    participant P as BgProc
-    participant A as verify_bridge_token
-    participant H as 宿主进程/浏览器
-    T->>B: start(cmd)
-    B->>P: Popen(..., stdout=PIPE)
-    B-->>T: proc_id
-    T->>B: poll(proc_id)
-    P-->>T: 增量输出 / exit_code
-    T->>B: kill(proc_id)（超时或取消）
-    T->>A: verify_bridge_token(token, secret)
-    A-->>T: True/False → 放行桥接请求
-```
+正确做法是：**命令一启动就登记成一条任务**，调用方立刻拿到 `task_id`；之后通过任务表查询、停止、读输出。
 
-- **入口**：`BgManager.start()` 起进程并立刻返回 id，工具层拿 id 轮询，不阻塞事件循环。
-- **关键节点**：`poll()` 要能返回「还没结束」和「已结束+退出码」两种状态；桥接侧每个请求先过 `verify_bridge_token`，不信任来源 IP。
-- **出口**：`kill()` 负责收割进程组，`close()` 前必须全部 kill，否则测试结束残留子进程。
-- **最容易断的地方**：只 kill 父进程不管子进程；token 用固定字符串或漏校验重放。
+本章先实现任务表本身，不实现进程启动。进程启动属于工具层（拿到 argv、cwd、环境变量之后 `Popen`，再 `register_task`），本章只保证「登记之后生命周期可控」。
 
-## 真实模块地图（已核对：路径 · 行数 · 符号）
-
-| 文件 | 行数 | 关键符号 | 模块常量 |
-|---|---|---|---|
-| `app/gateway/routers/background_bash.py` | 50 | `list_background_bash`、`background_bash_output`、`background_bash_stop` | — |
-| `app/gateway/routers/browser_bridge.py` | 145 | `BrowserExecuteRequest`、`BrowserLogEntry`、`BrowserLogBatch`；`_org_admin_guard`、`_bridge_token_guard`、`append_browser_log` | — |
-| `packages/harness/evoflow/tools/builtins/browser_stream.py:23` | 137 | `browser_session_name`、`browser_live_ws_path`、`_engine_screencast_active` | — |
-| `app/gateway/routers/browser_snapshots.py` | 38 | `get_browser_screenshot` | — |
-| `app/gateway/routers/browser_embed.py` | 63 | `BrowserEmbedCdpBody`；`put_browser_embed_cdp`、`delete_browser_embed_cdp`、`get_browser_embed_cdp` | — |
-| `app/gateway/routers/cua_bridge.py` | 327 | `CuaExecuteRequest`、`AppIconLocator`、`AppIconRequestBody`；`_org_admin_guard`、`_bridge_token_guard`、`_resolve_ps1` | — |
-| `packages/harness/evoflow/plugins/cua_helper.py:40` | 162 | `_helper_entry`、`_helper_addon`、`is_helper_runtime` | HELPER_RUNTIME_DIRNAME、HELPER_ENTRY_REL、HELPER_ADDON_REL |
-| `packages/harness/evoflow/plugins/bridge_auth.py:33` | 94 | `_token_file_path`、`reset_bridge_token_cache`、`get_bridge_token` | — |
-| `packages/harness/evoflow/plugins/runtime.py:41` | 342 | `_ulog`、`_iter_enabled_plugins`、`enabled_plugin_roots` | — |
-| `packages/harness/evoflow/plugins/node_repl.py:30` | 1111 | `_ulog`、`_sanitize_model_browser_js`、`_meta_envelope` | — |
-| `packages/harness/evoflow/plugins/node_repl_tool.py:111` | 564 | `NodeReplJsInput`；`_maybe_compact_browser_docs_dump`、`_get_thread_id`、`_decode_image` | — |
-| `packages/harness/evoflow/plugins/cua_helper.py:40` | 162 | `_helper_entry`、`_helper_addon`、`is_helper_runtime` | HELPER_RUNTIME_DIRNAME、HELPER_ENTRY_REL、HELPER_ADDON_REL |
-
-## 已核对的行为事实（REST 层）
-
-| 能力 | 真实入口 | 关键行为 |
-|---|---|---|
-| 后台命令 | `app/gateway/routers/background_bash.py`（50 行） | `GET /api/background-bash`（`running_only` 默认 `True`）；`GET /{work_id}/output`；`POST /{work_id}/stop`。任务不存在 → **404**；任务不在 running → **409** `Task ... is not running (status: ...)`。后端实现在 `tools/zcode_port/background.py`（`list_tasks` / `get_task` / `read_output_snapshot` / `stop_task` / `task_to_summary`） |
-| 浏览器桥 | `app/gateway/routers/browser_bridge.py`（145 行） | 所有执行/查询路由都挂 `_bridge_token_guard`：`verify_bridge_token(request)` 失败即 **403** `browser bridge token required`。token 由 node-repl 内核桥**通过环境变量注入**，不是用户登录态 |
-| 桌面操作（Computer-Use） | `app/gateway/routers/cua_bridge.py`（327 行） | 同样有 `_bridge_token_guard` + `_org_admin_guard` 双重守卫；Windows 侧通过 `_run_ps_action` 调 PowerShell 脚本（`_resolve_ps1`），并支持取应用图标 `_read_icon_via_powershell` |
-
-> 结论：**桥接层不是「谁登录谁能用」，而是「谁拿到注入 token 谁能用」**。这是刻意的：内核桥是本地进程，无法走用户 JWT。
-
-## 核心概念
-- **会话级资源**：浏览器/桌面会话必须挂在 session 上，随 session 关闭而回收。
-- **桥接不是 RCE**：bridge 必须带随机 token + 只绑定 127.0.0.1，否则本机任意程序可驱动。
-- **截图是带宽大户**：需要缩放、裁切、按需截取区域。
-
-## 自研实现要点
-- 后台进程：`Popen(argv, stdout=PIPE)`，输出写文件 + 头部 ring buffer；工具只返回尾部 N 行。
-- 浏览器：CDP/Playwright 会话池，key = session_id；空闲 5 分钟回收。
-- CUA：动作序列（move/click/type/key）+ 每步截图校验。
-
-## 业务规则
-- 后台命令必须有超时与最大输出上限。
-- 浏览器会话不能被两个 run 并发驱动。
-- CUA 不操作敏感应用（支付、密码管理器）。
-
-## 常见坑
-- `subprocess` 未 `start_new_session` → Ctrl-C 杀不掉。
-- 浏览器 buffer 未消费导致进程阻塞。
-- 截图原图直传模型 → token 爆炸 + 超时。
-
-## 验收
-- [ ] 后台任务可查、可停、可读尾部
-- [ ] 浏览器会话随 session 回收
-- [ ] 桥接端口仅本机可达
-
-### 源码核对记录（路径与符号实测）
-
-- `app/gateway/routers/background_bash.py`（50 行）
-  - 模块自述：REST surface for ZCode-aligned background Bash tasks (status panel + detail + stop).…
-- `app/gateway/routers/browser_bridge.py`（145 行）：类 `BrowserExecuteRequest`、`BrowserLogEntry`、`BrowserLogBatch`
-  - 模块自述：Browser bridge HTTP surface — exposes the EvoFlow browser engine to the node-repl-host kernel bridge (browser-…
-- `packages/harness/evoflow/tools/builtins/browser_stream.py`（137 行）；环境变量 `EVOFLOW_BROWSER_CDP_URL`、`EVOFLOW_BROWSER_HEADED`
-  - 模块自述：Browser live-view metadata for EvoPanel. ZCode parity: there is no separate screencast and no persistent Chrom…
-- `app/gateway/routers/browser_snapshots.py`（38 行）
-  - 模块自述：Serve persisted browser screenshot PNGs (UI only; not sent to the model).…
-- `app/gateway/routers/browser_embed.py`（63 行）：类 `BrowserEmbedCdpBody`
-  - 模块自述：EvoPanel embedded WebView2 — per-thread CDP registration for agent-browser.…
-- `app/gateway/routers/cua_bridge.py`（327 行）：类 `CuaExecuteRequest`、`AppIconLocator`、`AppIconRequestBody`
-  - 模块自述：Computer Use (CUA) bridge HTTP surface. The node-repl-host kernel's ``computer-use-bridge`` global (overridden…
-- `packages/harness/evoflow/plugins/cua_helper.py`（162 行）；环境变量 `EVOFLOW_CUA_HELPER_ROOT`、`EVOFLOW_NODE_COMMAND`
-- `packages/harness/evoflow/plugins/bridge_auth.py`（94 行）；环境变量 `EVOFLOW_BRIDGE_TOKEN_FILE`、`EVOFLOW_BROWSER_BRIDGE_TOKEN`
-  - 模块自述：Browser/CUA bridge token（对齐 ZCode broker-token 鉴权语义）. node-repl 内核桥经本地 HTTP 调 Gateway 的浏览器/CUA 命令面（``/api/brow…
-- `packages/harness/evoflow/plugins/runtime.py`（342 行）
-  - 模块自述：Plugin runtime integration — exposes installed plugins to the agent runtime. This module is the bridge between…
-- `packages/harness/evoflow/plugins/node_repl.py`（1111 行）；环境变量 `EVOFLOW_BROWSER_BRIDGE_TOKEN`、`EVOFLOW_BROWSER_DOCS_ROOT`、`EVOFLOW_GATEWAY_PORT`、`EVOFLOW_GATEWAY_URL`
-  - 模块自述：EvoFlow host for the ZCode ``node_repl`` kernel (Browser Use / Computer Use). The official plugins' skills (``…
-- `packages/harness/evoflow/plugins/node_repl_tool.py`（564 行）：类 `NodeReplJsInput`
-  - 模块自述：``mcp__node_repl__js`` — Browser Use / Computer Use kernel tool. Registered only when one of the dependent off…
-- `packages/harness/evoflow/plugins/cua_helper.py`（162 行）；环境变量 `EVOFLOW_CUA_HELPER_ROOT`、`EVOFLOW_NODE_COMMAND`
-
-> 本节只证明**路径、行数、符号存在**；调用顺序与边界条件仍属「行为」，未逐行核对。
-
-## 对照 EvoFlow 核对清单
-- [x] 后台命令的 404/409 语义与三个 REST 入口（50 行全文已读）
-- [x] 浏览器桥与 CUA 桥的 `_bridge_token_guard` / `_org_admin_guard` 双层守卫
-- [ ] `tools/zcode_port/background.py` 的任务对象与输出截断细节（未读）
-- [ ] `cua_bridge` 的 PowerShell 脚本清单与权限要求（未读）
-- [ ] `browser_stream.py` 的流式截图策略
-- [ ] `cua_helper.py` 支持的动作集合
-
-## 从零实现（手把手）
-> 读完这章你能把「长时间运行的命令」和「需要鉴权的桥接调用」做出来：进程可查、token 不对就 403。
-> 文件路径一律写仓库全路径（`backend/...`），代码注释写「为什么」。
-
-### Step 1　新建后台命令管理：三入口 + 404/409
-**文件**：`backend/packages/harness/myagentflow/tools/host_direct/background_bash.py（新建）`
-**要写的逻辑**：`start` 起子进程并登记；`poll` 不存在给 404、未在运行给 409；`kill` 幂等。
-
-**代码**
+## 2. 一条后台任务要记什么
 
 ```python
-"""后台命令：启动、查询、终止。
-
-为什么 poll 要区分 404/409：
-404 = 你问的这个 id 我从没见过（客户端 bug）；
-409 = 见过但已经退出（正常的生命周期结束）。两者混在一起就没法排查。
-"""
-from __future__ import annotations
-
-import subprocess
-from dataclasses import dataclass, field
-from typing import Any
-
-
 @dataclass
-class BgProc:
-    proc: subprocess.Popen
-    stdout_path: str
-    _log: list[str] = field(default_factory=list)
-
-
-class BgManager:
-    def __init__(self) -> None:
-        self._procs: dict[str, BgProc] = {}
-
-    def start(self, cmd: str, stdout_path: str) -> str:
-        import uuid
-
-        run_id = uuid.uuid4().hex[:8]
-        proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
-        self._procs[run_id] = BgProc(proc=proc, stdout_path=stdout_path)
-        return run_id
-
-    def poll(self, run_id: str) -> dict[str, Any]:
-        rec = self._procs.get(run_id)
-        if rec is None:
-            raise LookupError("no such background process")     # → 404
-        if rec.proc.poll() is None:
-            return {"status": "running", "pid": rec.proc.pid, "stdout": rec.stdout_path}
-        return {"status": "exited", "code": rec.proc.returncode}  # → 409 语义
-
-    def kill(self, run_id: str) -> None:
-        rec = self._procs.get(run_id)
-        if rec is None:
-            raise LookupError("no such background process")
-        if rec.proc.poll() is None:
-            rec.proc.terminate()
+class BackgroundBashTask:
+    """一次后台命令的事实：id、命令、输出文件、状态、进程。"""
+    task_id: str
+    command: str
+    description: str
+    output_path: Path
+    status: str = "running"          # running | completed | failed | stopped | cancelled
+    exit_code: int | None = None
+    error: str = ""
+    proc: object | None = None
+    started_at: float = field(default_factory=time.time)
+    ended_at: float | None = None
+    thread_id: str = ""
 ```
 
-**验证**
+字段逐个解释：
 
-```bash
-uv run python -c "
-from myagentflow.tools.host_direct.background_bash import BgManager
-m = BgManager(); rid = m.start('sleep 2', '/tmp/bg.log')
-print(m.poll(rid)['status'])
-"
+| 字段 | 为什么必须有 |
+|---|---|
+| `task_id` | 调用方之后只能拿这个 id 来查/停，必须短且唯一 |
+| `command` | 面板要展示「到底跑了什么」 |
+| `output_path` | 进程输出写文件，内存里不堆全量日志 |
+| `status` | 状态机：`running` → `completed` / `failed` / `cancelled` |
+| `exit_code` | 失败排查的第一现场；被停止时用 `-1` 区分 |
+| `proc` | 停止时要 `kill()` 的那个句柄 |
+| `started_at` / `ended_at` | 面板排序、耗时统计 |
+| `thread_id` | 多会话共用进程时，按会话过滤 |
+
+`proc` 用 `object` 而不是 `subprocess.Popen`：测试里可以塞任何带 `kill()` 的假对象，也避免类型层把实现绑死。
+
+## 3. 调用逻辑与 EvoFlow 源码导读
+
+**调用逻辑（我们的最小实现）：**
+
+```text
+工具层（未来）
+  ├─ Popen(argv, stdout=file, stderr=file)
+  ├─ register_task(task)
+  └─ 返回 task_id
+        │
+        ├─ 面板/接口：list_tasks() → task_to_summary()
+        ├─ 轮询输出：read_output_snapshot() → 尾部 8KB + truncated
+        └─ 用户取消：stop_task(task_id) → kill() → status=cancelled
 ```
 
-### Step 2　新建桥接鉴权：token 比对 + 常量时间
-**文件**：`backend/packages/harness/myagentflow/tools/host_direct/bridge_auth.py（新建）`
-**要写的逻辑**：token 从环境变量注入；比较用 `secrets.compare_digest`，防止时序侧信道。
+入口是工具层的 `Popen`，出口是 `task_id`。本章的任务表不负责启动进程；它只保证「登记之后，查询/停止/读输出都有唯一事实来源」。
 
-**代码**
+**EvoFlow 源码读法：**
+
+1. `/Users/main/EvoFlow/backend/packages/harness/evoflow/tools/zcode_port/background.py`
+   - 先读 `BackgroundBashTask` 字段，确认任务事实包含哪些内容；
+   - 再读 `register_task` / `get_task` / `mark` / `stop_task` / `list_tasks` / `task_to_summary` / `read_output_snapshot`，注意它是函数式 API，不是 `Manager` 类。
+2. `/Users/main/EvoFlow/backend/packages/harness/evoflow/tools/zcode_port/bash_tool.py`
+   - 读 `_promote_to_background`：`Popen` 之后如何写输出文件、`register_task`、起 pump 线程、返回 `status: backgrounded`；
+   - 注意它还会 `_emit("background", ...)`，把任务状态推给前端；本章没有事件总线，所以未实现。
+3. 浏览器桥 / CUA 桥的 token 校验位置只做定位，未逐行核对；本章只实现两者共用的 `verify_bridge_token`，不声称已覆盖路由。
+
+**调用顺序上的差异：** EvoFlow 的 `_promote_to_background` 是「命令超时后转后台」，进程已经在跑；本章把「登记」抽出来单独实现，启动方式留给工具层。这样测试不需要真的等一条命令超时。
+
+## 4. 登记、查询、改状态
 
 ```python
-"""桥接鉴权：浏览器桥 / CUA 桥共用的 token 校验。
+_LOCK = threading.Lock()
+_TASKS: dict[str, BackgroundBashTask] = {}
 
-为什么不用 ==：字符串比较会在第一个不同字符处提前返回，
-攻击者能靠响应时间逐位猜出 token。
-"""
-from __future__ import annotations
 
-import hmac
-import os
+def new_task_id() -> str:
+    """生成 12 位十六进制任务 id。"""
+    return uuid.uuid4().hex[:12]
 
+
+def register_task(task: BackgroundBashTask) -> None:
+    """登记任务；同 id 覆盖（重放/恢复时用）。"""
+    with _LOCK:
+        _TASKS[task.task_id] = task
+
+
+def get_task(task_id: str) -> BackgroundBashTask | None:
+    """按 id 取任务；不存在返回 None。"""
+    with _LOCK:
+        return _TASKS.get(task_id)
+
+
+def mark(
+    task: BackgroundBashTask,
+    *,
+    status: str,
+    exit_code: int | None = None,
+    error: str = "",
+) -> None:
+    """改状态与退出码，只在首次结束时写 ended_at。"""
+    task.status = status
+    task.exit_code = exit_code
+    if error:
+        task.error = error
+    if status != "running" and task.ended_at is None:
+        task.ended_at = time.time()
+```
+
+关键点：
+
+- **锁只包字典操作**，不包进程 `kill()`。否则一个慢 `kill` 会把所有查询卡住。
+- `register_task` 允许同 id 覆盖：恢复/重放时，旧记录可能已经不在，覆盖比报错更符合实际。
+- `mark` 只在第一次进入终态时写 `ended_at`：重复上报（例如 pump 线程和停止操作同时到达）不会把结束时间改来改去。
+
+## 5. 停止：只停 running，重复停止幂等
+
+```python
+def stop_task(task_id: str) -> BackgroundBashTask | None:
+    """杀进程并置 cancelled；不存在返回 None。
+
+    只停止 running 的任务：已结束的任务再 stop 是 no-op，不该改掉真实退出码。
+    """
+    task = get_task(task_id)
+    if task is None:
+        return None
+    proc = task.proc
+    if proc is not None and task.status == "running":
+        try:
+            proc.kill()  # type: ignore[attr-defined]
+        except Exception as exc:
+            task.error = str(exc)
+        mark(task, status="cancelled", exit_code=-1)
+    return task
+```
+
+为什么不做「不存在就抛异常」：调用方通常在 finally 里清理，任务已结束是正常情况，抛异常会打断清理。
+
+为什么先判 `status == "running"`：已经 `completed` 的任务再 `kill()` 没有意义，还会把真实 `exit_code=0` 改成 `-1`，把成功写成失败。
+
+## 6. 列表与摘要：给面板的最小形状
+
+```python
+def list_tasks(*, running_only: bool = False, thread_id: str | None = None) -> list[BackgroundBashTask]:
+    """列任务，可按 running_only / thread_id 过滤。"""
+    with _LOCK:
+        items = list(_TASKS.values())
+    if thread_id:
+        tid = thread_id.strip()
+        items = [t for t in items if not t.thread_id or t.thread_id == tid]
+    if running_only:
+        items = [t for t in items if t.status == "running"]
+    items.sort(key=lambda t: t.started_at)
+    return items
+
+
+def task_to_summary(task: BackgroundBashTask) -> dict:
+    """给状态面板的最小摘要。"""
+    return {
+        "workId": task.task_id,
+        "kind": "bash",
+        "title": (task.description or task.command or task.task_id)[:200],
+        "status": "running" if task.status == "running" else (
+            "cancelled" if task.status in {"stopped", "cancelled"} else (
+                "failed" if task.status == "failed" else "resultPending"
+            )
+        ),
+        "startedAt": int(task.started_at * 1000),
+        "endedAt": int(task.ended_at * 1000) if task.ended_at else None,
+        "cancellable": bool(task.status == "running"),
+        "command": task.command,
+        "outputPath": str(task.output_path),
+        "exitCode": task.exit_code,
+    }
+```
+
+`task_to_summary` 的 `status` 不是直接回传内部状态，而是映射成 UI 契约：
+
+- `running` → `running`
+- `completed` → `resultPending`（进程结束不等于结果已经展示给用户）
+- `failed` → `failed`
+- `stopped` / `cancelled` → `cancelled`
+
+`thread_id` 过滤里保留 `not t.thread_id`：没有绑定会话的任务（例如系统级任务）对所有会话可见，否则会出现「任务在跑但列表里看不到」。
+
+## 7. 输出快照：只回尾部 8KB
+
+常量定义在文件头：`BACKGROUND_BASH_OUTPUT_MAX_BYTES = 8192`。改这个值只改一处，快照函数与测试都引用它。
+
+```python
+def read_output_snapshot(task: BackgroundBashTask) -> dict:
+    """读输出文件尾部（最多 8192 字节），标是否截断。"""
+    text = ""
+    truncated = False
+    try:
+        raw = task.output_path.read_bytes() if task.output_path.is_file() else b""
+        if len(raw) > BACKGROUND_BASH_OUTPUT_MAX_BYTES:
+            truncated = True
+            raw = raw[-BACKGROUND_BASH_OUTPUT_MAX_BYTES:]
+        text = raw.decode("utf-8", errors="replace")
+    except OSError as exc:
+        return {"kind": "read_failed", "workId": task.task_id, "code": str(exc)}
+
+    status_map = {
+        "running": "running",
+        "completed": "completed",
+        "failed": "failed",
+        "stopped": "cancelled",
+        "cancelled": "cancelled",
+    }
+    return {
+        "kind": "output",
+        "workId": task.task_id,
+        "status": status_map.get(task.status, "completed"),
+        "output": text,
+        "truncated": truncated,
+        "outputPath": str(task.output_path),
+    }
+```
+
+为什么读尾部而不是头部：后台任务的价值通常是「最新进展 / 最新报错」，头部早就被调用方看过。
+
+为什么标 `truncated`：模型必须知道「这不是全部」，否则会基于半截日志下结论。
+
+为什么 `errors="replace"`：进程输出可能是任意字节，解码失败不能让整个查询接口 500。
+
+## 8. 桥接 token：默认拒绝，常量时间比较
+
+```python
 BRIDGE_TOKEN_ENV = "MYAF_BRIDGE_TOKEN"
 
 
 def verify_bridge_token(provided: str | None) -> bool:
+    """校验宿主桥接 token；没配 token 一律拒绝，不「没配就放行」。"""
     expected = os.getenv(BRIDGE_TOKEN_ENV, "")
     if not expected or not provided:
         return False          # 没配 token 一律拒绝，不能「没配就放行」
     return hmac.compare_digest(provided, expected)
 ```
 
-**验证**
+两个安全点：
 
-```bash
-MYAF_BRIDGE_TOKEN=abc uv run python -c "
-from myagentflow.tools.host_direct.bridge_auth import verify_bridge_token
-print(verify_bridge_token('abc'), verify_bridge_token('abd'), verify_bridge_token(None))
-"
-# 期望：True False False
+1. **fail-closed**：`expected` 为空时返回 `False`。很多桥接实现为了「本地开发方便」在没配 token 时直接放行，这等于把本机执行权限裸露给任意能访问端口的进程。
+2. **`hmac.compare_digest`**：普通 `==` 会在第一个不同字符处提前返回，攻击者能用响应时间逐位猜 token。
+
+## 9. 测试
+
+```python
+def test_register_get_list(tmp_path):
+    """任务登记、按 id 取、running_only 过滤、摘要形状。"""
+    from myagentflow.tools.host_direct.background_bash import (
+        BackgroundBashTask,
+        get_task,
+        list_tasks,
+        mark,
+        new_task_id,
+        register_task,
+        task_to_summary,
+    )
+
+    task = BackgroundBashTask(
+        task_id=new_task_id(),
+        command="sleep 1",
+        description="demo",
+        output_path=tmp_path / "out.log",
+        thread_id="t1",
+    )
+    register_task(task)
+    assert get_task(task.task_id) is task
+    assert task in list_tasks(running_only=True)
+    summary = task_to_summary(task)
+    assert summary["status"] == "running" and summary["cancellable"] is True
+
+    mark(task, status="completed", exit_code=0)
+    assert list_tasks(running_only=True) == []
+    assert task_to_summary(task)["status"] == "resultPending"
+
+
+def test_stop_task(tmp_path):
+    """停止运行中的进程并置 cancelled，重复 stop 幂等。"""
+    from myagentflow.tools.host_direct.background_bash import (
+        BackgroundBashTask,
+        new_task_id,
+        register_task,
+        stop_task,
+    )
+
+    proc = subprocess.Popen(["sleep", "5"])
+    task = BackgroundBashTask(
+        task_id=new_task_id(),
+        command="sleep 5",
+        description="stop me",
+        output_path=tmp_path / "out.log",
+        proc=proc,
+    )
+    register_task(task)
+
+    stopped = stop_task(task.task_id)
+    assert stopped is not None
+    assert stopped.status == "cancelled"
+    proc.wait(timeout=5)
+    assert proc.returncode is not None
+
+    # 再停一次：已经是终态，不能再改退出码
+    assert stop_task(task.task_id).exit_code == -1
+
+
+def test_read_output_snapshot(tmp_path):
+    """输出超过 8KB 只回尾部并标 truncated。"""
+    from myagentflow.tools.host_direct.background_bash import (
+        BACKGROUND_BASH_OUTPUT_MAX_BYTES,
+        BackgroundBashTask,
+        new_task_id,
+        read_output_snapshot,
+    )
+
+    out = tmp_path / "out.log"
+    payload = "a" * (BACKGROUND_BASH_OUTPUT_MAX_BYTES + 100)
+    out.write_text(payload, encoding="utf-8")
+    task = BackgroundBashTask(
+        task_id=new_task_id(), command="echo", description="big", output_path=out
+    )
+    snap = read_output_snapshot(task)
+    assert snap["truncated"] is True
+    assert len(snap["output"]) == BACKGROUND_BASH_OUTPUT_MAX_BYTES
+    assert snap["output"].endswith("a")
+
+
+def test_bridge_token(monkeypatch):
+    """没配 token 一律拒绝；配了才按常量时间比对。"""
+    from myagentflow.tools.host_direct.bridge_auth import verify_bridge_token
+
+    monkeypatch.delenv("MYAF_BRIDGE_TOKEN", raising=False)
+    assert verify_bridge_token("anything") is False
+
+    monkeypatch.setenv("MYAF_BRIDGE_TOKEN", "s3cret")
+    assert verify_bridge_token("s3cret") is True
+    assert verify_bridge_token("wrong") is False
+    assert verify_bridge_token(None) is False
 ```
 
-### 与 EvoFlow 对照
+`test_stop_task` 用真实 `sleep 5` 而不是假进程：要验证 `kill()` 之后进程确实退出，假对象验证不了这一点。
 
-| 我们的做法 | EvoFlow | 为什么 |
-|---|---|---|
-| 404 / 409 语义分开 | `app/gateway/routers/background_bash.py`（50 行） | 客户端 bug 与正常退出必须能区分 |
-| `_bridge_token_guard` → `verify_bridge_token` | `browser_bridge.py` / `cua_bridge.py` | 桥没有 token 等于任意本机进程都能调 |
-
-### 知识点
-
-- [agent-book](https://g0-000.github.io/agent-book/)：工具与进程管理
-- Harbor404：进程泄漏与端口占用排查
-
-### 验收
+## 10. 手把手从零做一遍
 
 ```bash
-uv run python -c "from myagentflow.tools.host_direct.bridge_auth import verify_bridge_token; print('ok')"
+cd /Users/main/my-agent-flow/backend
+touch packages/harness/myagentflow/tools/host_direct/background_bash.py
+touch packages/harness/myagentflow/tools/host_direct/bridge_auth.py
 ```
+
+先写 `background_bash.py`：按第 2、4→7 节顺序放 `BackgroundBashTask`、全局表、`new_task_id` / `register_task` / `get_task` / `mark` / `stop_task` / `list_tasks` / `task_to_summary` / `read_output_snapshot`。
+
+再写 `bridge_auth.py`：只有 `BRIDGE_TOKEN_ENV` 与 `verify_bridge_token` 两个符号。
+
+最后写 `tests/chapters/test_ch03_02_host_direct.py`，跑：
+
+```bash
+uv run pytest tests/chapters/test_ch03_02_host_direct.py -q
+```
+
+实测输出：
+
+```text
+4 passed, 13 warnings in 0.05s
+```
+
+## 11. 本章不做什么（必须如实说）
+
+- **没有** `start_background_bash()`。进程启动要处理 argv、cwd、环境变量、pump 线程、退出通知，属于工具装配层；本章只做登记之后的生命周期。
+- **没有** HTTP `GET/DELETE /api/tasks/{id}`。没有路由层，404/409 无从谈起；本章用 `None` 表示「没见过」，用 `status` 表示「见过但已结束」。
+- **没有** 浏览器桥、CUA 桥、截图/点击。它们需要真实设备/浏览器会话，本章只实现两者共用的 token 校验。
+- **没有** 落库。任务表是进程内 `dict`，进程重启即丢；跨进程查询属于后续 Gateway 章节。
+
+## 12. EvoFlow 对照与差异（文件级）
+
+| EvoFlow 文件 | 本项目文件 | 本章实现的符号/字段 | 未实现部分 |
+|---|---|---|---|
+| `tools/zcode_port/background.py` | `tools/host_direct/background_bash.py` | `BackgroundBashTask`、`BACKGROUND_BASH_OUTPUT_MAX_BYTES`、`new_task_id`、`register_task`、`get_task`、`mark`、`stop_task`、`list_tasks`、`task_to_summary`、`read_output_snapshot` | 落库、跨进程查询、事件推送 |
+| `tools/zcode_port/bash_tool.py` | 未创建 | — | `_promote_to_background`、pump 线程、`_emit` |
+| `routers/browser_bridge.py` / `routers/cua_bridge.py` | `tools/host_direct/bridge_auth.py` | `BRIDGE_TOKEN_ENV`、`verify_bridge_token` | 路由、截图、点击、设备会话 |
+
+**有意省略的原因：** 本章要验证的是「任务事实模型 + 输出边界 + 鉴权失败关闭」，不是完整后台执行器。把 `Popen`/pump/事件总线提前塞进来，测试会变成集成测试，失败定位会很慢。
+
+## 13. 验收
+
+- [x] 登记后可查、可按 running / thread 过滤
+- [x] 停止运行中进程并置 `cancelled`
+- [x] 重复停止幂等，不改真实退出码
+- [x] 输出超过 8KB 只回尾部并标 `truncated`
+- [x] 没配 token 一律拒绝；正确/错误/None 三种输入判定正确
+- [x] `4 passed`，ruff 通过
+
+## 14. 下一章衔接
+
+任务表解决「命令跑起来之后」。下一章解决「工具调用本身经过哪些层」：洋葱式中间件链、顺序保证、异常不被吞、审计留痕。
+
+## 附：源码基准
+
+- EvoFlow baseline：`f22af53910a470ddba633be35e25878214c2984ec`（v1.3.22，PolyForm Noncommercial）。
+- 参考文件：`/Users/main/EvoFlow/backend/packages/harness/evoflow/tools/zcode_port/background.py`。
+- 许可：EvoFlow 为 PolyForm Noncommercial；本章为学习性转述与自有最小实现。
