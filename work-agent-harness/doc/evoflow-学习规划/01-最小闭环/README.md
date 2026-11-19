@@ -9,7 +9,7 @@
 | [第 3 章](03-会话与消息存储.md) | 会话与消息存储 | `persistence/`, `agents/` |
 | [第 4 章](04-工具协议与首批工具.md) | 工具协议与首批工具 | `tools/`, `agents/` |
 | [第 5 章](05-流式事件与断线恢复.md) | 流式事件与断线恢复 | `runtime/`, `persistence/` |
-| [第 6 章](06-本部分综合验收.md) | 综合验收 | `tests/`, `demo.py` |
+| [第 6 章](06-本部分综合验收.md) | 综合验收 | `backend/tests/chapters/` |
 
 ## 依赖关系 / Dependencies
 ```text

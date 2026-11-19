@@ -73,12 +73,20 @@ chat router → create_chat_model() → build_graph(model) → graph.invoke(
 
 ## 示例代码 / Sample code
 
-### `backend/packages/harness/myagentflow/agents/lead_agent/graph.py`（全文，35 行）
+### `backend/packages/harness/myagentflow/agents/lead_agent/graph.py`（全文，34 行）
 
 ```python
-"""最小 Agent：一个节点 + 两条边。
+"""一、文件说明
+    最小 Agent：一个节点 + 两条边。
+    刻意不做工具循环：先把「单轮」跑通，后面每章只在这张图上加节点/加边。
 
-刻意不做工具循环：先把「单轮」跑通，后面每章只在这张图上加节点/加边。
+二、目录结构
+    packages/harness/myagentflow/agents/lead_agent/
+    ├── __init__.py
+    └── graph.py  ← 本文件
+
+三、关键方法
+    build_graph()  建单节点图：一次 invoke 调一次模型；可选挂 checkpointer 保留同线程历史。
 """
 from __future__ import annotations
 
@@ -88,6 +96,7 @@ from langgraph.graph import END, START, MessagesState, StateGraph
 
 
 def build_graph(model: Any, checkpointer: Any = None):
+    """建单节点图：一次 invoke 调一次模型；可选挂 checkpointer 保留同线程历史。"""
     graph = StateGraph(MessagesState)
 
     def call_model(state: MessagesState):
@@ -111,21 +120,25 @@ def build_graph(model: Any, checkpointer: Any = None):
 | `checkpointer` 默认 `None` | 本章先证明「一条消息进、一条回复出」；持久化留给 02/01，不在这里耦合 |
 | 节点只做 `model.invoke` | 把「调模型」和「图」分开：换模型（真模型/假模型）不影响图结构，测试才能不联网 |
 
-### 调用方：`app/gateway/routers/chat.py`（节选）
+### 调用方：`backend/app/gateway/routers/chat.py`（节选）
 
 ```python
-from myagentflow.agents.lead_agent.graph import build_graph
-from myagentflow.models.factory import create_chat_model
-from myagentflow.runtime.streaming import stream_graph
+async def chat(body: ChatIn) -> StreamingResponse:
+    from myagentflow.agents.lead_agent.graph import build_graph
+    from myagentflow.models.factory import create_chat_model
+    from myagentflow.runtime.streaming import stream_graph
 
-graph = build_graph(create_chat_model())     # 模型由 1.1 的配置层解析
+    graph = build_graph(create_chat_model())     # 模型由 1.1 的配置层解析
 
-async for chunk in stream_graph(
-    graph,
-    {"messages": [HumanMessage(content=body.text)]},
-    {"configurable": {"thread_id": body.thread_id}},
-):
-    yield chunk
+    async def gen():
+        async for chunk in stream_graph(
+            graph,
+            {"messages": [HumanMessage(content=body.text)]},
+            {"configurable": {"thread_id": body.thread_id}},
+        ):
+            yield chunk
+
+    return StreamingResponse(gen(), media_type="text/event-stream")
 ```
 
 > 注意：这条路由目前**没传 checkpointer**，所以同一 `thread_id` 也不会累积历史——接持久化是 02/01 的事。本章测试里显式传了 `InMemorySaver()`，验证的是「checkpointer 挂上就累积」这一点。
@@ -137,8 +150,8 @@ async for chunk in stream_graph(
 | 内容 | 状态 | 证据 |
 |---|---|---|
 | `backend/packages/harness/myagentflow/agents/lead_agent/graph.py` 的 `build_graph(model, checkpointer=None)` | ✅ 已实现 | 全文见上；`uv run python -c "from ... import build_graph"` 通过 |
-| `tests/chapters/test_ch01_02_graph.py` 两个用例 | ✅ 已实现 | `uv run pytest ... -q` → **2 passed** |
-| chat 路由调用图 | 🟡 半接 | `app/gateway/routers/chat.py:20` 已 `build_graph(create_chat_model())`，但**未传 checkpointer**，同 thread 不累积；接持久化在 02/01 |
+| `backend/tests/chapters/test_ch01_02_graph.py` 两个用例 | ✅ 已实现 | `uv run pytest ... -q` → **2 passed** |
+| chat 路由调用图 | 🟡 半接 | `backend/app/gateway/routers/chat.py:23` 已 `build_graph(create_chat_model())`，但**未传 checkpointer**，同 thread 不累积；接持久化在 02/01 |
 | 系统提示 / 角色 prompt | ❌ 本章不做 | EvoFlow 由 `agents/middlewares/dynamic_system_prompt_middleware.py` 每轮注入，我们在 3/03 复刻 |
 | 工具循环 | ❌ 不做 | 1/04 才有 `ToolRegistry` 与工具节点 |
 | run 登记 / 事件流 / 取消 | ❌ 不做 | 1/05（事件）与 02/02（生命周期） |
@@ -147,7 +160,7 @@ async for chunk in stream_graph(
 1. **一张图只做一次模型调用**：没有工具时，图跑完就结束，不存在「循环直到模型停」。
 2. **history 由 `MessagesState` 通道维护**：节点只返回新消息，追加由 reducer 完成，不手工 `messages + [reply]`。
 3. **checkpointer 可为空**：不传时图无状态，每次 `invoke` 各自独立；传了才按 `thread_id` 累积。
-4. **异常不吞**：`model.invoke` 抛什么就传什么，本周不做错误分类/脱敏。
+4. **异常不吞**：`model.invoke` 抛什么就传什么，本章不做错误分类/脱敏。
 
 ## 验收 / Acceptance
 - [x] 单轮：一条消息进、`echo: 你好` 出（`test_single_turn`）
@@ -182,9 +195,17 @@ cd backend && uv run pytest tests/chapters/test_ch01_02_graph.py -q
 **代码**
 
 ```python
-"""最小 Agent：一个节点 + 两条边。
+"""一、文件说明
+    最小 Agent：一个节点 + 两条边。
+    刻意不做工具循环：先把「单轮」跑通，后面每章只在这张图上加节点/加边。
 
-刻意不做工具循环：先把「单轮」跑通，后面每章只在这张图上加节点/加边。
+二、目录结构
+    packages/harness/myagentflow/agents/lead_agent/
+    ├── __init__.py
+    └── graph.py  ← 本文件
+
+三、关键方法
+    build_graph()  建单节点图：一次 invoke 调一次模型；可选挂 checkpointer 保留同线程历史。
 """
 from __future__ import annotations
 
@@ -194,6 +215,7 @@ from langgraph.graph import END, START, MessagesState, StateGraph
 
 
 def build_graph(model: Any, checkpointer: Any = None):
+    """建单节点图：一次 invoke 调一次模型；可选挂 checkpointer 保留同线程历史。"""
     graph = StateGraph(MessagesState)
 
     def call_model(state: MessagesState):
@@ -222,6 +244,18 @@ uv run python -c "from myagentflow.agents.lead_agent.graph import build_graph; p
 **代码**
 
 ```python
+"""一、文件说明
+    第 2 章图结构：单轮执行与同一 thread 的历史累积。
+
+二、覆盖
+    EchoModel                      假模型：不联网，只回显。
+    test_single_turn()             一张「START → call_model → END」的图能把一条消息跑出回复。
+    test_same_thread_keeps_history() 同一 thread 第二次调用能看到第一轮的两条消息。
+
+三、运行
+    uv run pytest tests/chapters/test_ch01_02_graph.py -q
+"""
+
 from __future__ import annotations
 
 from langchain_core.messages import AIMessage, HumanMessage
@@ -235,6 +269,7 @@ class EchoModel:
 
 
 def test_single_turn():
+    """一张「START → call_model → END」的图能把一条消息跑出回复。"""
     from myagentflow.agents.lead_agent.graph import build_graph
 
     graph = build_graph(EchoModel())
@@ -257,6 +292,7 @@ uv run pytest tests/chapters/test_ch01_02_graph.py -v
 
 ```python
 def test_same_thread_keeps_history():
+    """同一 thread 第二次调用能看到第一轮的两条消息（4 条 = 两问两答）。"""
     from langgraph.checkpoint.memory import InMemorySaver
     from langchain_core.messages import HumanMessage
 
