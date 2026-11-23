@@ -1,6 +1,6 @@
 # 第 2 部分　持久化与运行生命周期 / Durability and Run Lifecycle
 
-> 状态：🟡 推进中。第 1 章已实现并验收；第 2、3、4 章是范围内最小实现，章节开头都写清了「未做什么」。
+> 状态：✅ 四章最小实现已验收（`2026-11-23`，`test_ch02_*.py` 17 passed）；源码核对 🔍 第 1、2 章逐行核对，第 3、4 章结构级。
 
 目标：让一次 Agent 运行从「进程内的一次性事件」变成 **可恢复、可取消、可被外部程序驱动、可分享** 的长生命周期对象。
 
@@ -9,11 +9,11 @@
 | 章 | 主题 | 状态 | 本章真实代码 |
 |---|---|---|---|
 | [1](01-检查点与线程恢复.md) | 检查点与线程恢复 Checkpoints | ✅ 已实现 + 5 测试 | `agents/checkpointer/{provider,omit_transcript,thread_state_reader}.py` |
-| [2](02-运行生命周期与取消.md) | 运行生命周期与取消 Run lifecycle | 🟡 进程内注册表 + 4 测试 | `session_execution/lifecycle.py` |
-| [3](03-CLI与stdio-App-Server.md) | CLI 与 stdio App Server | 🟡 `chat`/`state` + `ping`/`state` + 5 测试 | `cli/main.py`、`app_server/stdio.py` |
-| [4](04-分享生命周期.md) | 分享生命周期 Sharing | 🟡 token 存储 + 3 测试 | `collab/shares.py` |
+| [2](02-运行生命周期与取消.md) | 运行生命周期与取消 Run lifecycle | ✅ 进程内注册表 + 4 测试 | `session_execution/lifecycle.py` |
+| [3](03-CLI与stdio-App-Server.md) | CLI 与 stdio App Server | ✅ `chat`/`state` + `ping`/`state` + 5 测试 | `cli/main.py`、`app_server/stdio.py` |
+| [4](04-分享生命周期.md) | 分享生命周期 Sharing | ✅ token 存储 + 3 测试 | `collab/shares.py` |
 
-**状态口径**：✅ = 本章声明的行为全部实现且有测试；🟡 = 范围缩小/部分实现，章节内「本章不做」逐条列了缺什么。
+**状态口径**：✅ = 本章声明的行为已实现且有测试，章节内「本章不做」仍列出未实现项；源码核对程度另见 `PROGRESS.md`，不要与实现状态混用。
 
 ## 这一部分要解决什么问题
 
