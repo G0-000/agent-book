@@ -26,11 +26,14 @@
 | 2026-11-23 | 第 1 部分 | `uv run pytest tests/chapters/test_ch01_*.py -q` | 14 passed |
 | 2026-11-23 | 第 2 部分 | `uv run pytest tests/chapters/test_ch02_*.py -q` | 17 passed |
 | 2026-11-23 | 第 3 部分 | `uv run pytest tests/chapters/test_ch03_*.py -q` | 15 passed |
-| 2026-11-23 | 第 4 部分 | `uv run pytest tests/chapters/test_ch04_*.py -q` | 17 passed |
-| 2026-11-23 | 全量章节 | `uv run pytest tests/chapters -q` | 84 passed |
+| 2026-11-23 | 第 4 部分 | `uv run pytest tests/chapters/test_ch04_*.py -q` | 18 passed |
+| 2026-11-23 | 第 4 部分第 2 章 | `uv run pytest tests/chapters/test_ch04_02_consolidate.py -q` | 6 passed, 13 warnings |
+| 2026-11-23 | 全量章节 | `uv run pytest tests/chapters -q` | 85 passed |
 | 2026-11-23 | 静态检查 | `uv run ruff check packages tests` | All checks passed |
 
 历史数字：2026-11-17 曾记录全量 `54 passed`、目录曾写第 1 部分 `35`；两者均已被上表取代，保留仅为追溯。
+
+第 4 部分第 2 章本次核对：三组 EvoFlow 源文件均有同名本地文件；巩固保留 subject 与文本相似合并，以及衰减/GC 的上游签名参数和零值统计字段（本章不执行衰减/GC）。`should_enqueue_threshold()` 仅判断条数，不入队、不启动任务。新增 pin 优先回归测试；`memory/store.py` 已有 `supersede_atom()` 与 `last_accessed_at`，本次未重复添加。源码行为核对状态仍为 🔍，未将结构核对提升为逐行完成。
 
 ## 总览
 

@@ -1,6 +1,6 @@
 # 第 4 部分　记忆与长期资产 / Memory and Long-Term Assets
 
-> 状态：✅ 三章最小实现已验收（`2026-11-23`，`test_ch04_*.py` 17 passed）；源码核对 🔍 路径/符号级，行为未逐行闭合。
+> 状态：✅ 三章最小实现已验收（`2026-11-23`，`test_ch04_*.py` 18 passed）；源码核对 🔍 路径/符号级，行为未逐行闭合。
 
 目标：让系统记得住、查得到、删得掉，并且记忆进入 prompt 时不会被当指令执行。
 
@@ -23,7 +23,7 @@
 ## 本章边界
 
 - 召回是关键词，不是向量。
-- 巩固是确定性合并，不调 LLM，不做衰减/GC。
+- 巩固是确定性合并，pin 优先；不调 LLM，不做衰减/GC 或异步队列。
 - 事项只做 CRUD，不派发 Task。
 - 记忆注入只做边界声明，不替换内容。
 
@@ -31,7 +31,7 @@
 
 ```bash
 cd /Users/main/my-agent-flow/backend
-uv run pytest tests/chapters/test_ch04_*.py -q   # 17 passed
-uv run pytest tests/chapters -q                 # 84 passed
+uv run pytest tests/chapters/test_ch04_*.py -q   # 18 passed
+uv run pytest tests/chapters -q                 # 85 passed
 uv run ruff check packages tests                # All checks passed
 ```
