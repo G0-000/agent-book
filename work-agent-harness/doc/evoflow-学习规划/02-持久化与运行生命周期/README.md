@@ -1,6 +1,7 @@
 # 第 2 部分　持久化与运行生命周期 / Durability and Run Lifecycle
 
-> 状态：✅ 四章最小实现已验收（`2026-11-23`，`test_ch02_*.py` 17 passed）；源码核对 🔍 第 1、2 章逐行核对，第 3、4 章结构级。
+> 状态：✅ 四章组件级实现已验收（`2026-11-23`，`test_ch02_*.py` 17 passed）；源码核对 🔍 第 1、2 章逐行核对，第 3、4 章结构级。
+> 运行时接线：目前只有 `state` 命令 / `state` stdio 方法读取检查点；`chat`、Gateway 路由没有传入 checkpointer，消息表也没有在入口前后 hydrate。
 
 目标：让一次 Agent 运行从「进程内的一次性事件」变成 **可恢复、可取消、可被外部程序驱动、可分享** 的长生命周期对象。
 
@@ -17,7 +18,7 @@
 
 ## 这一部分要解决什么问题
 
-1. **崩了怎么办**：进程被杀后，同一 `thread_id` 能从检查点续上；历史从消息表 hydrate。
+1. **崩了怎么办**（目标态）：进程被杀后，同一 `thread_id` 能从检查点续上；历史从消息表 hydrate。当前只完成检查点与消息表两个组件，入口尚未接。
 2. **怎么停下**：同线程只允许一个 run；取消是信号，执行方在安全点收尾。
 3. **怎么被别的程序驱动**：CLI 与 stdio 两个入口，stdout 只放协议。
 4. **怎么给别人看**：token 分享链接，可过期、可撤销，库里不存明文 token。
@@ -38,6 +39,7 @@ Part 1 的 run/stream
 - 生命周期：DB 状态表、停止扫描、调 LangGraph Server 取消、跨进程可见。
 - stdio：`chat/send` / `chat/event` 流式协议、TCP 监听、Windows UTF-8 包装。
 - 分享：HTTP 路由、不可变快照内容、鉴权。
+- 入口接线：`chat` / Gateway 传 checkpointer、消息表 hydrate、RunRegistry 路由。
 
 ## 验收口径
 

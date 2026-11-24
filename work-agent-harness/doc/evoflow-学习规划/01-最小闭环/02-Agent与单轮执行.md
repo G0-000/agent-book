@@ -51,7 +51,7 @@ build_graph(model, checkpointer=None)
 ```
 
 **刻意不做的**（后面章节各自负责）：
-- 工具循环（1.4）
+- 工具循环（未实现；1/04 只有注册表）
 - system prompt 注入与中间件链（3.3）
 - 事件流与 SSE（1.5、10/01）
 - run 登记 / 取消（02/02）
@@ -78,7 +78,7 @@ chat router → create_chat_model() → build_graph(model) → graph.invoke(
 ```python
 """一、文件说明
     最小 Agent：一个节点 + 两条边。
-    刻意不做工具循环：先把「单轮」跑通，后面每章只在这张图上加节点/加边。
+    刻意不做工具循环：先把「单轮」跑通；后续若接工具循环，需要单列章节补 ToolNode。
 
 二、目录结构
     packages/harness/myagentflow/agents/lead_agent/
@@ -153,7 +153,7 @@ async def chat(body: ChatIn) -> StreamingResponse:
 | `backend/tests/chapters/test_ch01_02_graph.py` 两个用例 | ✅ 已实现 | `uv run pytest ... -q` → **2 passed** |
 | chat 路由调用图 | 🟡 半接 | `backend/app/gateway/routers/chat.py:23` 已 `build_graph(create_chat_model())`，但**未传 checkpointer**，同 thread 不累积；接持久化在 02/01 |
 | 系统提示 / 角色 prompt | ❌ 本章不做 | EvoFlow 由 `agents/middlewares/dynamic_system_prompt_middleware.py` 每轮注入，我们在 3/03 复刻 |
-| 工具循环 | ❌ 不做 | 1/04 才有 `ToolRegistry` 与工具节点 |
+| 工具循环 | ❌ 未实现 | 1/04 只有 `ToolRegistry`，没有工具节点；第 6、7 部分当前大纲也不含完整 ReAct 循环 |
 | run 登记 / 事件流 / 取消 | ❌ 不做 | 1/05（事件）与 02/02（生命周期） |
 
 ## 业务规则 / Business rules
@@ -197,7 +197,7 @@ cd backend && uv run pytest tests/chapters/test_ch01_02_graph.py -q
 ```python
 """一、文件说明
     最小 Agent：一个节点 + 两条边。
-    刻意不做工具循环：先把「单轮」跑通，后面每章只在这张图上加节点/加边。
+    刻意不做工具循环：先把「单轮」跑通；后续若接工具循环，需要单列章节补 ToolNode。
 
 二、目录结构
     packages/harness/myagentflow/agents/lead_agent/

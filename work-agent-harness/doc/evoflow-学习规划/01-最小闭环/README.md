@@ -13,10 +13,12 @@
 
 ## 依赖关系 / Dependencies
 ```text
-config → models ─┐
-tools ───────────┼→ agent → server
-store ───────────┘
+config → models → agent（单节点）→ gateway / CLI
+persistence：消息表 + 检查点，组件已实现；chat 入口尚未读写
+tools：注册表 + echo，组件已实现；图尚未调用
 ```
+
+> 运行时边界：`/chat` 目前只接单节点图；未传 checkpointer、未读写消息表、没有工具循环。
 
 ## 状态 / Status
 - 代码和章节状态以各章实现步骤、`PROGRESS.md` 及实际验收结果为准；不能用旧的整体测试数字替代逐章状态。

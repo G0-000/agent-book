@@ -1,8 +1,9 @@
 # 第 4 部分　记忆与长期资产 / Memory and Long-Term Assets
 
-> 状态：✅ 三章最小实现已验收（`2026-11-23`，`test_ch04_*.py` 18 passed）；源码核对 🔍 路径/符号级，行为未逐行闭合。
+> 状态：✅ 三章组件级实现已验收（`2026-11-23`，`test_ch04_*.py` 18 passed）；源码核对 🔍 路径/符号级，行为未逐行闭合。
+> 运行时接线：记忆存储、巩固、注入格式化均未接入 `build_graph` 或 system prompt；`AgentMemoryManager` 当前没有调用者。
 
-目标：让系统记得住、查得到、删得掉，并且记忆进入 prompt 时不会被当指令执行。
+目标（组件层）：记忆存得住、查得到、删得掉，进入 prompt 时不被当指令执行；当前只验证到组件与格式化函数，未接入 Agent 入口。
 
 ## 章节
 
@@ -32,6 +33,6 @@
 ```bash
 cd /Users/main/my-agent-flow/backend
 uv run pytest tests/chapters/test_ch04_*.py -q   # 18 passed
-uv run pytest tests/chapters -q                 # 85 passed
+uv run pytest tests/chapters -q                 # 97 passed
 uv run ruff check packages tests                # All checks passed
 ```

@@ -1,175 +1,258 @@
 # 第 3 章　Owned Knowledge 与知识地图
 
-> **EvoFlow 对照状态 / Alignment status：** 🔍 结构已核对（路径、行数、符号均取自源码实测），**行为**（调用顺序、边界条件）尚未逐行核对。
+> 状态：✅ 代码已落地；`tests/chapters/test_ch05_03_owned.py` 4 项通过。
 
-## 本章目标
-让「知识」成为一种有归属、有结构的资产：属于某个工作区/项目，并能以脑图形式呈现。
+## 目标与范围
 
-## 最小闭环
-创建知识库 → 导入资料 → 看到目录树 → 在对话中按知识库范围检索。
+把“文档知识库”真正落成一个有归属、有目录、有实体关系的库：
 
-## 调用逻辑 / Invocation logic
+- **建库**：`kb_bases` 记录名称、`owner_scope` 与描述。
+- **归属过滤**：`public` 对所有 scope 可见，私有库只对同 scope 可见。
+- **上传**：Markdown 文档写入 `kb_documents`，按标题切块写入 `kb_chunks`。
+- **目录地图**：显式目录 + 文档 `folder_path` 推导出的隐式父目录。
+- **实体图**：三元组写 `kg_nodes/kg_edges`，输出可直接渲染的 `nodes/edges`。
+
+本章只做存储与地图读取，不做混合检索、不做任务队列、不做文档链接图。
+
+## 调用逻辑
 
 ```mermaid
 sequenceDiagram
-    participant A as 知识库 API
-    participant B as build_map
-    participant D as describe
-    participant R as 检索
-    A->>B: build_map(entries)
-    B-->>A: 目录树（库 → 目录 → 文档）
-    A->>D: describe(map)
-    D-->>R: 范围描述（用于限定检索范围）
-    R->>R: 只在指定库内检索
+    participant A as 调用方
+    participant S as owned.service
+    participant P as wiki_chunker
+    participant D as owned.sqlite
+    participant G as owned.kg
+    A->>S: create_base({name, ownerScope})
+    S->>D: INSERT kb_bases
+    A->>S: upload_manual_markdown(kb_id, title, content)
+    S->>P: auto_chunk_document
+    P-->>S: 带 heading_path 的块
+    S->>D: INSERT kb_documents + kb_chunks
+    A->>S: list_folders(kb_id)
+    S->>D: kb_folders + kb_documents.folder_path
+    A->>G: add_triples(kb_id, [(src, rel, dst)])
+    G->>D: kg_nodes / kg_edges
 ```
 
-- **入口**：导入资料后 `build_map()` 由条目元数据（库 id、目录、文档名）构建树，不读正文。
-- **关键节点**：树只做展示与范围裁剪，不参与召回排序；`describe()` 输出一段可读的范围说明，用于告诉模型「你看到的是哪个库」。
-- **出口**：检索时把库/目录作为过滤条件传给向量检索，而不是检索完再筛。
-- **最容易断的地方**：把知识地图当成索引本体（改了树但没重建索引）；空库时 `describe` 返回空串导致 prompt 出现空段落。
+关键边界：
 
-## 真实模块地图（已核对：路径 · 行数 · 符号）
+- 建库时 `name` 必填；`ownerScope` 默认 `public`。
+- 上传前必须确认库存在，避免写出一批无主文档。
+- 目录路径拒绝 `.`、`..`、隐藏目录与依赖目录。
+- 实体图同名节点合并，边按 `(src,dst,rel)` 去重。
 
-| 文件 | 行数 | 关键符号 | 模块常量 |
-|---|---|---|---|
-| `packages/harness/evoflow/knowledge/folders.py:14` | 176 | `root_folder_id`、`ensure_root_folder`、`list_folders` | ROOT_NAME |
-| `packages/harness/evoflow/knowledge/service.py:39` | 687 | `_enrich_dataset`、`dataset_llm_index_enabled`、`list_datasets` | — |
-| `app/gateway/routers/knowledge_owned.py` | 840 | `ReindexBaseBody`；`list_bases`、`create_base`、`get_base` | — |
+## 文件地图
 
-## 核心概念
-- **归属（ownership）**：知识库绑定 workspace/user，检索时默认只搜自己有权限的。
-- **知识地图**：节点 = 主题，边 = 从属/相关；由文档结构 + 记忆巩固共同生成。
-- **作用域隔离**：团队知识 vs 个人知识必须能共存且不串味。
-
-## 自研实现要点
-```text
-kb(id, owner_scope, name, created_at)
-kb_doc(kb_id, doc_id); kb_node(node_id, kb_id, parent_id, title, ref_chunk_ids)
-检索时先过滤 kb_id ∈ 当前 scope，再做向量检索
-```
-
-## 业务规则
-- 跨知识库检索必须显式指定，不做隐式全局召回。
-- 知识地图节点可追溯到源 chunk。
-
-## 常见坑
-- 权限只在 UI 做过滤，检索层不过滤 → 越权召回。
-- 思维导图与源文档脱钩，改文档后图不更新。
-
-## 验收
-- [ ] 未授权知识库检索不到
-- [ ] 地图节点可点回原文
-- [ ] 文档更新后地图增量刷新
-
-### 源码核对记录（路径与符号实测）
-
-- `packages/harness/evoflow/knowledge/folders.py`（176 行）
-  - 模块自述：Wiki-style folder tree for knowledge bases.…
-- `packages/harness/evoflow/knowledge/service.py`（687 行）
-  - 模块自述：Knowledge base service layer — business logic for CRUD, file upload, search. All DB operations go through the …
-- `app/gateway/routers/knowledge_owned.py`（840 行）：类 `ReindexBaseBody`
-  - 模块自述：Owned knowledge base Gateway API — local-first RAG (spec: owned-knowledge-base-spec.md).…
-
-> 本节只证明**路径、行数、符号存在**；调用顺序与边界条件仍属「行为」，未逐行核对。
-
-## 对照 EvoFlow 核对清单
-- [ ] `knowledge/owned/` 的存储形态
-- [ ] 知识地图生成管线（memory + knowledge 交汇）
-
-## 从零实现（手把手）
-> 读完这章你能把「自己的知识库」组织成一张地图：文档 → 标题树 → 块 id。
-> 文件路径一律写仓库全路径（`backend/...`），代码注释写「为什么」。
-
-### Step 1　新建 map.py：文档树 + 块索引
-**文件**：`backend/packages/harness/myagentflow/knowledge/map.py（新建）`
-**要写的逻辑**：`build_map()` 输出 `{doc_id: {heading: [chunk_id...]}}`；`describe()` 给模型看的概览，限制条数避免爆上下文。
-
-**代码**
-
-```python
-"""知识地图：文档 → 标题 → 块 id。
-
-为什么要地图：让模型先看「有哪些文档」，再决定检索哪一篇，
-比直接 top-k 更省 token，也更少答错文档。
-"""
-from __future__ import annotations
-
-from collections import defaultdict
-from typing import Iterable
-
-
-def build_map(items: Iterable[dict]) -> dict[str, dict[str, list[int]]]:
-    tree: dict[str, dict[str, list[int]]] = defaultdict(lambda: defaultdict(list))
-    for it in items:                       # it: {doc_id, heading, chunk_id}
-        tree[it["doc_id"]][it["heading"]].append(it["chunk_id"])
-    return {doc: dict(secs) for doc, secs in tree.items()}
-
-
-def describe(tree: dict[str, dict[str, list[int]]], max_docs: int = 5,
-             max_sections: int = 3) -> str:
-    lines = []
-    for doc, sections in list(tree.items())[:max_docs]:
-        count = sum(len(v) for v in sections.values())
-        names = list(sections)[:max_sections]
-        lines.append(f"- {doc}（{count} 块）：" + "、".join(names))
-    return "\n".join(lines)
-```
-
-**验证**
-
-```bash
-uv run python -c "
-from myagentflow.knowledge.map import build_map, describe
-tree = build_map([{'doc_id':'d1','heading':'A','chunk_id':1},{'doc_id':'d1','heading':'B','chunk_id':2}])
-print(describe(tree))
-"
-```
-
-### Step 2　写测试：结构正确 + 截断
-**文件**：`backend/tests/chapters/test_ch05_03_map.py（新建）`
-**要写的逻辑**：两篇文档各自独立；`max_docs=1` 只输出一篇。
-
-**代码**
-
-```python
-from __future__ import annotations
-
-
-def test_map_and_describe():
-    from myagentflow.knowledge.map import build_map, describe
-
-    items = [
-        {"doc_id": "d1", "heading": "A", "chunk_id": 1},
-        {"doc_id": "d1", "heading": "A", "chunk_id": 2},
-        {"doc_id": "d2", "heading": "B", "chunk_id": 3},
-    ]
-    tree = build_map(items)
-    assert tree["d1"]["A"] == [1, 2]
-    assert "d1（2 块）" in describe(tree)
-    assert "d2" not in describe(tree, max_docs=1)
-```
-
-**验证**
-
-```bash
-uv run pytest tests/chapters/test_ch05_03_map.py -v
-# 期望：1 passed
-```
-
-### 与 EvoFlow 对照
-
-| 我们的做法 | EvoFlow | 为什么 |
+| 文件（完整路径） | 行数 | 职责 |
 |---|---|---|
-| 文档 → 标题 → 块 id | `knowledge/` 的知识地图 | 先看目录再检索，省 token |
-| 概览要截断 | 地图描述 | 全量目录会占满上下文 |
+| `/Users/main/my-agent-flow/backend/packages/harness/myagentflow/knowledge/owned/db.py` | 88 | 连接、锁、初始化 |
+| `/Users/main/my-agent-flow/backend/packages/harness/myagentflow/knowledge/owned/schema.py` | 106 | `kb_*` / `kg_*` 表结构 |
+| `/Users/main/my-agent-flow/backend/packages/harness/myagentflow/knowledge/owned/ids.py` | 33 | 前缀 id 与 UTC 时间 |
+| `/Users/main/my-agent-flow/backend/packages/harness/myagentflow/knowledge/owned/service.py` | 322 | 建库、文档、块、目录 |
+| `/Users/main/my-agent-flow/backend/packages/harness/myagentflow/knowledge/owned/kg.py` | 293 | 实体节点、边、图输出 |
+| `/Users/main/my-agent-flow/backend/tests/chapters/test_ch05_03_owned.py` | 89 | 4 个章节测试 |
 
-### 知识点
+## 实现步骤
 
-- [RAG / GraphRAG / LightRAG 选型：知识为何要建图](https://harbor404.fushenlin.com/notes/rag-graphrag-lightrag-architecture/)
-- [系统课入口：知识组织](https://g0-000.github.io/agent-book/)
+### 1. 归属范围在建库时定死
 
-### 验收
+`owner_scope` 不是展示字段，而是检索过滤条件。`list_bases(scope)` 的 SQL 直接写 `IN ('public', ?)`，避免先全查再在 Python 里过滤。
 
-```bash
-uv run pytest tests/chapters/test_ch05_03_map.py -q
+```python
+def list_bases(owner_scope: str | None = None) -> list[dict[str, Any]]:
+    """列出知识库；传 owner_scope 时只返回 public + 同 scope 的库。"""
+    with db() as conn:
+        if owner_scope:
+            rows = conn.execute(
+                "SELECT * FROM kb_bases WHERE owner_scope IN ('public', ?) ORDER BY created_at DESC",
+                (owner_scope,),
+            ).fetchall()
+        else:
+            rows = conn.execute(
+                "SELECT * FROM kb_bases ORDER BY created_at DESC"
+            ).fetchall()
+    return [_row_base(row) for row in rows]
 ```
+
+### 2. 上传 = 文档行 + 块行，一次事务
+
+先写文档，再切块写块；中间失败会回滚，避免出现“文档存在但零块”的半成品。
+
+```python
+def upload_manual_markdown(
+    kb_id: str,
+    *,
+    title: str,
+    content: str,
+    folder_path: str = "",
+) -> dict[str, Any]:
+    """写入一篇 Markdown 文档，按标题切块后落库。"""
+    if not get_base(kb_id):
+        raise ValueError("knowledge base not found")
+    text = str(content or "")
+    if not text.strip():
+        raise ValueError("content is required")
+    label = str(title or "").strip() or "note"
+    file_name = f"{label}.md"
+    folder = _resolve_folder_path(folder_path)
+    now = utc_now()
+    doc_id = new_id("doc_")
+
+    with db() as conn:
+        _ensure_folder_rows(conn, kb_id, folder, now=now)
+        conn.execute(
+            """
+            INSERT INTO kb_documents(
+                doc_id, kb_id, title, file_name, content, folder_path, source_type, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, 'manual', ?, ?)
+            """,
+            (doc_id, kb_id, label, file_name, text, folder, now, now),
+        )
+
+        chunks = enrich_chunk_indexes(
+            auto_chunk_document(text, file_name=file_name), file_name=file_name
+        )
+        rows: list[tuple[Any, ...]] = []
+        for ordinal, chunk in enumerate(chunks):
+            rows.append(
+                (
+                    new_id("chunk_"),
+                    kb_id,
+                    doc_id,
+                    ordinal,
+                    chunk["content"],
+                    chunk.get("heading_path") or "",
+                    int(chunk.get("token_count") or 0),
+                    int(chunk.get("char_start") or 0),
+                    int(chunk.get("char_end") or 0),
+                    now,
+                )
+            )
+        if rows:
+            conn.executemany(
+                """
+                INSERT INTO kb_chunks(
+                    chunk_id, kb_id, doc_id, ordinal, content, heading_path,
+                    token_estimate, char_start, char_end, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                rows,
+            )
+    return get_document(doc_id) or {}
+```
+
+### 3. 目录地图不只读显式目录
+
+用户上传时只给了 `work/notes`，没有显式创建 `work`；`list_folders` 必须从文档路径反推父目录，否则前端树会缺层。
+
+```python
+def list_folders(kb_id: str) -> list[dict[str, Any]]:
+    """返回目录地图：显式目录 + 文档路径推导出的隐式父目录。"""
+    with db() as conn:
+        explicit_rows = conn.execute(
+            "SELECT path, created_at FROM kb_folders WHERE kb_id = ?", (kb_id,)
+        ).fetchall()
+        doc_rows = conn.execute(
+            "SELECT folder_path FROM kb_documents WHERE kb_id = ?", (kb_id,)
+        ).fetchall()
+
+    explicit = {
+        _resolve_folder_path(row["path"]): row["created_at"]
+        for row in explicit_rows
+        if row["path"]
+    }
+    paths: set[str] = set(explicit)
+    for row in doc_rows:
+        raw = _resolve_folder_path(row["folder_path"])
+        if not raw:
+            continue
+        parts = raw.split("/")
+        for index in range(1, len(parts) + 1):
+            paths.add("/".join(parts[:index]))
+
+    out: list[dict[str, Any]] = []
+    for path in sorted(paths):
+        out.append(
+            {
+                "path": path,
+                "name": path.split("/")[-1],
+                "explicit": path in explicit,
+                "createdAt": explicit.get(path, ""),
+            }
+        )
+    return out
+```
+
+### 4. 实体图用三元组写，节点自动合并
+
+`add_triples` 只接收业务语义，不要求调用方先算节点 id；同名节点复用，边按关系类型去重。
+
+```python
+def add_triples(
+    kb_id: str,
+    triples: list[tuple[str, str, str]],
+    *,
+    chunk_id: str | None = None,
+) -> dict[str, int]:
+    """批量写 ``(src, rel, dst)``，返回节点触碰次数与边新增次数。"""
+    nodes = 0
+    edges = 0
+    for src, rel, dst in triples:
+        src_name = _norm_name(src)
+        dst_name = _norm_name(dst)
+        if not src_name or not dst_name or src_name == dst_name:
+            continue
+        source = upsert_node(kb_id, src_name, chunk_id=chunk_id)
+        target = upsert_node(kb_id, dst_name, chunk_id=chunk_id)
+        nodes += 2
+        upsert_edge(kb_id, source["id"], target["id"], rel)
+        edges += 1
+    return {"nodesTouched": nodes, "edgesAdded": edges}
+```
+
+## 关键设计
+
+- **一个库一个命名空间**：所有表都带 `kb_id`，删除库时按 `kb_id` 级联清掉文档、块、目录、图。
+- **块与文档分表**：文档正文只存一份，块用于检索；列块时不需要把整篇正文再拼回来。
+- **目录是路径不是 parent_id**：路径字符串更容易做“显式/隐式”合并；重命名目录需要批量改前缀，本章未实现。
+- **实体图不依赖向量**：实体节点带 `chunkIds`，后续可以从实体反查块。
+
+## 与 EvoFlow 的差异
+
+| 主题 | EvoFlow | 本项目 |
+|---|---|---|
+| 存储 | 多库/多表 + 任务/活动/标签/链接 | 单 `owned.sqlite` + 5 张核心表 |
+| 文档来源 | 上传、URL、手动、批量任务 | 只做手动 Markdown 上传 |
+| 目录 | 路径 + 显式/隐式合并 | 同思路，未做重命名/移动 |
+| 实体图 | 完整 KG + 文档链接图 | 节点/边 + 一跳子图 |
+| 检索 | 向量 + 关键词 + 图扩展 | 本章不提供检索，向量在第 2 章 |
+
+## 测试与实测
+
+覆盖点：
+
+- `test_create_base_filters_owner_scope()`：public 对所有 scope 可见，私有库只对本 scope。
+- `test_upload_markdown_creates_chunks()`：文档与块落库，块带 heading 与 ordinal。
+- `test_folders_include_implicit_parents()`：`work/notes` 自动补出 `work`。
+- `test_kg_add_triples_and_graph()`：两个实体一条边，`graph_payload` 与 `stats` 对得上。
+
+```text
+uv run pytest tests/chapters/test_ch05_03_owned.py -q
+4 passed, 13 warnings
+```
+
+## 本章不做什么
+
+- 不做文档更新/删除的版本历史。
+- 不做目录重命名、移动、批量导入。
+- 不做文档链接图、标签统计、活动流。
+- 不做异步索引任务；上传是同步落库。
+
+## 验收清单
+
+- [x] 建库与归属过滤可用。
+- [x] Markdown 上传后文档/块可查。
+- [x] 目录地图包含隐式父目录。
+- [x] 三元组可写节点/边。
+- [x] 图输出带 `nodeCount/edgeCount`。

@@ -15,7 +15,7 @@
 **事实基准（全站统一）**：EvoFlow `f22af53910a470ddba633be35e25878214c2984ec`（v1.3.22，2026-11-13）。
 注意 `work-agent-harness/` 下更早的学习文档曾以 `87a95772…` 为基准，**两套编号不同属正常，但引用时必须写明出自哪一套**。
 
-源码核对更新：2026-11-17　实现验收更新：2026-11-23（Asia/Tokyo）
+源码核对更新：2026-11-17　实现验收更新：2026-11-23　完整度审计：2026-11-24（Asia/Shanghai）
 
 ## 实现验收记录
 
@@ -28,23 +28,34 @@
 | 2026-11-23 | 第 3 部分 | `uv run pytest tests/chapters/test_ch03_*.py -q` | 15 passed |
 | 2026-11-23 | 第 4 部分 | `uv run pytest tests/chapters/test_ch04_*.py -q` | 18 passed |
 | 2026-11-23 | 第 4 部分第 2 章 | `uv run pytest tests/chapters/test_ch04_02_consolidate.py -q` | 6 passed, 13 warnings |
-| 2026-11-23 | 全量章节 | `uv run pytest tests/chapters -q` | 85 passed |
+| 2026-11-23 | 第 5 部分 | `uv run pytest tests/chapters/test_ch05_*.py -q` | 17 passed, 13 warnings |
+| 2026-11-23 | 全量章节 | `uv run pytest tests/chapters -q` | 97 passed, 13 warnings |
 | 2026-11-23 | 静态检查 | `uv run ruff check packages tests` | All checks passed |
 
 历史数字：2026-11-17 曾记录全量 `54 passed`、目录曾写第 1 部分 `35`；两者均已被上表取代，保留仅为追溯。
 
 第 4 部分第 2 章本次核对：三组 EvoFlow 源文件均有同名本地文件；巩固保留 subject 与文本相似合并，以及衰减/GC 的上游签名参数和零值统计字段（本章不执行衰减/GC）。`should_enqueue_threshold()` 仅判断条数，不入队、不启动任务。新增 pin 优先回归测试；`memory/store.py` 已有 `supersede_atom()` 与 `last_accessed_at`，本次未重复添加。源码行为核对状态仍为 🔍，未将结构核对提升为逐行完成。
 
+第 5 部分本次落地：`parser/chunker/wiki_chunker/index_builder`、`embedding/{base,local_provider,registry}`、`vector/sqlite_vec`、`owned/{db,schema,ids,service,kg}`、`code_index/{symbols,tokenize,import_bindings,internal_refs,store,format_results}`。章节测试 17 项；源码核对状态仍为 🔍，没有把结构核对提升为逐行完成。
+
+## 第 1–4 部分完整度审计（2026-11-24）
+
+- 章节测试：Part 1 `14`、Part 2 `17`、Part 3 `15`、Part 4 `18`，合计 `64`；全量 `97 passed`，ruff 全绿。
+- 文档：17 章正文齐全；本地链接 0 断链；93 个 Python 代码块中 1 个语法错误已修；1 个失效的上游路径已修。
+- 组件级判定：四部分的章节行为都有真实测试，不能再把“组件通过”写成“系统已接好”。
+- 端到端缺口：无工具循环；`/chat` 未传 checkpointer、未读写消息表；第 3 部分无可执行工具 runner；第 4 部分记忆未注入 `build_graph`；`items` 可见性仍是 no-op。
+- 详细矩阵与修复记录见 [`00-导论/05-完整度审计-第1至4部分.md`](00-导论/05-完整度审计-第1至4部分.md)。
+
 ## 总览
 
 | Part | 章 | ✅ | 📄 | 🔍 | 🟡 | 依据 |
 |---|---|---|---|---|---|---|
-| 00-导论 | 4 | 3 | 0 | 1 | 0 | 02 模块地图仍是文件名推断，已改为「路径+符号」实测版 |
+| 00-导论 | 4 | 3 | 0 | 1 | 0 | 02 模块地图仍是文件名推断，已改为「路径+符号」实测版；新增完整度审计不计入技术章统计 |
 | 01-最小闭环 | 6 | 0 | 5 | 0 | 1 | 原文迁移；ch1 已核对 `config.example.yaml`，实现代码未读 |
 | 02-持久化与运行生命周期 | 4 | 2 | 0 | 2 | 0 | ch1 检查点、ch2 生命周期已逐行核对 |
 | 03-工具深化与上下文控制 | 4 | 3 | 0 | 1 | 0 | ch1 路径解析、ch3 中间件链、ch4 压缩触发已全文核对；ch2 仅到 REST 层 |
 | 04-记忆与长期资产 | 3 | 0 | 0 | 3 | 0 | 三章均为路径/符号级核对；旧「注入扫描器」已删除，不再作为依据 |
-| 05-知识库与代码理解 | 4 | 0 | 0 | 4 | 0 | — |
+| 05-知识库与代码理解 | 4 | 0 | 0 | 4 | 0 | 代码已落地 17 tests；源码行为仍未逐行核对 |
 | 06-委派隔离与危险操作治理 | 3 | 0 | 0 | 3 | 0 | — |
 | 07-计划目标协作与探索 | 5 | 0 | 0 | 5 | 0 | — |
 | 08-自动化与主动Agent | 4 | 0 | 0 | 4 | 0 | — |

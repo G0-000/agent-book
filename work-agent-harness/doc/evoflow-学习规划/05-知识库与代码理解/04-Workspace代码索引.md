@@ -1,230 +1,277 @@
 # 第 4 章　Workspace 代码索引与符号上下文
 
-> **EvoFlow 对照状态 / Alignment status：** 🔍 结构已核对（路径、行数、符号均取自源码实测），**行为**（调用顺序、边界条件）尚未逐行核对。
+> 状态：✅ 代码已落地；`tests/chapters/test_ch05_04_code_index.py` 4 项通过。
 
-## 本章目标
-让 Agent 在读代码时不必「全文搜索 + 猜」，而是用符号表和引用关系精确定位。
+## 目标与范围
 
-## 最小闭环
-打开工作区 → 建索引 → 「函数 X 定义在哪」→「谁调用了 X」→ 给出文件:行号。
+让 Agent 在自己的代码库里定位“东西在哪”，而不是靠猜：
 
-## 调用逻辑 / Invocation logic
+- **符号**：Python AST 抽类/函数/方法，给 `path:line` 与签名。
+- **全文**：FTS5 索引路径、符号名与源码，覆盖注释/字符串里的关键词。
+- **引用**：Python import 别名解析后，找“谁调用了这个符号”。
+- **增量**：单个文件重索引先删旧行，再写新行；删除文件时清空旧索引。
+- **安全扫描**：跳过 `.git/.venv/node_modules/.myaf`，单文件超过 2MB 不索引。
+
+本章只覆盖 Python 的引用；JS/TS/Java 的跨文件绑定未实现，不伪装成“全语言 LSP”。
+
+## 调用逻辑
 
 ```mermaid
 sequenceDiagram
-    participant T as 工具入口
-    participant I as index_file
-    participant C as CodeIndex
-    participant Q as 查询
-    T->>I: index_file(path, text)
-    I-->>C: add_file(path, symbols, calls)
-    Q->>C: find(symbol)
-    C-->>Q: [{path, line, kind}]
+    participant T as 工具调用
+    participant S as code_index.store
+    participant Y as symbols
+    participant I as import_bindings
+    participant R as internal_refs
+    participant F as SQLite FTS5
+    T->>S: build_index(workspace_root)
+    S->>Y: extract_symbols(rel, text)
+    S->>I: python_import_aliases(tree, rel, root)
+    S->>R: extract_internal_refs(root, rel, text)
+    S->>F: INSERT symbols / internal_refs / fts_content
+    T->>S: search_index("helper")
+    S-->>T: hits（path:line）+ internal_ref_users
 ```
 
-- **入口**：`index_file()` 只做「一个文件 → 符号表」，不递归、不读 git，扫描由上层决定。
-- **关键节点**：索引里必须存 `path:line`，只存文件名等于没索引；同名符号要按 kind（def/class）区分。
-- **出口**：`find()` 返回带行号的定义列表，「谁调用了 X」来自 calls 边。
-- **最容易断的地方**：改文件不增量更新；把注释里的同名文本当成定义。
+关键边界：
 
-## 真实模块地图（已核对：路径 · 行数 · 符号）
+- 索引根默认是显式 `workspace_root`；没有就用当前目录。
+- `relative_path` 不允许 `..` 逃出工作区。
+- 符号查询保留完整标识符，避免 `old_name` 被拆词后误命中 `new_name`。
+- 单文件失败只记录到 `failed`，不阻断整批扫描。
 
-| 文件 | 行数 | 关键符号 | 模块常量 |
-|---|---|---|---|
-| `packages/harness/evoflow/code_index/store.py:104` | 1927 | `resolve_index_root`、`_workspace_hash`、`index_db_path` | CODE_INDEX_REL_DIR、CODE_INDEX_DB_NAME |
-| `packages/harness/evoflow/code_index/symbols.py:38` | 208 | `_append`、`_line_at`、`_regex_python_symbols` | — |
-| `packages/harness/evoflow/code_index/internal_refs.py:19` | 173 | `_append_ref`、`extract_python_internal_refs`、`extract_js_ts_internal_refs` | — |
-| `packages/harness/evoflow/code_index/import_bindings.py:43` | 144 | `python_import_aliases`、`_parse_js_named_bindings`、`js_ts_import_aliases` | — |
-| `packages/harness/evoflow/code_index/type_relations.py:34` | 552 | `_line_at`、`_strip_generics`、`_split_type_parts` | — |
-| `packages/harness/evoflow/code_index/tree_sitter_core.py:79` | 214 | `language_for_path`、`tree_sitter_available`、`parse_tree` | — |
-| `packages/harness/evoflow/code_index/tokenize.py:22` | 145 | `index_tokenizer_version`、`split_identifier`、`_segment_cjk` | — |
-| `packages/harness/evoflow/code_index/lsp_client.py:81` | 217 | `LspClient`；`_kind_name`、`flatten_document_symbols`、`_language_id` | — |
-| `packages/harness/evoflow/code_index/lsp_pool.py:19` | 91 | `_session_key`、`get_lsp_client`、`try_lsp_symbols` | — |
-| `packages/harness/evoflow/code_index/watcher.py:93` | 177 | `CodeIndexWatcherRegistry`；`_watch_key`、`start_index_watch`、`stop_index_watch` | — |
-| `packages/harness/evoflow/code_index/format_results.py:8` | 134 | `format_search_index_body` | — |
-| `packages/harness/evoflow/code_index/deps.py:29` | 395 | `_is_internal_spec`、`_discover_package_roots`、`_resolve_py_module` | — |
+## 文件地图
 
-## 核心概念
-- **FTS5 + 符号表**：文本检索给「大概位置」，符号表给「精确跳转」。
-- **tree-sitter 优先，LSP 可选**：前者零依赖可离线，后者精度高但重。
-- **增量**：watcher 只重解变更文件及其反向依赖。
-- **预算**：返回给模型的不是整文件，而是签名 + 片段窗口。
-
-## 自研实现要点
-```text
-symbols(file, name, kind, start_line, end_line, container)
-refs(from_file, to_symbol, line)
-query: name = "run" → 精确 → 前缀 → FTS
-返回：path:line + 3 行上下文 + 调用者列表
-```
-
-## 业务规则
-- 索引目录放工作区内（`.evoflow/code_index/`），随项目迁移。
-- 大仓库必须限制索引文件数与体积，超出给警告。
-- 二进制/生成物不索引。
-
-## 常见坑
-- 每次查询都全量解析 → 慢到不可用。
-- 只做 grep → 同名函数混淆、无法区分定义与调用。
-- 把整文件塞给模型 → 上下文爆。
-
-## 验收
-- [ ] 定义/引用查询准确率 ≥ 90%
-- [ ] 增量更新 < 10s（中等仓库）
-- [ ] 返回体积可控
-
-### 源码核对记录（路径与符号实测）
-
-- `packages/harness/evoflow/code_index/store.py`（1927 行）
-  - 模块自述：SQLite FTS5 workspace index. When indexing runs ------------------ - **Full rebuild (blocking API)**: ``POST /…
-- `packages/harness/evoflow/code_index/symbols.py`（208 行）
-  - 模块自述：Per-language symbol extraction (tree-sitter first, LSP, AST/regex fallback).…
-- `packages/harness/evoflow/code_index/internal_refs.py`（173 行）
-  - 模块自述：Workspace-internal symbol use refs (Python / JS / TS / Java).…
-- `packages/harness/evoflow/code_index/import_bindings.py`（144 行）
-  - 模块自述：Map local import binding names -> workspace file paths.…
-- `packages/harness/evoflow/code_index/type_relations.py`（552 行）
-  - 模块自述：Class extends / implements (workspace-internal, best-effort).…
-- `packages/harness/evoflow/code_index/tree_sitter_core.py`（214 行）
-  - 模块自述：Unified tree-sitter symbol extraction (Python / JS / TS / Java).…
-- `packages/harness/evoflow/code_index/tokenize.py`（145 行）
-  - 模块自述：Code-aware tokenization for FTS index + query expansion. SQLite FTS5 ``unicode61`` keeps CamelCase identifiers…
-- `packages/harness/evoflow/code_index/lsp_client.py`（217 行）：类 `LspClient`
-  - 模块自述：Minimal LSP JSON-RPC client over stdio (documentSymbol).…
-- `packages/harness/evoflow/code_index/lsp_pool.py`（91 行）
-  - 模块自述：Pooled LSP sessions per (workspace, language server profile).…
-- `packages/harness/evoflow/code_index/watcher.py`（177 行）：类 `CodeIndexWatcherRegistry`
-  - 模块自述：Background workspace file watcher → incremental code index updates.…
-- `packages/harness/evoflow/code_index/format_results.py`（134 行）
-  - 模块自述：Format ``search_index`` payloads for tool output (shared by search tools).…
-- `packages/harness/evoflow/code_index/deps.py`（395 行）
-  - 模块自述：File-level import dependency extraction (Python / JS / TS / Java).…
-
-> 本节只证明**路径、行数、符号存在**；调用顺序与边界条件仍属「行为」，未逐行核对。
-
-## 对照 EvoFlow 核对清单
-- [ ] `backend/packages/harness/myagentflow/code_index/store.py` 的表结构与 FTS5 用法
-- [ ] LSP 与 tree-sitter 的降级策略
-
-## 从零实现（手把手）
-> 读完这章你能用 `ast` 扫出自己的代码地图：模块、类、函数、行号，供 Agent 精确跳转。
-> 文件路径一律写仓库全路径（`backend/...`），代码注释写「为什么」。
-
-### Step 1　新建 store.py：ast 遍历 + 落表
-**文件**：`backend/packages/harness/myagentflow/code_index/store.py（新建）`
-**要写的逻辑**：只索引定义（模块/类/函数/方法），不索引语句；存 `path, kind, name, line`，供「跳到哪一行」用。
-
-**代码**
-
-```python
-"""代码索引：用 ast 抽符号，不靠正则。
-
-为什么必须用 ast：注释里的 `def foo` 和字符串里的 `class Bar` 会骗过正则，
-索引一旦有两成错，Agent 就会跳到不存在的行。
-"""
-from __future__ import annotations
-
-import ast
-import sqlite3
-from pathlib import Path
-
-_SCHEMA = """
-CREATE TABLE IF NOT EXISTS symbols (
-    path TEXT NOT NULL,
-    kind TEXT NOT NULL,
-    name TEXT NOT NULL,
-    line INTEGER NOT NULL
-);
-CREATE INDEX IF NOT EXISTS idx_symbols_name ON symbols(name);
-"""
-
-
-def index_file(py_path: Path) -> list[tuple[str, str, str, int]]:
-    tree = ast.parse(py_path.read_text(encoding="utf-8"), filename=str(py_path))
-    path = str(py_path)
-    out: list[tuple[str, str, str, int]] = [(path, "module", py_path.stem, 1)]
-    for node in ast.walk(tree):
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-            out.append((path, "function", node.name, node.lineno))
-        elif isinstance(node, ast.ClassDef):
-            out.append((path, "class", node.name, node.lineno))
-    return out
-
-
-class CodeIndex:
-    def __init__(self, db_path: str | Path):
-        Path(db_path).parent.mkdir(parents=True, exist_ok=True)
-        self._conn = sqlite3.connect(str(db_path), check_same_thread=False)
-        self._conn.executescript(_SCHEMA)
-
-    def add_file(self, py_path: Path) -> int:
-        rows = index_file(py_path)
-        self._conn.executemany("INSERT INTO symbols VALUES (?, ?, ?, ?)", rows)
-        self._conn.commit()
-        return len(rows)
-
-    def find(self, name: str) -> list[dict]:
-        rows = self._conn.execute(
-            "SELECT path, kind, line FROM symbols WHERE name=? ORDER BY path, line", (name,)
-        ).fetchall()
-        return [{"path": r[0], "kind": r[1], "line": r[2]} for r in rows]
-```
-
-**验证**
-
-```bash
-uv run python -c "
-from pathlib import Path
-from myagentflow.code_index.store import CodeIndex
-i = CodeIndex('/tmp/myaf-code.sqlite'); print(i.add_file(Path('packages/harness/myagentflow/code_index/store.py')))
-print(i.find('index_file'))
-"
-```
-
-### Step 2　写测试：类与函数都能找到，行号对得上
-**文件**：`backend/tests/chapters/test_ch05_04_code_index.py（新建）`
-**要写的逻辑**：临时写一个样例 py，索引后按名字查，行号必须有值。
-
-**代码**
-
-```python
-from __future__ import annotations
-
-
-def test_index(tmp_path):
-    from myagentflow.code_index.store import CodeIndex
-
-    src = tmp_path / "demo.py"
-    src.write_text("class A:\n    def m(self):\n        pass\n\ndef f():\n    pass\n", encoding="utf-8")
-
-    idx = CodeIndex(tmp_path / "c.sqlite")
-    idx.add_file(src)
-    assert idx.find("A")[0]["line"] == 1
-    assert idx.find("m")[0]["kind"] == "function"
-    assert idx.find("f")[0]["line"] == 5
-```
-
-**验证**
-
-```bash
-uv run pytest tests/chapters/test_ch05_04_code_index.py -v
-# 期望：1 passed
-```
-
-### 与 EvoFlow 对照
-
-| 我们的做法 | EvoFlow | 为什么 |
+| 文件（完整路径） | 行数 | 职责 |
 |---|---|---|
-| `ast.walk` 抽定义 | `backend/packages/harness/myagentflow/code_index/store.py` | 正则会被注释/字符串骗 |
-| 存 path/kind/name/line | 同文件 | 少 line 就没法跳转 |
+| `/Users/main/my-agent-flow/backend/packages/harness/myagentflow/code_index/store.py` | 478 | 索引库、增量、搜索、状态 |
+| `/Users/main/my-agent-flow/backend/packages/harness/myagentflow/code_index/symbols.py` | 140 | Python AST / 正则符号抽取 |
+| `/Users/main/my-agent-flow/backend/packages/harness/myagentflow/code_index/tokenize.py` | 93 | 标识符与中文分词、FTS 文本 |
+| `/Users/main/my-agent-flow/backend/packages/harness/myagentflow/code_index/import_bindings.py` | 85 | Python import 别名 → 文件 |
+| `/Users/main/my-agent-flow/backend/packages/harness/myagentflow/code_index/internal_refs.py` | 83 | AST Call → 调用引用 |
+| `/Users/main/my-agent-flow/backend/packages/harness/myagentflow/code_index/format_results.py` | 55 | 结果转可读文本 |
+| `/Users/main/my-agent-flow/backend/tests/chapters/test_ch05_04_code_index.py` | 80 | 4 个章节测试 |
 
-### 知识点
+## 实现步骤
 
-- [RAG 离线流水线：切块与增量更新（与代码索引同构的部分）](https://harbor404.fushenlin.com/notes/rag-offline-pipeline/)
-- [系统课入口：检索](https://g0-000.github.io/agent-book/)
+### 1. 增量索引入口只做一件事
 
-### 验收
+`index_file` 负责解析根、校验相对路径、打开索引库；真正的删除/写入在 `_index_one`，保证全量构建与单文件更新走同一套逻辑。
 
-```bash
-uv run pytest tests/chapters/test_ch05_04_code_index.py -q
+```python
+def index_file(
+    workspace_root: str | Path | None = None,
+    *,
+    relative_path: str,
+    thread_id: str | None = None,
+    deleted: bool = False,
+) -> dict[str, Any]:
+    """增量索引一个文件；deleted=True 或文件消失时只做删除。"""
+    root = Path(resolve_index_root(workspace_root, thread_id=thread_id))
+    rel = _normalize_rel(relative_path)
+    path = root / rel
+    with _connect(root) as conn:
+        return _index_one(conn, root, rel, path, deleted=deleted)
 ```
+
+### 2. 符号先 AST，解析失败再正则
+
+Python 文件优先 `ast.parse`；语法错误时退回行级 `def/class` 正则，至少保证已存在的符号能被搜到。
+
+```python
+def extract_symbols(
+    workspace_root: str | Path | None,
+    relative_path: str,
+    text: str,
+    *,
+    for_full_build: bool = False,
+) -> list[dict]:
+    """抽取符号；``workspace_root`` 目前只用于统一路径语义，不参与解析。"""
+    del workspace_root, for_full_build  # 保持与上游同名参数，当前实现不需要工作区上下文
+    path = str(relative_path or "")
+    if path.endswith(".py"):
+        try:
+            tree = ast.parse(text)
+        except SyntaxError:
+            return _regex_python_symbols(path, text)
+        symbols: list[dict] = []
+        _walk_python(tree, text, symbols)
+        return symbols
+    return _generic_symbols(path, text)
+```
+
+### 3. import 别名必须落到工作区文件
+
+`from b import helper as h` 只把 `h` 记成别名还不够，要解析到 `b.py`；否则调用引用只能看到局部名字，无法回答“改动 b.py 会影响谁”。
+
+```python
+def python_import_aliases(
+    tree: ast.AST,
+    from_rel: str | Path,
+    workspace_root: str | Path,
+) -> dict[str, str]:
+    """收集 Python import 别名；解析不到工作区文件的条目直接跳过。"""
+    root = Path(workspace_root).resolve()
+    from_path = Path(from_rel)
+    aliases: dict[str, str] = {}
+
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ImportFrom):
+            base_parts = _relative_base(from_path, node.level)
+            module_parts = [part for part in (node.module or "").split(".") if part]
+            for alias in node.names:
+                if alias.name == "*":
+                    continue
+                local = alias.asname or alias.name
+                direct = _module_file(root, [*base_parts, *module_parts, alias.name])
+                package = _module_file(root, [*base_parts, *module_parts])
+                target = direct or package
+                if target:
+                    aliases[local] = _rel(target, root)
+        elif isinstance(node, ast.Import):
+            for alias in node.names:
+                parts = [part for part in alias.name.split(".") if part]
+                target = _module_file(root, parts)
+                if target:
+                    aliases[alias.asname or parts[-1]] = _rel(target, root)
+    return aliases
+```
+
+### 4. 只把 Call 当引用，避免 import 行误报
+
+`import` 本身不是调用；只遍历 `ast.Call`，名字或属性来自别名时记录 `from/to/line/symbol`。
+
+```python
+def extract_python_internal_refs(
+    tree: ast.AST,
+    from_rel: str | Path,
+    workspace_root: str | Path,
+) -> list[dict]:
+    """遍历 AST 的 Call，把 import 别名解析成目标文件并记录调用行。"""
+    root = Path(workspace_root).resolve()
+    aliases = python_import_aliases(tree, from_rel, root)
+    from_posix = Path(from_rel).as_posix()
+    out: list[dict] = []
+    seen: set[tuple[str, int, str, str]] = set()
+
+    def add(to_path: str, line: int, symbol: str) -> None:
+        key = (to_path, line, symbol, "call")
+        if key in seen:
+            return
+        seen.add(key)
+        out.append(
+            {
+                "from_path": from_posix,
+                "to_path": to_path,
+                "line": line,
+                "ref_kind": "call",
+                "symbol": symbol,
+            }
+        )
+
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call):
+            continue
+        func = node.func
+        if isinstance(func, ast.Name) and func.id in aliases:
+            add(aliases[func.id], int(node.lineno), func.id)
+        elif isinstance(func, ast.Attribute) and isinstance(func.value, ast.Name):
+            base = func.value.id
+            if base in aliases:
+                add(aliases[base], int(node.lineno), func.attr)
+    return out
+```
+
+### 5. 查询三路合并，结果按分数与位置排序
+
+符号命中分数最高；FTS 负责注释/字符串；引用单独返回 `internal_ref_users`，不混进 hits 里让模型误以为是定义。
+
+```python
+def search_index(
+    workspace_root: str | Path | None = None,
+    query: str = "",
+    *,
+    queries: list[str] | None = None,
+    thread_id: str | None = None,
+    limit: int = 20,
+) -> dict[str, Any]:
+    """查符号、全文与内部引用；query/queries 合并成一个检索词集合。"""
+    root = Path(resolve_index_root(workspace_root, thread_id=thread_id))
+    db_file = Path(index_db_path(root))
+    terms: list[str] = []
+    seen: set[str] = set()
+    for item in [query, *(queries or [])]:
+        for token in _query_terms(str(item or "")):
+            key = token.casefold()
+            if key not in seen:
+                seen.add(key)
+                terms.append(token)
+    if not terms or not db_file.exists():
+        return {"query": query, "hits": [], "internal_ref_users": [], "total": 0}
+
+    with _connect(root) as conn:
+        hits = _search_symbols(conn, terms)
+        hits.extend(_search_fts(conn, terms))
+        refs = _search_refs(conn, terms)
+        grouped: dict[tuple[str, int, str], dict[str, Any]] = {}
+        for hit in hits:
+            key = (str(hit["path"]), int(hit.get("line") or 0), str(hit["kind"]))
+            if key not in grouped or hit.get("score", 0) > grouped[key].get("score", 0):
+                grouped[key] = hit
+        final_hits = sorted(
+            grouped.values(),
+            key=lambda item: (-item.get("score", 0), item["path"], item.get("line", 0)),
+        )
+        return {
+            "query": query,
+            "hits": final_hits[: max(1, int(limit))],
+            "internal_ref_users": refs,
+            "total": len(final_hits),
+        }
+```
+
+## 关键设计
+
+- **先结构后语义**：符号名精确命中优先；FTS 只负责兜底，不让“文档里出现过一次”压过真实定义。
+- **索引库放工作区**：`{root}/.myaf/code_index/index.db`，同一工作区的线程共享，换工作区天然隔离。
+- **单文件事务**：一个文件先删旧行再写新行；`deleted=True` 时只删不写。
+- **不追全语言**：Python 引用准确率优先；非 Python 文件只做通用符号正则，不承诺跨文件调用。
+
+## 与 EvoFlow 的差异
+
+| 主题 | EvoFlow | 本项目 |
+|---|---|---|
+| 解析 | tree-sitter 多语言 + LSP | Python AST + 通用正则 |
+| 引用 | Python/JS/TS 导入绑定 | 只做 Python import 别名 + Call |
+| 文件监听 | watcher 自动增量 | 由调用方显式 `index_file` |
+| 语义检索 | 可能接 embedding/ANN | 只用 FTS5 + 符号表 |
+| 结果格式 | 工具层自有格式 | 单独 `format_results.py` |
+
+## 测试与实测
+
+覆盖点：
+
+- `test_index_python_symbols_and_hits()`：类/方法可定位到 `service.py:1`。
+- `test_incremental_update_drops_old_symbol()`：重索引后旧符号不再命中。
+- `test_internal_refs_returns_callers()`：`a.py` 调用 `b.py.helper` 返回调用行。
+- `test_build_index_skips_dependency_dirs()`：跳过 `.venv`，文本关键词走 FTS。
+
+```text
+uv run pytest tests/chapters/test_ch05_04_code_index.py -q
+4 passed, 13 warnings
+```
+
+## 本章不做什么
+
+- 不做 LSP，不提供跳转定义/类型推断。
+- 不做文件 watcher，不自动感知磁盘变化。
+- 不做 JS/TS/Java/Go 的跨文件引用。
+- 不做向量化代码检索；全部走符号 + FTS。
+
+## 验收清单
+
+- [x] 符号带 `path/line/kind/signature`。
+- [x] 全文能命中注释/字符串关键词。
+- [x] Python 调用引用能返回 `fromPath/toPath/line`。
+- [x] 单文件重索引不残留旧符号。
+- [x] 跳过依赖目录与超大文件。
