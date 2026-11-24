@@ -476,3 +476,10 @@ uv run python -m ruff check packages tests                   # All checks passed
 
 - [agent-book](https://g0-000.github.io/agent-book/)：CLI、stdio、HTTP 三种入口的分工
 - [Harbor404 · 流式输出](https://harbor404.fushenlin.com/)：为什么 stdout 只能放协议
+
+## 源码核对记录（路径与符号实测）
+
+- 状态：🔍 结构级。协议方法名已核；未逐行读 719 行 `StdioAppServer`。
+- 已核上游：`app_server/stdio_rpc.py`（719）、`app_server/chat_bridge.py`（396）、`desktop_stdio.py`（457）、`cli/main.py`（116）、`cli/common.py`（44）。
+- 本地对应：`app_server/stdio.py`（180）、`cli/main.py`（68）。
+- 结论：本地只实现 `ping` / `state`；上游的 `chat/send`、`chat/event`、`chat/resume`、`chat/cancel`、TCP 监听、桌面 stdio 修复均未复刻。CLI `chat` 也没传 checkpointer。

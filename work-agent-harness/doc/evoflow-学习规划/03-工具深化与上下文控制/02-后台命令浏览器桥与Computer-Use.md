@@ -411,3 +411,10 @@ uv run pytest tests/chapters/test_ch03_02_host_direct.py -q
 - EvoFlow baseline：`f22af53910a470ddba633be35e25878214c2984ec`（v1.3.22，PolyForm Noncommercial）。
 - 参考文件：`/Users/main/EvoFlow/backend/packages/harness/evoflow/tools/zcode_port/background.py`。
 - 许可：EvoFlow 为 PolyForm Noncommercial；本章为学习性转述与自有最小实现。
+
+## 源码核对记录（路径与符号实测）
+
+- 状态：🔍 结构级。任务表字段与 REST 路径已核；未逐行读 2045 行 `bash_tool`。
+- 已核上游：`tools/zcode_port/background.py`（243）、`tools/zcode_port/bash_tool.py`（2045）、`app/gateway/routers/browser_bridge.py`（145）、`app/gateway/routers/cua_bridge.py`（357）。
+- 本地对应：`tools/host_direct/background_bash.py`（167）、`tools/host_direct/bridge_auth.py`（30）。
+- 结论：本地只有任务表、停止、输出快照和桥接 token；没有 `Popen` 启动函数，没有 `/api/browser/*` 与 `/api/cua/*` 路由。本章的「可执行后台命令 + 浏览器桥」尚未端到端闭合。

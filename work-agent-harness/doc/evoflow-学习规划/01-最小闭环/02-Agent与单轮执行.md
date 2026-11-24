@@ -332,3 +332,10 @@ uv run pytest tests/chapters/test_ch01_02_graph.py -v
 ```bash
 uv run pytest tests/chapters/test_ch01_02_graph.py -q
 ```
+
+## 源码核对记录（路径与符号实测）
+
+- 状态：✅ 行为级（图结构差异已核）。
+- 已核上游：`agents/lead_agent/agent.py`（2021）、`agents/middlewares/dynamic_system_prompt_middleware.py`（760）。上游在 `:1502` / `:1953` 调 `create_agent` 组装 ReAct 图，不是手写 `StateGraph`。
+- 本地对应：`agents/lead_agent/graph.py`（34）。只有 `StateGraph` + `call_model` 单节点，没有 `tools` 条件边，也没有工具循环。
+- 结论：本章的「单轮执行」是缩小版最小图；工具循环、动态 system prompt、中间件均未复刻。文档不再把工具循环归到本章或第 6/7 部分。

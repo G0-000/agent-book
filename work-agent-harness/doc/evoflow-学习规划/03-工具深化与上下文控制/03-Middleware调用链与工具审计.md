@@ -315,3 +315,10 @@ uv run pytest tests/chapters/test_ch03_03_middleware.py -q
 - EvoFlow baseline：`f22af53910a470ddba633be35e25878214c2984ec`（v1.3.22，PolyForm Noncommercial）。
 - 参考文件：`/Users/main/EvoFlow/backend/packages/harness/evoflow/agents/middlewares/`（工具钩子统一为 `wrap_tool_call`）。
 - 许可：EvoFlow 为 PolyForm Noncommercial；本章为学习性转述与自有最小实现。
+
+## 源码核对记录（路径与符号实测）
+
+- 状态：✅ 行为级。
+- 已核上游：`agents/lead_agent/agent.py`（2021）、`agents/middlewares/`（70 个文件）、`agents/middlewares/tool_error_handling_middleware.py`（1157）。
+- 本地对应：`agents/middlewares/chain.py`（60）。
+- 结论：上游 `after_model` 逆序、澄清固定链尾、压缩只在 `wrap_model_call` 临时折叠，已核；本地只保留 3 个中间件的顺序执行，没有 70 个中间件与完整审计。
