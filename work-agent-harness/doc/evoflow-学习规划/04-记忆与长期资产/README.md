@@ -1,19 +1,27 @@
 # 第 4 部分　记忆与长期资产 / Memory and Long-Term Assets
 
-> 状态：✅ 三章组件级实现已验收（`2026-11-23`，`test_ch04_*.py` 18 passed）；源码核对 ✅ 三章已做行为级对照（`2026-11-24`）。
-> 运行时接线：记忆存储、巩固、注入格式化均未接入 `build_graph` 或 system prompt；`AgentMemoryManager` 当前没有调用者。
+> 状态：✅ 三章组件级实现已验收（`2026-11-24`，`test_ch04_*.py` 19 passed）；源码核对 ✅ 三章已做行为级对照（`2026-11-24`）。
+> 运行时接线：记忆存储、巩固、注入格式化均未接入 `build_graph` 或 system prompt；Agent 运行入口当前没有调用这些记忆组件。
 
-目标（组件层）：记忆存得住、查得到、删得掉，进入 prompt 时不被当指令执行；当前只验证到组件与格式化函数，未接入 Agent 入口。
+目标（组件层）：你能亲手把当前 thread 的消息写成短期记忆，把明确选出的事实写成长记忆，再从新 thread 召回并格式化；当前只验证到组件调用，未接入 Agent 入口。
 
 ## 这一部分解决什么
 
-EvoFlow 的记忆不是「把整段对话塞进向量库」，而是三层分工：
+先从第 1 章的可运行练习开始：
 
-1. **会话层**：消息表保存这一轮说过什么，检查点只保存图状态，不保存 transcript。
+1. `AgentMemoryManager.add_to_task_history()` 把 user / assistant 消息写到当前 thread 的 task JSON；thread 不同，短期历史隔离。
+2. 调用方明确挑出值得跨会话保留的事实，再用 `facade.remember()` 写进长期 atom；同一 `subject_key` 更新同一条记录。
+3. 新 thread 用 `facade.recall()` 按用户 namespace 搜索，随后显式记录 `recall_snapshot` 并格式化成 `<memory>` 块。
+
+这条练习展示的是本项目已有组件如何协作。`remember()` 不会自动读取聊天记录或调用 LLM 抽取事实；当前也没有 Agent 入口自动保存消息、触发召回或拼装 system prompt。不要把“长期记忆写入”误读为“聊天后自动形成长期记忆”。
+
+EvoFlow 的记忆不是「把整段对话塞进向量库」，而是几条有不同生命周期的路径：
+
+1. **短期层**：对话消息属于当前 thread；本项目练习把 user / assistant 文本写入 thread task JSON。
 2. **长期层**：一条事实一个 atom，按命名空间隔离；同一 `subject_key` 只保留一个有效值。
 3. **注入层**：召回结果按预算裁剪，包进 `<memory>` 并声明为不可信数据，最后由 system prompt 拼装。
 
-本部分只复刻这条链的**存储与规则组件**，不接 Agent 入口，也不实现 EvoFlow 的异步记忆队列、工作区记忆和 LLM 事实抽取。
+本部分只复刻**存储与规则组件**，不接 Agent 入口，也不实现 EvoFlow 的异步记忆队列、工作区记忆和 LLM 事实抽取。EvoFlow 的长记忆自动生成入口可继续读上游 `agents/memory/queue.py` → `agents/memory/updater.py:MemoryUpdater.update_memory()`；本地没有复刻这条 LLM 管线。
 
 ## 上游文件地图
 
@@ -36,7 +44,7 @@ EvoFlow 的记忆不是「把整段对话塞进向量库」，而是三层分工
 | `memory/storage.py`（135）、`memory/document_codec.py`（243） | — | — | 不上收：这是 Owned Memory 的文档编解码，留给知识库方向 |
 | `agents/memory/queue.py`（387）、`updater.py`（464）、`workspace_memory.py`（578） | — | — | 不复刻：异步更新队列、LLM 事实抽取、工作区记忆属于后续阶段 |
 
-## 六个概念不要混
+## 核心概念不要混
 
 | 概念 | 是什么 | 不是什么 | EvoFlow 对应 |
 |---|---|---|---|
@@ -84,7 +92,7 @@ EvoFlow 的记忆不是「把整段对话塞进向量库」，而是三层分工
 
 | 章 | 主题 | 主要文件 | 知识点 |
 |---|---|---|---|
-| [1](01-短期记忆与长期记忆.md) | 短期/长期记忆、命名空间、原子表、召回快照 | `agents/memory/`、`memory/`、`config/paths.py` | atom、namespace、subject_key、revision、软删、快照 |
+| [1](01-短期记忆与长期记忆.md) | 短期写入、长期事实写入与跨 thread 召回 | `agents/memory/`、`memory/`、`config/paths.py` | task JSON、atom、namespace、subject_key、revision、快照 |
 | [2](02-记忆巩固知识图谱与注入防御.md) | 确定性巩固、`subject_key` 弱图谱、注入声明 | `memory/consolidate.py`、`agents/memory/prompt.py` | 文本重叠、pin 优先、supersede、untrusted data |
 | [3](03-资产产物事项与反思.md) | 产物契约、用户事项、反射解析 | `artifacts/`、`items/`、`reflection/` | 稳定 id、artifact/item/task 边界、JSON 原子写、`module:attr` |
 
@@ -100,8 +108,8 @@ EvoFlow 的记忆不是「把整段对话塞进向量库」，而是三层分工
 
 ```bash
 cd /Users/main/my-agent-flow/backend
-uv run pytest tests/chapters/test_ch04_*.py -q   # 18 passed
-uv run pytest tests/chapters -q                 # 97 passed
+uv run pytest tests/chapters/test_ch04_*.py -q   # 19 passed
+uv run pytest tests/chapters -q                 # 98 passed
 uv run ruff check packages tests                # All checks passed
 ```
 

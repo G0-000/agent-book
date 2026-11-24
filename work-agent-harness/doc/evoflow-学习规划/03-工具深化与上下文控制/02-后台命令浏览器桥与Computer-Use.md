@@ -1,6 +1,7 @@
 # 第 2 章　后台命令与桥接鉴权
 
-> **状态：** ✅ 本章代码与测试已落地：`background_bash.py` + `bridge_auth.py` + 4 个测试用例。  
+> **状态：** ✅ 本章代码与测试已落地：`background_bash.py` + `bridge_auth.py` + 4 个测试用例；源码核对 ✅ 本章声明行为已与上游逐段对照。
+>
 > **范围：** 后台任务表（登记/查询/停止/输出快照）与桥接 token 校验。浏览器桥、CUA、HTTP 路由不在本章实现；原因见文末。
 
 ## 1. 为什么需要「后台任务表」
@@ -390,6 +391,18 @@ uv run pytest tests/chapters/test_ch03_02_host_direct.py -q
 | `tools/zcode_port/background.py` | `tools/host_direct/background_bash.py` | `BackgroundBashTask`、`BACKGROUND_BASH_OUTPUT_MAX_BYTES`、`new_task_id`、`register_task`、`get_task`、`mark`、`stop_task`、`list_tasks`、`task_to_summary`、`read_output_snapshot` | 落库、跨进程查询、事件推送 |
 | `tools/zcode_port/bash_tool.py` | 未创建 | — | `_promote_to_background`、pump 线程、`_emit` |
 | `routers/browser_bridge.py` / `routers/cua_bridge.py` | `tools/host_direct/bridge_auth.py` | `BRIDGE_TOKEN_ENV`、`verify_bridge_token` | 路由、截图、点击、设备会话 |
+| `plugins/bridge_auth.py`（94） | `tools/host_direct/bridge_auth.py`（30） | `get_bridge_token`、`verify_bridge_token`、`reset_bridge_token_cache` 的语义 | 持久化 token 文件、自动生成、`X-EvoFlow-Bridge-Token` 请求头 |
+
+### 与 EvoFlow 的行为差异
+
+| 方面 | 本地实现 | EvoFlow 上游 |
+|---|---|---|
+| token 来源 | 只读 `MYAF_BRIDGE_TOKEN` 环境变量；没配一律拒绝 | `EVOFLOW_BROWSER_BRIDGE_TOKEN` 环境变量 → 数据目录 `bridge-token` 文件 → 自动生成并落盘 |
+| token 校验入参 | `verify_bridge_token(provided: str)`，调用方自己取 token | `verify_bridge_token(request)`，从 `x-evoflow-bridge-token` 头取 |
+| 任务字段 | `task_id` / `command` / `status` / `exit_code` / `proc` / `thread_id` | 另有 `tool_call_id` / `session_key` / `cancellable` / `notification_sent` / 两次等待时刻 |
+| 阻塞查询 | 不实现 | `wait_task()` 支持超时、静默宽限提前返回、每 15s 心跳 |
+| 停止通知 | `stop_task()` 只 kill + mark | 停止后 `_emit_task_notification(task)` |
+| 摘要字段 | 无 `toolCallId`；`cancellable` 只看 `running` | 有 `toolCallId`；`cancellable = task.cancellable and running` |
 
 **有意省略的原因：** 本章要验证的是「任务事实模型 + 输出边界 + 鉴权失败关闭」，不是完整后台执行器。把 `Popen`/pump/事件总线提前塞进来，测试会变成集成测试，失败定位会很慢。
 
@@ -414,7 +427,7 @@ uv run pytest tests/chapters/test_ch03_02_host_direct.py -q
 
 ## 源码核对记录（路径与符号实测）
 
-- 状态：🔍 结构级。任务表字段与 REST 路径已核；未逐行读 2045 行 `bash_tool`。
-- 已核上游：`tools/zcode_port/background.py`（243）、`tools/zcode_port/bash_tool.py`（2045）、`app/gateway/routers/browser_bridge.py`（145）、`app/gateway/routers/cua_bridge.py`（357）。
+- 状态：✅ 行为级（本章声明范围：任务表 + 输出快照 + 桥接 token）。完整执行器与 HTTP 路由仍明确未实现。
+- 已核上游：`tools/zcode_port/background.py`（243）、`plugins/bridge_auth.py`（94）、`app/gateway/routers/browser_bridge.py`（145）、`app/gateway/routers/cua_bridge.py`（357）。`tools/zcode_port/bash_tool.py`（2045）只核对了 `_promote_to_background` 的调用边界，未逐行读完整命令执行器。
 - 本地对应：`tools/host_direct/background_bash.py`（167）、`tools/host_direct/bridge_auth.py`（30）。
-- 结论：本地只有任务表、停止、输出快照和桥接 token；没有 `Popen` 启动函数，没有 `/api/browser/*` 与 `/api/cua/*` 路由。本章的「可执行后台命令 + 浏览器桥」尚未端到端闭合。
+- 结论：`register_task` / `get_task` / `mark` / `stop_task` / `list_tasks` / `task_to_summary` / `read_output_snapshot` 的登记、单活、幂等停止、8KB 尾部回灌与上游一致；`verify_bridge_token` 的 fail-closed + `hmac.compare_digest` 与上游一致。差异已在「与 EvoFlow 的行为差异」列出：无 `wait_task` 心跳、无 `tool_call_id` / `session_key` / `cancellable` 字段、无停止通知、token 不落盘自动生成、无浏览器/CUA 路由。
