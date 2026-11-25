@@ -23,7 +23,7 @@ import re
 import sys
 from pathlib import Path
 
-DOC = Path("/Users/main/agent-book/work-agent-harness/doc/evoflow-学习规划")
+DOC = Path("/Users/main/agent-book/my-agent-flow")
 BACKEND = Path("/Users/main/my-agent-flow/backend")
 
 HEAD = re.compile(r"^### Step .*$", re.M)

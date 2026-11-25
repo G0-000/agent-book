@@ -20,7 +20,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-SRC = Path("/Users/main/agent-book/work-agent-harness/doc/evoflow-学习规划")
+SRC = Path("/Users/main/agent-book/my-agent-flow")
 OUT = Path("/Users/main/my-agent-flow/EvoFlow-学习规划-总文档.md")
 LINK = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
 
@@ -98,7 +98,7 @@ def build() -> str:
         "",
         "> 这份文件由子文档自动合并生成，**不要直接编辑**；改子文档后重跑 "
         "`agent-book/scripts/build_evoflow_master.py`。",
-        f"> 子文档目录：`agent-book/work-agent-harness/doc/evoflow-学习规划/`　"
+        f"> 子文档目录：`agent-book/my-agent-flow/`　"
         f"篇数：{len(files)}　生成：{now}　源提交：`{commit}`",
         "> 内容定位：每个功能点都给出「建哪个文件 → 写什么代码 → 怎么验证」，"
         "事实以本机 EvoFlow 源码为准。",

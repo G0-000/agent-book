@@ -60,27 +60,11 @@ const agentPartItems = [
 
 const projectItems = [
   {
-    title: 'agent-flow',
-    desc: 'AgentFlow 项目文档：开发过程（doc-dev）+ 代码结构（doc-code），代码与文档分开维护。',
-    link: '/agent-flow/index',
-  },
-  {
-    title: 'evo-flow',
-    desc: 'EvoFlow 工程知识库：六阶段源码研究、系统架构图谱、研究进度与独立仿写规划。',
-    link: '/evo-flow/index',
-  },
-  {
-    title: 'WorkAgentHarness',
-    desc: '以 EvoFlow 为源码教材，对照 AgentFlow 第一遍学习，按功能从最小闭环到完整重实现。',
-    link: '/work-agent-harness/index',
-  },
-  {
     title: 'my-agent-flow',
-    desc: '0→1 复刻 EvoFlow 的施工文档：13 个部分共 74 篇，逐章对照真实源码，含验收口径与进度台账。',
+    desc: '0→1 复刻 EvoFlow 的施工文档：13 个部分共 76 篇，逐章对照真实源码，含验收口径与进度台账。',
     link: '/my-agent-flow/index',
   },
-]
-</script>
+]</script>
 
 <template>
   <div class="home-sections">

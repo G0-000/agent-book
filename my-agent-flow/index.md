@@ -1,6 +1,6 @@
 # my-agent-flow · EvoFlow 复刻文档
 
-> EvoFlow 的学习与复刻文档站。正文事实源在 `work-agent-harness/doc/evoflow-学习规划/`（本分区通过 VitePress `rewrites` 渲染成独立项目，不复制第二份文件，避免两边漂移）。
+> EvoFlow 的学习与复刻文档站。正文事实源就在本目录 `my-agent-flow/`，站点直接渲染，不再经过 `rewrites` 映射。
 
 ## 这份文档是什么
 
@@ -38,7 +38,7 @@
 
 ## 渲染说明
 
-- 分区目录：`/Users/main/agent-book/my-agent-flow/`（只有本页一个文件）
-- 正文目录：`/Users/main/agent-book/work-agent-harness/doc/evoflow-学习规划/`（73 个文件，含 `溯源/` 两份原始单文件）
-- 渲染方式：`.vitepress/config.mts` 里 `rewrites` 把 `work-agent-harness/doc/evoflow-学习规划/:page` 映射为 `/my-agent-flow/:page`
+- 分区目录：`/Users/main/agent-book/my-agent-flow/`（首页 + 正文）
+- 正文目录：本目录下按 13 个 Part 分文件夹（76 个文件，含 `溯源/` 两份原始单文件）
+- 渲染方式：VitePress 直接扫描 `my-agent-flow/`，不需要 `rewrites`
 - 更新文档：直接改正文目录，站点自动跟着变；不要在本分区里另存副本

@@ -1,7 +1,7 @@
 # EvoFlow 学习与复刻文档 · 多级目录版
 
 > 本目录是把单文件 `doc/EvoFlow-学习规划.md` 按 **Part → Chapter → File** 拆分后的多级文档树。
-> 主线内容以《EvoFlow-学习规划》为准；`<EvoFlow 仓库>`（真实源码）、`agent-book`、`AgentFlow`、`WorkAgentHarness` 作为辅助印证；[Harbor404](https://harbor404.fushenlin.com/) 只作通用技术背景参考。
+> 主线内容以《EvoFlow-学习规划》为准；`<EvoFlow 仓库>`（真实源码）、`agent-book`、`AgentFlow` 作为辅助印证；[Harbor404](https://harbor404.fushenlin.com/) 只作通用技术背景参考。
 
 ## 一句话定位
 

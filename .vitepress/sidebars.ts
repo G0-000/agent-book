@@ -194,10 +194,9 @@ export const pythonSidebar: DefaultTheme.SidebarItem[] = [
   },
 ]
 
-// my-agent-flow：正文事实源在 work-agent-harness/doc/evoflow-学习规划，
-// 由 config.mts 的 rewrites 映射成 /my-agent-flow/ 前缀，本分区只放一个首页。
+// my-agent-flow：正文与首页都在本目录，不再经过 rewrites。
 // 侧边栏按目录自动扫描，新增章节自动入导航，避免手工列表漂移。
-const myAgentFlowRoot = fileURLToPath(new URL('../work-agent-harness/doc/evoflow-学习规划', import.meta.url))
+const myAgentFlowRoot = fileURLToPath(new URL('../my-agent-flow', import.meta.url))
 
 function numericPrefixSort(a: string, b: string): number {
   const na = Number.parseInt(a, 10)
@@ -218,23 +217,15 @@ export const myAgentFlowSidebar: DefaultTheme.SidebarItem[] = [
   {
     text: '文档正文（13 个部分）',
     collapsed: false,
-    // PROGRESS 已在上面单独登记，这里从自动扫描结果里剔掉，避免重复
+    // 首页/README/PROGRESS 已在上方单独登记，这里从自动扫描结果里剔掉，避免重复
     items: docCodeTree(myAgentFlowRoot, '/my-agent-flow', numericPrefixSort).filter(
-      // PROGRESS 单独登记；溯源/ 已由 srcExclude 排除，不在导航里出现
-      (item) => item.text !== 'PROGRESS' && item.text !== '溯源',
+      // 溯源/ 已由 srcExclude 排除，不在导航里出现
+      (item) =>
+        item.text !== 'index' &&
+        item.text !== 'README' &&
+        item.text !== 'PROGRESS' &&
+        item.text !== '溯源',
     ),
-  },
-]
-
-export const workAgentHarnessSidebar: DefaultTheme.SidebarItem[] = [
-  {
-    text: 'WorkAgentHarness',
-    items: [
-      { text: '项目说明', link: '/work-agent-harness/index' },
-      { text: 'EvoFlow 学习规划（渲染分区）', link: '/my-agent-flow/' },
-      { text: '进度台账', link: '/my-agent-flow/PROGRESS' },
-      { text: '实现手册体例', link: '/my-agent-flow/00-导论/04-实现手册体例' },
-    ],
   },
 ]
 

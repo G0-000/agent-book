@@ -25,9 +25,8 @@ pnpm docs:dev
 | [LangChain](./langchain/) | LangChain 1.2 入门到 Agent / RAG 实战         | [README](./langchain/README.md) |
 | [LangGraph](./langgraph/) | LangGraph 入门到智能体部署实战                | [README](./langgraph/README.md) |
 | [AI Coding](./vibe_coding/) | Vibe Coding 零基础实战（Claude Code / Skills / Codex） | [README](./vibe_coding/README.md) |
-| [WorkAgentHarness](./work-agent-harness/) | 基于 EvoFlow 的完整功能学习与重实现路线 | [文档入口](./work-agent-harness/index.md) |
 | [evo-flow](./evo-flow/) | EvoFlow 工程知识库（六阶段源码研究 + 架构图谱） | [文档入口](./evo-flow/index.md) |
-| [my-agent-flow](./my-agent-flow/) | EvoFlow 0→1 复刻施工文档（13 部分 / 74 篇，逐章对照源码） | [文档入口](./my-agent-flow/index.md) |
+| [my-agent-flow](./my-agent-flow/) | EvoFlow 0→1 复刻施工文档（13 部分 / 76 篇，逐章对照源码） | [文档入口](./my-agent-flow/index.md) |
 
 ## 仓库结构
 
@@ -41,7 +40,7 @@ agent-book/
 ├── langgraph/            # LangGraph 学习笔记 + 代码
 ├── vibe_coding/          # AI Coding（Vibe Coding）学习笔记 + 代码
 ├── evo-flow/             # EvoFlow 工程知识库镜像（knowledge/ 六阶段文档）
-└── work-agent-harness/   # WorkAgentHarness 项目文档镜像
+└── my-agent-flow/        # EvoFlow 0→1 复刻文档（13 个部分 / 76 篇）
 ```
 
 站点直接复用各课程下的 Markdown 笔记，无需复制文件。
