@@ -1,221 +1,47 @@
-# 进度台账 / Progress Ledger
+# my-agent-flow 文档与代码进度台账
 
-> 用于多轮推进时对齐「哪些章已与真实源码核对」。**本表只记源码核对，不记本项目代码是否实现**；实现与验收见下面「实现验收记录」。
+> 更新：2026-11-26（Asia/Tokyo）。本文件记录可核验的文档数量、代码状态和验证结果；“有文件/测试”不等于测试通过或接入真实运行入口。
 
-**状态定义（五档，不许混用）**
+## 文档完整度
 
-| 标记 | 含义 | 判定条件 |
+- 分章目录：00 导论有 6 篇原有正文；Part 01–13 共 52 篇正文；合计 **58 篇原有章节正文**。
+- 另有本次新增的逐章对照审计页 `00-导论/06-总文档分章与代码落地对照.md`，它是审计附页，不计入上述 58 篇教材章节正文。
+- 合订本原 TOC 为 72 项（14 个 Part README + 58 篇正文）。构建脚本会收录各 Part 下的 README 与全部顶层 Markdown；新增审计页也符合该收录规则。因此**重建预期为 73 项**（14 个 README + 58 篇正文 + 1 篇审计附页）。
+- 本次尚未实际运行构建命令，生成文件的实际 TOC、篇数和内容一致性仍待构建后核验；勿将预期数字表述为已验证生成结果。
+- 逐章正文、代码路径、章节测试文件及未接入边界见 [逐章对照审计](00-导论/06-总文档分章与代码落地对照.md)。无已确认的缺失章节正文，不重复生成已有章节。
+
+## 代码状态口径
+
+- ✅ 组件级有实现及对应测试文件（不表示测试已通过）。
+- 🟡 有局部实现/组件，但功能不完整、未接真实入口或欠专项测试。
+- ⬜ 未发现本地实现证据。
+- 测试文件存在 ≠ 测试通过；组件测试通过 ≠ HTTP/Agent 运行链已接通；本地部分实现 ≠ 已完整复刻 EvoFlow。
+- EvoFlow 上游源码核对状态与本项目代码落地状态分开记录；逐章细节以对照审计为准。
+
+## 本次复核结果
+
+| 检查项 | 状态 | 证据/备注 |
 |---|---|---|
-| ✅ | 已核对源码 | 逐行读过对应实现，章末核对清单已打勾 |
-| 📄 | 原文迁移 | 内容完整迁自原始资料，**未**与 EvoFlow 源码核对（保真，但不等于正确） |
-| 🔍 | 结构已核对 | 路径、行数、类/函数/常量已在源码实测；**行为**（调用顺序、边界条件）未逐行读 |
-| 🟡 | 骨架待核对 | 自研框架 + 真实路径线索，实现细节未核对 |
-| ⬜ | 未开始 | — |
+| 原有章节缺页核对 | 完成：未确认缺页 | 合订本原 TOC 与原分章结构均为 14 个 Part 入口 + 58 篇正文；逐章对应表见审计页 |
+| 逐章代码/测试映射 | 完成：路径级检查 | 审计页逐章列出代码、测试文件和未接线边界；不等于逐行源码审查 |
+| 新增审计页是否被合订本收录 | 已检查脚本逻辑，预期会收录 | `build_evoflow_master.py` 遍历每个 Part 下所有顶层 `*.md`（README 单独先列），不排除编号审计页 |
+| 合订本重建 | 待执行 | `cd /Users/main/agent-book && python3 scripts/build_evoflow_master.py` |
+| 分章标题/来源标记与生成结果核对 | 待重建后执行 | 确认实际 TOC 为 73 项，并抽查新增审计页和标题 |
+| 章节测试 | 未运行 | 建议在 `/Users/main/my-agent-flow/backend` 执行 `uv run pytest tests/chapters -q` |
+| Ruff | 未运行 | 建议在 `/Users/main/my-agent-flow/backend` 执行 `uv run ruff check packages app tests` |
 
-**事实基准（全站统一）**：EvoFlow `f22af53910a470ddba633be35e25878214c2984ec`（v1.3.22，2026-11-13）。
-注意：本项目正文原放在 `work-agent-harness/doc/evoflow-学习规划/`，2026-11-25 已整体迁入 `my-agent-flow/`；更早的学习文档曾以 `87a95772…` 为基准，**两套编号不同属正常，但引用时必须写明出自哪一套**。
+## 现存实现边界摘要
 
-源码核对更新：2026-11-17　实现验收更新：2026-11-23　完整度审计：2026-11-24（Asia/Shanghai）
+- Part 01–04：配置、Agent 单轮、仓储、工具协议、流、检查点、生命周期、中间件、上下文及记忆等有组件实现和若干章节测试；工具调用循环、消息恢复、统一 runner、记忆自动抽取/注入等入口链仍未闭合。
+- Part 05：离线解析、向量存储、Owned Knowledge、Python AST/FTS5 代码索引为局部实现；不是完整知识产品。
+- Part 06–08：委派、沙箱、计划、协作、自动化存在部分组件/测试；缺完整执行链、任务中心或真实通知接线。
+- Part 09–12：MCP/Skills、Gateway/设置/RPC 等有局部实现；插件/A2A、完整渠道/组织治理及本地 Web/Tauri 产品尚未完整落地。
+- Part 13：存在集成测试和差异脚本；不能据此认定全域贯通。
 
-## 实现验收记录
+逐章准确边界、测试文件名与缺失测试项以 [对照矩阵](00-导论/06-总文档分章与代码落地对照.md) 为准。测试未运行前不标记“通过”。
 
-> 与上面的源码核对相互独立。数字只在下表日期与命令范围内有效，不要复制到其他文档当“当前通过数”。
+## 待办
 
-| 日期 | 范围 | 命令 | 结果 |
-|---|---|---|---|
-| 2026-11-23 | 第 1 部分 | `uv run pytest tests/chapters/test_ch01_*.py -q` | 14 passed |
-| 2026-11-23 | 第 2 部分 | `uv run pytest tests/chapters/test_ch02_*.py -q` | 17 passed |
-| 2026-11-23 | 第 3 部分 | `uv run pytest tests/chapters/test_ch03_*.py -q` | 15 passed |
-| 2026-11-23 | 第 4 部分 | `uv run pytest tests/chapters/test_ch04_*.py -q` | 18 passed |
-| 2026-11-23 | 第 4 部分第 2 章 | `uv run pytest tests/chapters/test_ch04_02_consolidate.py -q` | 6 passed, 13 warnings |
-| 2026-11-23 | 第 5 部分 | `uv run pytest tests/chapters/test_ch05_*.py -q` | 17 passed, 13 warnings |
-| 2026-11-23 | 全量章节 | `uv run pytest tests/chapters -q` | 97 passed, 13 warnings |
-| 2026-11-23 | 静态检查 | `uv run ruff check packages tests` | All checks passed |
-| 2026-11-24 | 第 4 部分 | `uv run pytest tests/chapters/test_ch04_*.py -q` | 19 passed, 13 warnings |
-| 2026-11-24 | 全量章节 | `uv run pytest tests/chapters -q` | 98 passed, 13 warnings |
-| 2026-11-24 | 静态检查 | `uv run ruff check packages tests` | All checks passed |
-
-历史数字：2026-11-17 曾记录全量 `54 passed`、目录曾写第 1 部分 `35`；两者均已被上表取代，保留仅为追溯。
-
-第 4 部分第 2 章本次核对：三组 EvoFlow 源文件均有同名本地文件；巩固保留 subject 与文本相似合并，以及衰减/GC 的上游签名参数和零值统计字段（本章不执行衰减/GC）。`should_enqueue_threshold()` 仅判断条数，不入队、不启动任务。新增 pin 优先回归测试；`memory/store.py` 已有 `supersede_atom()` 与 `last_accessed_at`，本次未重复添加。源码行为核对状态仍为 🔍，未将结构核对提升为逐行完成。
-
-第 5 部分本次落地：`parser/chunker/wiki_chunker/index_builder`、`embedding/{base,local_provider,registry}`、`vector/sqlite_vec`、`owned/{db,schema,ids,service,kg}`、`code_index/{symbols,tokenize,import_bindings,internal_refs,store,format_results}`。章节测试 17 项；源码核对状态仍为 🔍，没有把结构核对提升为逐行完成。
-
-## 第 1–4 部分完整度审计（2026-11-24）
-
-- 章节测试：Part 1 `14`、Part 2 `17`、Part 3 `15`、Part 4 `19`，合计 `65`；全量 `98 passed`，ruff 全绿。
-- 文档：17 章正文齐全；本地链接 0 断链；93 个 Python 代码块中 1 个语法错误已修；1 个失效的上游路径已修。
-- 组件级判定：四部分的章节行为都有真实测试，不能再把“组件通过”写成“系统已接好”。
-- 端到端缺口：无工具循环；`/chat` 未传 checkpointer、未读写消息表；第 3 部分无可执行工具 runner；第 4 部分记忆未注入 `build_graph`；`items` 可见性仍是 no-op。
-- 详细矩阵与修复记录见 [`00-导论/05-完整度审计-第1至4部分.md`](00-导论/05-完整度审计-第1至4部分.md)。
-
-### 2026-11-24 补录：源码核对与第 4 部分补全
-
-- 17 章都新增 `## 源码核对记录（路径与符号实测）`：上游文件行数、本地对应行数、已核符号、未复刻项。
-- 第 4 部分 README 补 12 个核心上游文件映射、2 组未复刻模块、10 个记忆/资产概念和写入→召回→注入路径；第 4 部分三章补上游文件表与行为差异表。
-- 状态变化：第 4 部分 3 章 🔍→✅；第 1 部分第 2 章 📄→✅；第 1 部分第 6 章为汇总；其余 7 章仍为 🔍 结构级。
-- 修正行数：`store.py 491→497`、`facade.py 257→258`、`recall_snapshot.py 110→111`、`consolidate.py 218→219`、`items/service.py 270→271`。
-- 修正两个文档问题：`02/02` 裸 `yield` 代码块包进 `async def`；`03/01` 本地文件表删掉不存在的 `read_file.py` / `write_file.py` / `workspace_guard_middleware.py`。
-- 验证：1–4 部分 93 个 Python 代码块全部可解析；本地链接 0 断链；`97 passed`；ruff 全绿。
-
-### 2026-11-24 补录：第 3 部分第 2 章升为行为级
-
-- 对照上游 `tools/zcode_port/background.py`（243 行）、`plugins/bridge_auth.py`（94 行）、`routers/browser_bridge.py`（145 行）、`routers/cua_bridge.py`（357 行）与本地 `background_bash.py`（167 行）、`bridge_auth.py`（30 行）。
-- 第 3 部分第 2 章新增 6 行行为差异表，并把源码记录从「🔍 结构级」改为「✅ 行为级（本章声明范围）」。这不是把整章说成上游全量：`wait_task`/心跳、`tool_call_id`/`session_key`/`cancellable`、停止通知、token 落盘自动生成、浏览器/CUA HTTP 路由仍明确未实现。
-- 状态变化：第 3 部分 4 章全部 ✅；第 1–4 部分变为 **10 章行为级 + 1 章汇总 + 6 章结构级**。
-- 第 4 部分测试由 18 修正为 19；四部分合计 65，全量 98。
-
-### 2026-11-24 补录：第 4 部分短期/长期记忆实操闭环
-
-- 第 1 章新增可运行练习：task JSON 写入当前 thread 消息，调用方显式挑选事实写入长期 atom，在新 thread 关键词召回、记录快照并格式化记忆块。
-- 明确说明本地尚未复刻 EvoFlow `agents/memory/queue.py` → `MemoryUpdater.update_memory()` 的 LLM 自动抽取队列，也未接入 Agent 运行入口；不把显式组件调用描述成聊天自动记忆。
-- 验证：新闭环用例 1 passed；第 4 部分 19 passed；全量章节 98 passed；ruff 全绿。
-
-## 总览
-
-| Part | 章 | ✅ | 📄 | 🔍 | 🟡 | 依据 |
-|---|---|---|---|---|---|---|
-| 00-导论 | 4 | 3 | 0 | 1 | 0 | 02 模块地图仍是文件名推断，已改为「路径+符号」实测版；新增完整度审计不计入技术章统计 |
-| 01-最小闭环 | 6 | 1 | 1 | 4 | 0 | ch2 图结构已行为级核对；ch1/ch3/ch4/ch5 补源码记录但仍是结构级；ch6 为汇总验收 |
-| 02-持久化与运行生命周期 | 4 | 2 | 0 | 2 | 0 | ch1 检查点、ch2 生命周期已逐行核对；ch3/ch4 补源码记录，仍为结构级 |
-| 03-工具深化与上下文控制 | 4 | 4 | 0 | 0 | 0 | 四章已行为级核对；ch2 按「本章声明范围」核任务表与 token，完整执行器/HTTP 路由仍列为未实现 |
-| 04-记忆与长期资产 | 3 | 3 | 0 | 0 | 0 | 三章已补齐上游文件/行为差异并做行为级核对 |
-| 05-知识库与代码理解 | 4 | 0 | 0 | 4 | 0 | 代码已落地 17 tests；源码行为仍未逐行核对 |
-| 06-委派隔离与危险操作治理 | 3 | 0 | 0 | 3 | 0 | — |
-| 07-计划目标协作与探索 | 5 | 0 | 0 | 5 | 0 | — |
-| 08-自动化与主动Agent | 4 | 0 | 0 | 4 | 0 | — |
-| 09-外部能力生态 | 4 | 0 | 0 | 4 | 0 | — |
-| 10-HTTP网关与渠道 | 3 | 0 | 0 | 3 | 0 | — |
-| 11-身份组织与运维治理 | 6 | 0 | 0 | 6 | 0 | — |
-| 12-Web桌面与产品体验 | 4 | 0 | 0 | 4 | 0 | — |
-| 13-全量集成与复刻验收 | 2 | 0 | 0 | 2 | 0 | — |
-| **合计** | **56** | **13** | **1** | **42** | **0** | 13 ✅ / 1 📄 / 42 🔍 / 0 🟡 |
-
-> 上一版合计写作 54/13/41：**章节数算错（各 Part 相加为 56），且把「原文迁移」计入 ✅**。本次已按四档定义重算。
-
-## 「从零实现（手把手）」覆盖
-
-这是**第二个维度**，与上面的 ✅/📄/🔍/🟡（源码核对程度）相互独立：一章可以「源码核对 🔍 + 手把手已写」。
-
-| 项 | 数量 | 说明 |
-|---|---|---|
-| 正文 42 章（01–13 各 Part 的技术章） | 42 / 42 | 全部含「从零实现（手把手）」节 |
-| 其中按统一七节体例（`00-导论/04-实现手册体例.md`） | 41 | `02/01` 用「第 10 节」形式，内容等价、格式略异 |
-| 代码落地（`my-agent-flow/backend`） | 见「实现验收记录」 | 不再在本行写裸测试数字，统一以带日期与命令范围的记录为准 |
-| 已**实测跑通**代码的章节 | 4 | `02/01`（checkpointer 全链路）、`03/04`（压缩阈值）、`07/02`（账本防双领 + 超时回收）、`11/02`（JWT 验签 + 篡改拒绝）；其余按源码推导，未逐章实跑 |
-| 已修掉的坑 | 2 | `07/02` 原测试用可疑的 `time_now()` → 改成显式 `now=last_seen+11`；`11/02` 原引用不存在的 `helpers_jwt.py` → 新增 Step 2 教创建 |
-
-合并总文档：`agent-book/scripts/build_evoflow_master.py` → 输出到 `my-agent-flow/EvoFlow-学习规划-总文档.md`（改完子文档必须重跑）。
-
-## 本轮新增的已核对章节
-
-| 章节 | 读过的源码 | 得到的关键结论 |
-|---|---|---|
-| 02/01 检查点与线程恢复 | `checkpointer/provider.py`（264）、`omit_transcript.py`（270）、`thread_state_reader.py`（172） | 检查点**不存 messages**（`_TRANSCRIPT_CHANNELS` = messages/ui_messages），唯一例外是存在未配对 tool_call；SQLite 长连接 + WAL + busy_timeout=5000 + `SELECT 1` 探活；读状态不编译图 |
-| 02/02 运行生命周期与取消 | `backend/packages/harness/myagentflow/session_execution/lifecycle.py`（228）、`langgraph_cancel.py`（279） | 状态写入单一入口；取消走 LangGraph HTTP API（默认 `:8070/api/langgraph`），活跃状态含 `interrupted`；**4s/0.25s 扫描确认**；404 归一为 `already_gone` |
-| 03/03 Middleware 调用链与工具审计 | `agents/middlewares/`（71 条目）、`lead_agent/agent.py`（2002） | `after_model` **逆序**执行；需最后生效的放链头（`insert(0)`），需最先跑的放链尾（`append`）；澄清固定为链尾；压缩只在 `wrap_model_call` 临时折叠、不写检查点 |
-
-## 下一批建议（按收益排序）
-
-1. **03/04 上下文预算与压缩** — `context_compaction_middleware.py`（1538 行）是全书最有复用价值的单体实现。
-2. **03/01 文件终端与宿主边界** — `workspace_guard_middleware.py` + `tools/` 路径围栏，决定安全下限。
-3. **06/02 沙箱与权限预设** — `execution_security/permission_preset.py` 三档权限，复刻必须先立。
-4. **05/04 代码索引** — `backend/packages/harness/myagentflow/code_index/store.py` 的表设计与 FTS5 用法。
-5. **08/02 调度器** — `automation_scheduler.py` 的补偿与单飞。
-
-## 范围三层（替代原来的「不做清单」）
-
-原来的清单把「不复刻」和「不实现」混在一起，导致第 12 部分第 4 章还在写 Tauri 打包，与清单自相矛盾。改为三层，每章在标题下标注自己属于哪一层：
-
-| 层 | 含义 | 判定 | 覆盖范围 |
-|---|---|---|---|
-| **A 复刻** | 自己写出来并能跑 | 有最小实现 + 可执行验收 | 内核闭环、持久化与生命周期、工具与上下文控制、记忆与知识、委派与计划、自动化主干、网关核心路由、Eval 基本盘 |
-| **B 仅解释** | 读懂结构与取舍，**不实现** | 有真实路径与设计理由，无自研代码 | 60+ 中间件的逐项细节、组织与多租户治理全链路、渠道适配器全量（飞书/企微/钉钉/Slack/Telegram）、桌面端与 Tauri 打包、UI 全部页面 |
-| **C 不做** | 明确不做，连解释也不必 | 与内核无关 | 10 余张 `*_repositories` 分表拆库（我们采用单库少表）、历史 YAML 迁移兼容路径、多端打包产物 |
-
-> 第 12 部分第 4 章（Tauri）属于 **B 仅解释**：读它，是为了知道桌面端如何复用同一套 RPC 与权限模型，不是为了把安装包做出来。
-
-## 源码语义核验（2026-11-17）
-
-逐一回 `/Users/main/EvoFlow` 读代码核对「行为断言」，不只核对路径存在性。查出并改正 9 处：
-
-| 章 | 原文（错） | 真实情况 |
-|---|---|---|
-| 01/01 | `AppConfig.redactor()`、`RedactingFilter`、`ModelRecord.__repr__` | 三者都不存在；真实脱敏是 `models/vendor_roundtrip.py:124 _redact_secrets`、`admin/platform_handlers.py:3650 _redact_channel_secrets`、`plans/service.py:172 redact_key` |
-| 01/01 | `model_store.py` 自造建表列 | 换成 `persistence/schema.py:1031` 真实 DDL，并写明本复刻不复刻（模型放 config.yaml） |
-| 01/02 | `StateGraph` 与 `call_model` 节点在 `agent.py` | EvoFlow 调 `create_agent`（`:1502`/`:1953`），无 `call_model` 节点 |
-| 02/04 | `ShareStore.create()` 生成 token 并 hash 落库 | token 在 `routers/share.py:71` 生成、**明文**入库（`chat_share_repositories.py:121/172`）；`ShareStore` 不存在 |
-| 03/03 | 中间件 71 个；装配在 705–760 | 70 个；`_build_middlewares:685-941`；逆序由 `langchain/agents/factory.py:1551` 连边实现，非 EvoFlow |
-| 03/04 | 压缩后目标是 `refill_target()` | 该函数不存在；真实是 `compaction_trigger.py:20 POST_COMPRESS_REFILL_RATIO=1.22` / `:24 SAME_TURN_REFILL_RATIO=1.5` |
-| 04/01 | 命名空间 `user/workspace/session/agent` | 实际是 `user/agent/workspace/person`（`memory/namespaces.py:6/10/17/27`），无 session |
-| 10/02 | `completions()`、`_last_user()` | 两个 `chat_completions()`（`openai_compat_apps.py:274` / `openai_compat_models.py:49`）；无 `_last_user` |
-| 10/03 | `Bus.inbound()` / `Bus.outbound()` | `publish_inbound:151` / `publish_outbound:341` |
-| 12/02 | `read_settings()` / `write_settings()` 带版本号 | `get_app_setting:1113` / `set_app_setting:1132`；无版本号字段 |
-
-已核验通过、未改动的：`utils/model_context_length.py` 三个阈值常量、`agents/lead_agent/agent.py:939` 澄清中间件在链尾、430 条源码路径存在性、298 组「文件+符号」配对、54 个本章测试断言。
-
-## 配置层：按 EvoFlow 文件布局拆分（2026-11-17）
-
-用户三次纠偏：`settings.py` → 单文件 `app_config.py` → **必须拆成 EvoFlow 的四个文件**。已按原布局落地，文件名/类名/函数名/字段名照抄，只做减法：
-
-| EvoFlow | 复刻 | 抄 / 裁 |
-|---|---|---|
-| `config/app_config.py:94 AppConfig`（14 分区） | `backend/packages/harness/myagentflow/config/app_config.py` | 5 分区：`log_level`/`models`/`primary_model`/`checkpointer`/`storage` |
-| `config/model_config.py:78 ModelConfig`（30 列） | `backend/packages/harness/myagentflow/config/model_config.py` | 13 列，`name`（条目名）与 `model`（模型 ID）分开；含 `_drop_reserved_model_config_key`、`resolve_model_max_output_tokens` |
-| `backend/packages/harness/myagentflow/config/checkpointer_config.py:10` | 同名文件 | 整份含模块单例 `get/set_checkpointer_config()` |
-| `backend/packages/harness/myagentflow/config/storage_config.py:10` | 同名文件 | `backend`/`sqlite_path`；`DEFAULT_APP_DB_REL` 暂内联 |
-| `models/resolver.py:38/63` | `backend/packages/harness/myagentflow/models/resolver.py` | `NoChatModelConfiguredError`、`resolve_run_model`、`get_app_config_safe`、`_global_default_model`（只留两层来源） |
-| `backend/packages/harness/myagentflow/models/factory.py:879` | `backend/packages/harness/myagentflow/models/factory.py` | `create_chat_model(name=None, thinking_enabled=False, **kwargs)`，只实现 openai |
-
-测试从 54 → 57 passed，ruff 清零；`01/01` 的示例代码、五个 Step、对照表全部按四文件重写，`10/01`、`10/02`、`02/03` 的调用示例同步为 `create_chat_model()`。
-
-## 代码注释细则（2026-11-17）
-
-用户指出 `CheckpointerType = Literal[...]` 没有注释。已把「每个符号都要有注释」写成硬规则：`00-导论/04-实现手册体例.md` 第 3 节扩成六条（命名照 EvoFlow / 每个符号必注释 / 注释写为什么 / 代码能跑 / 一步一验证 / 兜底显式），并附对象→必写内容→反例表。
-
-代码侧已补注释的裸符号：`CheckpointerType`（逐值说明与依赖）、`_LEGACY_DEFAULT_MAX_OUTPUT_TOKENS`、`DEFAULT_CONTEXT`/`AUTO_COMPACT_RATIO`/`ABSOLUTE_CAP`/两个 REFILL、`ROLES`、`PATTERNS`/`INVISIBLE`/`BLOCKED`、`POSTGRES_INSTALL`/`POSTGRES_CONN_REQUIRED`、`DANGEROUS`/`WRITE_MARKERS`、`DEFAULT`（记忆模板）、`_VER`、`BRIDGE_TOKEN_ENV`、`ALLOWED_END`、`ALLOWED`（审批终态），以及六处 `_SCHEMA` 建表 DDL 与 `backend/packages/harness/myagentflow/plans/parser.py`、`backend/packages/harness/myagentflow/knowledge/chunker.py` 的正则常量。
-
-文件头规矩：反例 `CheckpointerType = Literal["memory", "sqlite", "postgres"]` 已写进体例文档，作为「类型别名必须逐个取值说明」的标准样例。
-
-## 补 `backend/packages/harness/myagentflow/config/models_yaml.py`（2026-11-17）
-
-用户指出文档引了 `config/models_yaml.py:116 flatten_providers_dict()`，但复刻仓库里没有这个文件。已补：
-
-- 新建 `backend/packages/harness/myagentflow/config/models_yaml.py`：`infer_vendor_from_connection`、`_coerce_model_entry`、`_ensure_vendor_field`、`flatten_providers_dict`、`_normalize_models_input`、`coerce_models_field_for_appconfig`，函数名与 EvoFlow 一致；
-- 未抄 `unflatten_models_to_providers_dict`（方向是「库里的模型 → yaml」，我们没有模型库）；
-- `AppConfig.models` 增加 `field_validator(mode="before")`，扁平列表与 `models.providers` 分组两种 yaml 都能读；
-- 新增测试 `test_providers_layout_is_flattened`（provider 层 base_url/api_key 下传、条目字段覆盖、name 顺序），本章 6 例、全书 58 passed；
-- `config.example.yaml` 补 providers 写法注释，`01/01` 对照表与示例代码补 `models_yaml.py` 一节。
-
-## 注释去噪（2026-11-17）
-
-用户指出「（EvoFlow 同名字段 `_checkpointer_config`）」这类句子没必要。已清理：代码里不再写「EvoFlow 同名字段 / 同名函数 / 对齐某某行」，出处统一放文档对照表；受影响的 13 个文件（四个 config、resolver、factory、provider、budget、lifecycle、workspace_path_guard、测试 docstring）改为只讲行为与理由。
-
-规则写入 `00-导论/04-实现手册体例.md` 3.3：注释不写对齐出处，文件头 docstring 最多说明「负责什么、为什么单独成文件」。
-
-## 第 2 章代码核对（2026-11-17）
-
-用户问「第 2 章相关代码都实现了么」。核对结论：手把手三步都已落地——`backend/packages/harness/myagentflow/agents/lead_agent/graph.py`（`build_graph(model, checkpointer=None)`，`MessagesState` + 单节点 `call_model`）与 `tests/chapters/test_ch01_02_graph.py`（2 例，实测 2 passed）。但文档上一版的「示例代码」贴的是一个 `Agent` 类（`render_prompt`/`start_run`/`execute`/`Redactor`/`Store`/`ToolRegistry`），仓库里从未有过，EvoFlow 也没有这个类——已删除并替换为真实的 `graph.py` 全文 + `chat.py` 调用节选。
-
-同时修正：
-- 章首「本章是手写 agent loop」→「只造单节点图，没有工具循环/中间件/system prompt」；
-- 「本章目标 / 最小闭环 / 调用逻辑」三节从 run_id/事件流改写为 `invoke` 路径；
-- 新增「代码实现状态」表（✅ graph.py 与 2 个测试；🟡 chat 路由接了图但未接 checkpointer；❌ 提示词注入、工具循环、run 生命周期分属 3/03、1/04、02/02）；
-- 验收清单改成真实用例名（`test_single_turn`、`test_same_thread_keeps_history`）；
-- 常见坑补 `build_graph(model, checkpointer=None)` 的第二个位置参数；
-- 顺带清掉虚构的 `Redactor`：01/01 与 02 都改为「EvoFlow 用 `models/credential_sanitize.py` 的 `sanitize_api_key`/`sanitize_base_url`」。
-
-## 第 3 章仓储拆分（2026-11-17）
-
-用户指出我把 EvoFlow 的 `backend/packages/harness/myagentflow/persistence/chat_message_repositories.py`（消息）与 `backend/packages/harness/myagentflow/persistence/session_repositories.py`（会话）合并成了一个自造的 `persistence/messages.py`（`MessageStore` 类）。已按 EvoFlow 布局拆成三个文件：
-
-| 文件 | 函数 | 说明 |
-|---|---|---|
-| `backend/packages/harness/myagentflow/persistence/db.py` | `get_db` / `db_connection_lock` / `reset_db` | 单例连接、WAL、busy_timeout、延迟建表 |
-| `backend/packages/harness/myagentflow/persistence/session_repositories.py` | `upsert_session_row` / `get_session_row_for_ui` / `list_sessions_for_ui` / `delete_sessions_by_thread_id` | 表 `sessions` |
-| `backend/packages/harness/myagentflow/persistence/chat_message_repositories.py` | `append_message` / `list_messages` / `count_messages` / `delete_messages_for_session` | 表 `chat_messages`，主键 `(thread_id, seq)` |
-
-- 删除 `persistence/messages.py`；`tests/chapters/test_ch01_03_messages.py` 重写为 3 例，`test_ch01_06_e2e.py`、`test_ch13_01_e2e.py` 改用函数式 API + `monkeypatch` 设库路径。
-- 文档同步：01/03 的示例代码、调用逻辑图、数据模型、业务规则、Step 1–4、对照表全部改成三文件叙述；01/06 与 13/01 的代码块同步改。
-- 测试 **60 passed**，ruff 全绿。
-
+1. 在本机重建合订本，核实生成篇数、TOC、来源注释和新增审计页。
+2. 运行章节测试与 Ruff，将真实输出（包括失败项）记录于本文件。
+3. 若命令失败，先区分环境/依赖问题与代码测试失败，再记录，不把未执行或环境失败写成通过。
