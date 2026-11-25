@@ -118,9 +118,6 @@ export default withMermaid(defineConfig({
       {
         text: 'Harness',
         items: [
-          { text: 'agent-flow', link: '/agent-flow/index' },
-          { text: 'evo-flow', link: '/evo-flow/index' },
-          { text: 'WorkAgentHarness', link: '/work-agent-harness/index' },
           { text: 'my-agent-flow', link: '/my-agent-flow/index' },
         ],
       },
