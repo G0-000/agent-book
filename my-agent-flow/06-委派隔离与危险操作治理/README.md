@@ -1,16 +1,16 @@
 # 第 6 部分　委派、隔离与危险操作治理 / Delegation, Isolation, Dangerous Ops
 
-> 状态：🟡 骨架（真实路径已核对）。
+> **落地状态：🟡 局部组件已落地，不是完整“骨架”，也不是端到端委派。** 代码树有 `subagents/`、`sandbox/`，Part 6 的策略与审批测试文件存在；缺少子代理专章测试，且没有完整的执行绑定/沙箱接线。章节级映射见 [总文档、分章与代码落地对照](../00-导论/06-总文档分章与代码落地对照.md)。
 
-目标：让「一个 Agent 干不完的活」可以分给子 Agent，同时让**危险操作**在越界前被拦住。
+目标：让「一个 Agent 干不完的活」可以分给子 Agent，同时让危险操作在越界前被拦住。
 
 ## 章节
 
-| 章 | 主题 | 真实模块 |
-|---|---|---|
-| [1](01-子代理注册选择与结果汇总.md) | 子代理注册、选择、结果汇总 | `subagents/`、`agents/xiaomi/`、`routers/agents.py` |
-| [2](02-沙箱宿主执行与权限配置.md) | 沙箱、宿主执行、权限配置 | `sandbox/`、`execution_security/`、`community/aio_sandbox` |
-| [3](03-工具绑定审批取消与清理.md) | 会话工具绑定、审批、取消与清理 | `session_tool_binding/`、`agents/tool_approval_*`、`execution_security/approval.py` |
+| 章 | 主题 | 本地代码 | 测试/状态 |
+|---|---|---|---|
+| [1](01-子代理注册选择与结果汇总.md) | 子代理注册、选择、结果汇总 | `subagents/registry.py`、`adapter.py`、`summarize.py` | 未发现 `test_ch06_01`；未接主 Agent |
+| [2](02-沙箱宿主执行与权限配置.md) | 沙箱、宿主执行、权限配置 | `sandbox/policy.py`、`sandbox/approvals.py` | `test_ch06_02_policy.py`；只是策略子集，无 OS 沙箱执行 |
+| [3](03-工具绑定审批取消与清理.md) | 会话工具绑定、审批、取消与清理 | `sandbox/approvals.py` | `test_ch06_03_approvals.py`；无完整 session-tool binding 执行链 |
 
 ## 为什么单独一部分
 
@@ -18,7 +18,12 @@
 - **隔离解决信任边界**：同一个 Agent 不能既读生产库又随意执行 shell。
 - **治理解决责任边界**：谁批准的、执行了什么、能不能撤销。
 
-## 验收口径
+## 当前未闭合
+
+本项目没有 `execution_security/`、`session_tool_binding/` 模块；目前有的是子代理适配/注册、执行策略和审批记录等小组件。尚未建立从 Agent 产生动作 → 权限判定 → 审批 → 隔离执行 → 取消/清理的真实闭环。不能把验收目标写成当前已具备行为。
+
+## 验收目标（尚非全量已通过）
+
 - 子 Agent 失败不影响主流程（降级为「工具失败」）。
 - 沙箱内执行无法写宿主路径。
 - 每个高危动作都能回答「谁批的、什么时候、批的是哪条命令」。

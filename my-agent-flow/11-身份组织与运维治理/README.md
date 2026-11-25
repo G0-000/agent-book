@@ -1,30 +1,20 @@
 # 第 11 部分　身份、组织与运维治理 / Identity, Organization, Governance
 
-> 状态：🟡 骨架（真实路径已核对）。
+> **落地状态：🟡 部分治理组件存在，组织级流程未实现。** 本地有 `authz/{acl,jwt,license}.py`、`observability/trace.py`、`eval/runner.py`、`agents/persona.py`；`guardrails/` 为空。章节测试文件存在于 ACL、JWT、Eval 三章。逐章映射见[总文档、分章与代码落地对照](../00-导论/06-总文档分章与代码落地对照.md)。
 
-目标：从「一个人一个本子」变成「一个组织在用」——身份、权限、成本、质量、审计都要能回答。
+目标：让身份、权限、成本、质量和审计都能被追溯。
 
 ## 章节
 
-| 章 | 主题 | 真实模块 |
-|---|---|---|
-| [1](01-Principal-ACL与Workspace.md) | Principal、ACL、Workspace 与身份入口 | `authz/`、`routers/identity.py` |
-| [2](02-JWT-OIDC与Guardrails.md) | JWT、OIDC、Guardrails 与入口保护 | `webui/auth.py`、`webui/oidc.py`、`guardrails/` |
-| [3](03-组织分发License与审批.md) | 组织分发、License、Admin 与审批 | `organizations/`、`license/`、`admin/`、`routers/audit.py` |
-| [4](04-Trace日志诊断与成本.md) | Trace、日志、运行诊断、成本与用量 | `observability/`、`persistence/usage_ledger.py` |
-| [5](05-Eval质量评估与回归.md) | Eval 质量评估与回归闭环 | `eval/`、`routers/eval.py` |
-| [6](06-人格内核.md) | 人格内核：身份、情绪、记忆与成长 | `person_kernel.py`、`person_affect.py`、`person_wrap_up_reflect.py` |
+| 章 | 主题 | 本地实现 | 测试/缺口 |
+|---|---|---|---|
+| [1](01-Principal-ACL与Workspace.md) | Principal、ACL 与 Workspace | `authz/acl.py` | `test_ch11_01_acl.py`；身份入口不完整 |
+| [2](02-JWT-OIDC与Guardrails.md) | JWT、OIDC、Guardrails | `authz/jwt.py` | `test_ch11_02_jwt.py`；OIDC/Guardrails 未落地 |
+| [3](03-组织分发License与审批.md) | 组织分发、License、审批 | `authz/license.py`、`admin/errors.py` | 组织分发/完整审批未实现 |
+| [4](04-Trace日志诊断与成本.md) | Trace、诊断、成本与用量 | `observability/trace.py` | Trace 基础；没有完整成本账本 |
+| [5](05-Eval质量评估与回归.md) | Eval 质量评估 | `eval/runner.py` | `test_ch11_05_eval.py`；是 runner 子集 |
+| [6](06-人格内核.md) | 人格内核 | `agents/persona.py` | 基础文件；情绪/成长链未实现 |
 
-## 治理的四条线
+## 治理目标（未全量达成）
 
-| 线 | 回答的问题 | 失败后果 |
-|---|---|---|
-| 身份/权限 | 谁能看、谁能做 | 越权、数据泄露 |
-| 成本/用量 | 钱花在哪、谁花的 | 账单失控 |
-| 质量/Eval | 变好了还是变坏了 | 静默退化 |
-| 审计/诊断 | 出了什么事、怎么复现 | 无法定位 |
-
-## 验收口径
-- 任意一次 run 能定位到「谁发起、用了哪个模型、花了多少 token」。
-- 权限变更后 1 分钟内生效。
-- 评测集跑一次能给出回归对比。
+身份/权限、成本/用量、质量/Eval、审计/诊断需要贯穿 Agent 实际运行入口。目录里存在模块或测试，不表示每次 run 已自动留下完整主体、模型、token 与成本记录。
