@@ -1,6 +1,6 @@
 # 第 09 篇　产品化与治理
 
-> 状态：📋 篇骨架；7 章。
+> 状态：🟡 1/7 正文（09.3 飞书渠道最小闭环）；其余 6 章为设计卡。
 
 ## 能力域
 
@@ -16,7 +16,7 @@
 |---|---|---|---|---|
 | [09.1](01-Gateway 与聊天 API/README.md) | Gateway 与聊天 API | HTTP 边界、校验、流式、错误封装 | `POST /chat` → SSE | 📋 设计卡 |
 | [09.2](02-兼容协议、语音与代理/README.md) | 兼容协议、语音与代理 | OpenAI 兼容、适配器、音频 | 兼容请求 → 同一回答 | 📋 设计卡 |
-| [09.3](03-渠道适配器与消息总线/README.md) | 渠道适配器与消息总线 | 渠道抽象、入站/出站、幂等 | 假渠道消息 → Agent → 回复 | 📋 设计卡 |
+| [09.3](03-渠道适配器与消息总线/README.md) | 渠道适配器与消息总线 | 渠道抽象、入站/出站、幂等 | 飞书文本事件 → 总线 → Agent → 飞书回复 | ✅ 飞书最小闭环（7 用例） |
 | [09.4](04-身份、组织、ACL 与 Workspace/README.md) | 身份、组织、ACL 与 Workspace | Principal、RBAC/ACL、租户隔离 | A 用户读不到 B 的 workspace | 📋 设计卡 |
 | [09.5](05-JWT／OIDC 与 Guardrails/README.md) | JWT／OIDC 与 Guardrails | 认证/授权、token 校验、护栏 | 过期 token 被拒绝 | 📋 设计卡 |
 | [09.6](06-Trace、Eval 与成本/README.md) | Trace、Eval 与成本 | 可观测性、span、评测集、成本/延迟 | 一次运行生成 trace；3 条 eval | 📋 设计卡 |

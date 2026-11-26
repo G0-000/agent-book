@@ -1,6 +1,6 @@
 # 第 05.5 章　产物、事项与反思
 
-> 状态：✅ 正文按六节写完；产物归一化、事项 CRUD、反射解析已实现，6 个用例通过。**事项可见性参数是空实现**。
+> 状态：✅ 正文按六节写完；产物归一化、事项 CRUD、反射解析、事项 scope 可见性已实现，7 个用例通过。**身份系统未接，可见性只认显式传入的 scope**。
 > 所属：第 05 篇　长期记忆与资产
 
 ## 1. 功能与知识点
@@ -23,7 +23,7 @@ Agent 干完活要留下「能接着用的东西」，本章有三类资产：
 | 稳定 id | path/url 相同必得同一 id | `test_artifact_normalize_and_dedupe` |
 | 状态键优先 path | `artifact_state_key` | `test_artifact_state_key_prefers_path` |
 | 事项 CRUD 有边界 | 分页 1~200、非法状态拒绝 | `test_items_crud_and_filters` |
-| 可见性不假装实现 | `filter_visibility` 显式 `del` | 代码注释与本章边界 |
+| 可见性 fail-closed | 开过滤时无 scope 就返回空集 | `test_items_visibility_scope_filter` |
 | 反射要检查基类 | `resolve_class(path, base_class=...)` | `test_resolve_variable_and_class` |
 
 **最小验收**：同一路径的产物两次归一得到同一 id；事项创建/查询/更新/删除走通；非法状态抛 `ValidationError`；`resolve_class` 对不匹配基类抛错。
@@ -96,7 +96,7 @@ if query and query not in blob.lower(): continue
 
 ### 3.3 上游对照
 
-EvoFlow 的资产层还包含：产物上传与预览、事项派发到子 Agent、结果回写、反思结果自动应用、可见性/权限。本章只做「归一 + CRUD + 解析」。
+EvoFlow 的资产层还包含：产物上传与预览、事项派发到子 Agent、结果回写、反思结果自动应用、基于 principal 的可见性。本章做「归一 + CRUD + 解析 + scope 级可见性」；principal 体系尚未接入。
 
 ## 4. 测试
 
@@ -108,6 +108,7 @@ EvoFlow 的资产层还包含：产物上传与预览、事项派发到子 Agent
 | 边界 | `test_artifact_state_key_prefers_path` | path 优先于 url |
 | 正常 | `test_items_crud_and_filters` | 创建/查询/更新/删除/过滤 |
 | 失败 | `test_items_reject_bad_status` | 非法状态拒绝 |
+| 权限 | `test_items_visibility_scope_filter` | scope 白名单、admin 放行、无 scope fail-closed |
 | 正常 | `test_resolve_variable_and_class` | 变量/类解析 + 基类校验 |
 
 ### 4.2 运行
@@ -117,13 +118,13 @@ cd /Users/main/my-agent-flow/backend
 uv run pytest tests/chapters/test_ch04_03_assets.py -q
 ```
 
-当前结果：`6 passed`。
+当前结果：`7 passed`。
 
 ## 5. 完整化
 
 1. **产物接聊天**：现在模型产出的文件不会自动登记；要在工具结果里解析并写 ThreadState。
 2. **事项派发**：事项 → 子任务 → 结果回写，形成闭环。
-3. **可见性/权限**：`filter_visibility/is_admin/scope` 参数被 `del`；接入身份后要做真实过滤。
+3. **可见性/权限**：已做 scope 白名单（`owner_scope_id ∈ {personal_scope, org_scope}`，admin 不过滤，无 scope 返回空）；接入身份后把 `principal` 换成真实账号并补审计。
 4. **反思应用**：解析出的类目前只用于扩展点；没有「反思结论自动改进下次执行」。
 5. **存储升级**：JSON → SQLite，支持事务与并发。
 6. **产物预览**：图片/HTML 的安全渲染与白名单。
@@ -137,7 +138,7 @@ uv run pytest tests/chapters/test_ch04_03_assets.py -q
 
 - 产物不接聊天，模型产出的文件不会自动登记。
 - 事项不做派发与回写，只是待办清单。
-- 可见性参数是空实现，**不做假过滤**。
+- 可见性只认调用方显式传入的 scope，不解析 JWT/principal；跨组织隔离要等身份系统。
 - 反思只做解析，不做自动应用。
 
 ### 验收

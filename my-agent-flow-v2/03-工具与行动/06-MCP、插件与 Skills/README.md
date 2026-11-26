@@ -1,6 +1,6 @@
 # 第 03.6 章　MCP、插件与 Skills
 
-> 状态：✅ 正文按六节写完；stdio MCP 客户端、插件加载、技能注册已实现并有 4 个用例。**MCP 尚未接进 ToolRegistry**。
+> 状态：✅ 正文按六节写完；stdio MCP 客户端、`mcp/bridge.py`（MCP → ToolRegistry）、插件加载、技能注册已实现并有 6 个用例。**桥接需显式调用，聊天入口尚未默认装配 MCP**。
 > 所属：第 03 篇　工具与行动
 
 ## 1. 功能与知识点
@@ -82,9 +82,10 @@ if not _VER.match(data["version"]):
 | 顺序 | 文件 | 本章职责 | 关键符号 |
 |---|---|---|---|
 | 1 | `mcp/client.py` | stdio JSON-RPC | `McpClient` |
-| 2 | `skills/loader.py` | 插件动态导入 | `PluginSpec`、`load`、`load_all` |
-| 3 | `skills/registry.py` | manifest 校验与安装 | `Manifest`、`read_manifest`、`SkillRegistry` |
-| 4 | `tests/chapters/test_ch03_06_mcp_skills.py` | 三条链路 | 4 个用例 |
+| 2 | `mcp/bridge.py` | MCP 工具进本地注册表 | `register_mcp_tools` |
+| 3 | `skills/loader.py` | 插件动态导入 | `PluginSpec`、`load`、`load_all` |
+| 4 | `skills/registry.py` | manifest 校验与安装 | `Manifest`、`read_manifest`、`SkillRegistry` |
+| 5 | `tests/chapters/test_ch03_06_mcp_skills.py` | 四条链路（含 MCP→ToolRegistry） | 6 个用例 |
 
 ### 3.1 为什么 MCP 先做 stdio
 
@@ -92,7 +93,7 @@ HTTP/SSE 传输要额外处理鉴权、重连、会话 id；stdio 把「协议�
 
 ### 3.2 取舍：自动注册 vs 显式桥接
 
-MCP 工具现在没有自动进 `ToolRegistry`：`tools/list` 回来的 schema 要显式转换并注册，还要决定权限级别。自动注册会有「一个 MCP server 暴露 60 个工具」的问题，先把桥接做成显式函数，再做开关。
+MINIMAL 桥接已经落地：`register_mcp_tools(registry, client, prefix="mcp__")` 把 `tools/list` 的 name/description/inputSchema 转成 `ToolSpec`，调用时闭包绑定远端工具名并回灌文本。它是显式函数而非自动装配：一个 MCP server 可能暴露 60 个工具，全量塞进上下文会挤爆预算；何时装配、给谁装配，留给入口按场景决定。重名由 `ToolRegistry.register` 直接拒绝，不静默覆盖内置工具。
 
 ### 3.3 上游对照
 
