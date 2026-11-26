@@ -84,7 +84,7 @@ if require_configured and not name:
 | 3 | `config/models_yaml.py` | providers 嵌套摊平、vendor 推断 | `flatten_providers_dict`、`infer_vendor_from_connection` |
 | 4 | `models/resolver.py` | 选「这一轮用哪个模型」 | `resolve_run_model`、`NoChatModelConfiguredError` |
 | 5 | `models/factory.py` | 条目名 → 实例 | `create_chat_model` |
-| 6 | `tests/chapters/test_ch01_01_config.py` | 配置行为 | 9 个用例 |
+| 6 | `tests/config/test_ch01_01_config.py` | 配置行为 | 9 个用例 |
 
 ### 3.1 models 两种写法摊平
 
@@ -151,7 +151,7 @@ EvoFlow 的模型层还包含：多 vendor（openai/anthropic/google）、thinki
 
 ```bash
 cd /Users/main/my-agent-flow/backend
-uv run pytest tests/chapters/test_ch01_01_config.py -q
+uv run pytest tests/config/test_ch01_01_config.py -q
 ```
 
 当前结果：`9 passed`。
@@ -181,7 +181,7 @@ uv run pytest tests/chapters/test_ch01_01_config.py -q
 
 ```bash
 cd /Users/main/my-agent-flow/backend
-uv run pytest tests/chapters/test_ch01_01_config.py -q
+uv run pytest tests/config/test_ch01_01_config.py -q
 ```
 
 预期：`9 passed`。失败时先查：`MYAGENTFLOW_CONFIG_PATH` 是否指向旧文件、`primary_model` 是否写成了模型 ID 而不是条目名、`models` 是否被 `providers` 写法漏掉、stub 条目的 `use` 是否写成 `package:Class` 形式。
