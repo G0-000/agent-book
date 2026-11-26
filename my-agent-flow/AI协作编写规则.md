@@ -5,8 +5,8 @@
 ## 1. 项目目标与文档分工
 
 - 本项目是按章节学习并仿写 EvoFlow，不是一次性实现完整产品，也不是只写概念介绍。
-- 本目录 `EvoFlow-学习规划-总文档.md` 是便于阅读和交接的合订本，由拆分文档生成，禁止直接编辑。
-- `agent-book/my-agent-flow/` 是拆分文档与合订本的唯一来源。正文修改在本目录完成，再运行 `python3 scripts/build_evoflow_master.py` 更新本目录合订本。
+- `agent-book/public/EvoFlow-学习规划-总文档.md` 是便于阅读和交接的单文件合订本，由拆分文档生成，禁止直接编辑。
+- `agent-book/my-agent-flow/` 是拆分文档与合订本的唯一来源。正文修改在本目录完成，再运行 `python3 scripts/build_evoflow_master.py` 更新 `public/` 下的合订本。
 - 仿写代码在代码仓库 `my-agent-flow/backend/`。章节说明的文件路径应与 EvoFlow 对应模块尽量同构，具体实现按本项目当前阶段逐步增加。
 - 遇到总文档、拆分文档、代码、EvoFlow 源码不一致时，不要自行猜测或悄悄改写；先核对来源和当前版本，在拆分正文中修正并记录差异，再重建合订本。
 
