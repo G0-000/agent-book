@@ -16,7 +16,7 @@
 |---|---|---|---|---|
 | [01.1](01-配置与模型调用/README.md) | 配置与模型调用 | Provider 抽象、凭证解析、模型选择、可替换测试替身 | `create_chat_model` → `invoke` → 文本 | 📋 设计卡 |
 | [01.2](02-消息、会话与 ThreadState/README.md) | 消息、会话与 ThreadState | 消息角色、状态容器、序列化、会话隔离 | 构造 state → 单轮图 → 输出消息 | 📋 设计卡 |
-| [01.3](03-Prompt 组装与指令层级/README.md) | Prompt 组装与指令层级 | system/user/tool 优先级、上下文装配、预算 | 拼 prompt → 假模型 → 断言各段存在 | 📋 设计卡 |
+| [01.3](03-Prompt 组装与指令层级/README.md) | Prompt 组装与指令层级 | system/user/tool 优先级、上下文装配、预算 | 拼 prompt → 假模型 → 断言各段存在 | 🟡 代码已接 |
 | [01.4](04-单轮 Agent 图/README.md) | 单轮 Agent 图 | 图节点/边、状态转移、终止条件 | 输入 → 模型节点 → END | 📋 设计卡 |
 | [01.5](05-工具调用循环/README.md) | 工具调用循环 | function calling、工具 schema、观察-行动循环、最大轮次 | 脚本模型调 calculator → 结果回灌 → 最终回答 | 🟡 代码已接 |
 | [01.6](06-流式输出、重试与中断/README.md) | 流式输出、重试与中断 | token 流、背压、重试、取消 | SSE 输出事件；运行中取消 | 📋 设计卡 |

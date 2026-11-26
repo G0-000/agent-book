@@ -1,6 +1,7 @@
 # 第 04.1 章　消息与会话持久化
 
-> 状态：📋 章节设计卡；正文待按六节填充。  
+> 状态：🟡 入口已写消息与会话；正文待按六节填充。  
+> 代码：`/api/chat` 写 user/assistant、upsert session；测试 `tests/chapters/test_ch04_03_chat_flow.py`。
 > 所属：第 04 篇　运行状态与持久化
 
 ## 1. 功能与知识点

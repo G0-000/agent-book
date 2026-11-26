@@ -1,6 +1,7 @@
 # 第 01.3 章　Prompt 组装与指令层级
 
-> 状态：📋 章节设计卡；正文待按六节填充。  
+> 状态：🟡 代码已接最小 Prompt 分层；正文待按六节填充。  
+> 代码：`agents/lead_agent/prompt.py` 的 `build_system_prompt`；`/api/chat` 已传；测试 `tests/chapters/test_ch01_03_prompt.py`（3 个用例）。
 > 所属：第 01 篇　最小可运行 Agent
 
 ## 1. 功能与知识点

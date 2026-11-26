@@ -1,6 +1,7 @@
 # 第 03.2 章　工具分发与中间件
 
-> 状态：📋 章节设计卡；正文待按六节填充。  
+> 状态：🟡 代码已接执行器 + 审计中间件；正文待按六节填充。  
+> 代码：`tools/executor.py` 的 `ToolExecutor`；`/api/chat` 已接 `AuditMiddleware`；测试 `tests/chapters/test_ch03_02_executor.py`（2 个用例）。
 > 所属：第 03 篇　工具与行动
 
 ## 1. 功能与知识点

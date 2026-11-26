@@ -1,6 +1,6 @@
 # 第 05.2 章　召回、快照与注入
 
-> 状态：✅ 样板章（正文按六节写完；代码为本地已实现组件，接线边界见 §6）。
+> 状态：✅ 样板章（正文按六节写完；最小召回/快照/注入已接 `/api/chat`，完整化边界见 §6）。
 > 所属：第 05 篇　长期记忆与资产
 
 ## 1. 功能与知识点
@@ -237,7 +237,7 @@ uv run pytest tests/chapters/test_ch04_01_memory.py tests/chapters/test_ch04_02_
 - 召回是关键词，不是向量；`query_embedding` 只是保留签名。
 - 快照是进程内、按 thread 的旁路副本，不跨进程持久化。
 - 不自动从对话抽取事实；自动抽取属于 05.4。
-- 没有接入 `build_graph` 或 system prompt 前，不能声称“聊天已自动记忆/自动召回”。
+- 已接最小闭环：`/api/chat` 用 `user:default` 做关键词召回 → 快照 → `build_system_prompt(memory_block=...)`；但向量/混合/多用户权限未接，不能声称“完整长期记忆”。
 
 ### 验收
 
@@ -251,3 +251,5 @@ uv run pytest tests/chapters/test_ch04_01_memory.py tests/chapters/test_ch04_02_
 ### 下一章依赖
 
 05.3 会在本章的 atom/召回之上做巩固、冲突与治理；本章的 `format_atoms_block` 和快照字段是后续治理审计的输入。
+
+代码测试：`tests/chapters/test_ch05_02_injection.py` 2 个用例，覆盖 standing + archival 注入和空 namespace。
