@@ -215,7 +215,7 @@ export const myAgentFlowSidebar: DefaultTheme.SidebarItem[] = [
     ],
   },
   {
-    text: '文档正文（13 个部分）',
+    text: '文档正文（v1 手册 + v2 学习版）',
     collapsed: false,
     // 首页/README/PROGRESS 已在上方单独登记，这里从自动扫描结果里剔掉，避免重复
     items: docCodeTree(myAgentFlowRoot, '/my-agent-flow', numericPrefixSort).filter(

@@ -109,6 +109,7 @@ export default withMermaid(defineConfig({
         text: 'Harness',
         items: [
           { text: 'my-agent-flow', link: '/my-agent-flow/index' },
+          { text: 'v2 学习版', link: '/my-agent-flow/v2/README' },
         ],
       },
       {
