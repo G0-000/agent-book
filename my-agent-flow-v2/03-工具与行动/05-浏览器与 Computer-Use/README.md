@@ -1,6 +1,6 @@
 # 第 03.5 章　浏览器与 Computer-Use
 
-> 状态：✅ 正文按六节写完；CUA 会话层与 `/api/cua/*` 已实现并鉴权，5 个用例通过。**未接真实截图/点击驱动**。
+> 状态：✅ 正文按六节写完；CUA 会话层与 `/api/cua/*` 已实现并鉴权，4 个用例通过。**未接真实截图/点击驱动**。
 > 所属：第 03 篇　工具与行动
 
 ## 1. 功能与知识点
@@ -83,7 +83,7 @@ def _check_open(self):
 | 1 | `cua/session.py` | 协议、会话、注册表 | `CuaDriver`、`CuaSession.act`、`CuaRegistry` |
 | 2 | `app/gateway/routers/cua.py` | HTTP 接口 + 鉴权 + `NullDriver` | `create_session`、`act`、`screen` |
 | 3 | `app/gateway/main.py` | 挂载路由 | `cua_router` |
-| 4 | `tests/chapters/test_ch03_05_cua.py` | 协议与鉴权 | 5 个用例 |
+| 4 | `tests/chapters/test_ch03_05_cua.py` | 协议与鉴权 | 4 个用例 |
 
 ### 3.1 为什么先做 NullDriver
 
@@ -118,7 +118,7 @@ cd /Users/main/my-agent-flow/backend
 uv run pytest tests/chapters/test_ch03_05_cua.py -q
 ```
 
-当前结果：`5 passed`。
+当前结果：`4 passed`。
 
 ## 5. 完整化
 
@@ -148,7 +148,7 @@ cd /Users/main/my-agent-flow/backend
 uv run pytest tests/chapters/test_ch03_05_cua.py -q
 ```
 
-预期：`5 passed`。失败时先查：`MYAF_BRIDGE_TOKEN` 是否设置、header 名是否为 `x-bridge-token`、`max_steps` 是否小于 1（会被夹到 1）。
+预期：`4 passed`。失败时先查：`MYAF_BRIDGE_TOKEN` 是否设置、header 名是否为 `x-bridge-token`、`max_steps` 是否小于 1（会被夹到 1）。
 
 ### 下一章依赖
 
