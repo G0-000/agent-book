@@ -1,6 +1,6 @@
 # 第 01.1 章　配置与模型调用
 
-> 状态：✅ 正文按六节写完；配置解析、模型解析与工厂已接进 `/api/chat`，6 个配置测试通过。
+> 状态：✅ 正文按六节写完；配置解析、模型解析与工厂已接进 `/api/chat`，9 个配置测试通过（含 stub 工厂 3 个）。
 > 所属：第 01 篇　最小可运行 Agent
 
 ## 1. 功能与知识点
@@ -12,7 +12,7 @@
 1. **配置来源**：环境变量 `MYAGENTFLOW_CONFIG_PATH` → 当前目录 `config.yaml`；没有 YAML 时用环境变量拼出一条模型。
 2. **两种 models 写法**：扁平列表，或 `providers: {网关: {..., models: [...]}}` 嵌套写法，解析时摊平成同一种列表。
 3. **模型解析**：运行时覆盖 `cfg["model"]` → `primary_model` → `models[0].name`，都没有就抛 `NoChatModelConfiguredError`。
-4. **模型工厂**：按条目名找到配置，按 `vendor` 实例化 provider；只实现 `openai`，其它 vendor 明确报错。
+4. **模型工厂**：按条目名找到配置，按 `vendor` 实例化 provider；实现 `openai` 与 `stub` 两种（stub 是离线开发/测试替身，仅用于本地跑通 demo 与测试，不进生产），其它 vendor 明确报错。
 
 入口是 `/api/chat` 里的 `create_chat_model()`；它不传参数，走解析规则。
 
@@ -26,8 +26,9 @@
 | 缺模型必须显式失败 | 一个模型都没配时抛 `NoChatModelConfiguredError` | `test_no_model_raises` |
 | 配置改了自动重读 | 按文件 mtime 判断缓存，不重启也能生效 | `get_app_config()` 里的 mtime 比较 |
 | 不支持的 vendor 不静默降级 | `raise RuntimeError(...)`，不造一个假模型 | 工厂末尾的分支 |
+| 离线开发要可预测 | `vendor: stub` 返回内置 `StubChatModel`，`invoke()` 回显 `echo: <最后一条用户消息>`，不联网、不装第三方 SDK | `test_stub_vendor` |
 
-**最小验收**：只配环境变量也能建出模型；一个都没配时报错而不是空跑。
+**最小验收**：只配环境变量也能建出模型；一个都没配时报错而不是空跑；`vendor: stub` 能离线回显跑通 demo。
 
 ## 2. 最小调用链
 
@@ -37,9 +38,10 @@ flowchart TD
     B --> C[models: list ModelConfig]
     C --> D[resolve_run_model]
     D --> E[_entry_by_name]
-    E --> F{vendor == openai?}
-    F -- 是 --> G[ChatOpenAI 实例]
-    F -- 否 --> H[RuntimeError: 暂不支持]
+    E --> F{vendor?}
+    F -- openai --> G[ChatOpenAI 实例]
+    F -- stub --> S[StubChatModel 离线替身]
+    F -- 其它 --> H[RuntimeError: 暂不支持]
 ```
 
 ### 2.1 路径优先级
@@ -51,7 +53,7 @@ def resolve_config_path(cls, config_path: str | None = None) -> Path:
         return Path(config_path).expanduser()
     env_path = os.getenv(CONFIG_PATH_ENV, "").strip()
     if env_path:
-        return Path(env_path).expanduser()
+        return Path(env_path)
     return Path.cwd() / "config.yaml"
 ```
 
@@ -70,7 +72,8 @@ if require_configured and not name:
 
 - YAML 语法错：配置加载失败，走默认值 → 最终由「没有模型」这一步报错。
 - `yaml` 未安装：`_read_config_data()` 退化为「只有默认值」，不抛 ImportError。
-- `vendor` 写了 `azure`/`anthropic`：工厂直接报「暂不支持」，不猜参数。
+- `vendor` 写了 `azure`/`anthropic`：工厂直接报「暂不支持（已实现 openai, stub）」，不猜参数。
+- `stub` 条目的 `use` 写错（不是 `package:Class` 形式）：工厂报错，不静默回退。
 
 ## 3. 代码创建
 
@@ -81,7 +84,7 @@ if require_configured and not name:
 | 3 | `config/models_yaml.py` | providers 嵌套摊平、vendor 推断 | `flatten_providers_dict`、`infer_vendor_from_connection` |
 | 4 | `models/resolver.py` | 选「这一轮用哪个模型」 | `resolve_run_model`、`NoChatModelConfiguredError` |
 | 5 | `models/factory.py` | 条目名 → 实例 | `create_chat_model` |
-| 6 | `tests/chapters/test_ch01_01_config.py` | 配置行为 | 6 个用例 |
+| 6 | `tests/chapters/test_ch01_01_config.py` | 配置行为 | 9 个用例 |
 
 ### 3.1 models 两种写法摊平
 
@@ -102,6 +105,13 @@ def flatten_providers_dict(providers: dict[str, Any]) -> list[dict[str, Any]]:
 ### 3.2 工厂只做实例化
 
 ```python
+if entry.vendor == "stub":
+    # 离线开发/测试替身：不联网、不装第三方 SDK
+    UseClass = _load_use_class(entry.use) if entry.use else None
+    if UseClass is None:
+        from myagentflow.models.providers.stub import StubChatModel as UseClass
+    return UseClass(**kwargs)
+
 if entry.vendor == "openai":
     model_kwargs = {
         "model": entry.model,
@@ -115,9 +125,11 @@ if entry.vendor == "openai":
 
 `temperature=None` 时不传：显式传 `None` 会被部分 provider 拒绝。同理 `timeout`、`max_retries` 都只在配了才传。
 
+stub 分支的 `use` 可省略，工厂内置 `StubChatModel`；替身 `invoke()` 回显 `echo: <最后一条用户消息>`，`bind_tools()` 返回自身以打通工具链路。**stub 仅用于本地开发/演示与测试，切勿写进生产配置。**
+
 ### 3.3 上游对照
 
-EvoFlow 的模型层还包含：多 vendor（openai/anthropic/google）、thinking 开关、按 agent 与任务类型选模型、`max_tokens` 归一。本章只复刻「单 vendor + 两层次序 + 归一」的最小链，其余在 01.6 与第 09 篇展开。
+EvoFlow 的模型层还包含：多 vendor（openai/anthropic/google）、thinking 开关、按 agent 与任务类型选模型、`max_tokens` 归一。本章只复刻「openai + 离线 stub、两层次序 + 归一」的最小链，其余在 01.6 与第 09 篇展开。
 
 ## 4. 测试
 
@@ -131,6 +143,9 @@ EvoFlow 的模型层还包含：多 vendor（openai/anthropic/google）、thinki
 | 正常 | `test_yaml_config_defines_models` | YAML 的 log_level/primary_model/模型条目都被读到 |
 | 接线 | `test_config_path_env_override` | 改环境变量后解析结果跟着变，没有旧缓存 |
 | 正常 | `test_providers_layout_is_flattened` | providers 嵌套被摊平且顺序保持 |
+| 正常 | `test_stub_vendor` | vendor=stub 工厂返回 StubChatModel，invoke 回显 `echo:` |
+| 失败 | `test_stub_vendor_bad_use` | use 不是 `package:Class` 形式时明确报错，不静默回退 |
+| 失败 | `test_unknown_vendor_raises` | 未实现 vendor 报错，错误信息列出已实现项（openai、stub） |
 
 ### 4.2 运行
 
@@ -139,7 +154,7 @@ cd /Users/main/my-agent-flow/backend
 uv run pytest tests/chapters/test_ch01_01_config.py -q
 ```
 
-当前结果：`6 passed`。
+当前结果：`9 passed`。
 
 ## 5. 完整化
 
@@ -160,6 +175,7 @@ uv run pytest tests/chapters/test_ch01_01_config.py -q
 - 不做多 vendor、thinking、按 agent 选模型。
 - 不做配置校验 UI；配置错只能在启动/调用时暴露。
 - `max_tokens` 归一函数存在，但本章不负责把它传进请求（在 01.6 接）。
+- stub 替身不做并发、流式与真实错误语义，只保证 demo 与测试离线可跑。
 
 ### 验收
 
@@ -168,7 +184,7 @@ cd /Users/main/my-agent-flow/backend
 uv run pytest tests/chapters/test_ch01_01_config.py -q
 ```
 
-预期：`6 passed`。失败时先查：`MYAGENTFLOW_CONFIG_PATH` 是否指向旧文件、`primary_model` 是否写成了模型 ID 而不是条目名、`models` 是否被 `providers` 写法漏掉。
+预期：`9 passed`。失败时先查：`MYAGENTFLOW_CONFIG_PATH` 是否指向旧文件、`primary_model` 是否写成了模型 ID 而不是条目名、`models` 是否被 `providers` 写法漏掉、stub 条目的 `use` 是否写成 `package:Class` 形式。
 
 ### 下一章依赖
 
