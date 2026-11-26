@@ -23,9 +23,19 @@
 ## 运行与验收
 
 - 代码仓：/Users/main/my-agent-flow/backend
-- 本地配置：backend/config.local.yaml 已指向 vendor: stub
+- 本地配置：backend/config.local.yaml（不入库，已被 .gitignore 忽略，fresh clone 必须按步骤 0 自行创建）
 
 步骤：
+0) 创建本地配置（config.local.yaml 不入库，fresh clone 必做）
+   cd /Users/main/my-agent-flow/backend
+   cp config.example.yaml config.local.yaml
+   打开 config.local.yaml，参考 config.example.yaml 中「离线开发替身
+   （stub）」注释段，把 models 条目切到 stub：vendor 改成 stub、use 改成
+   myagentflow.models.providers.stub:StubChatModel、model 改成 stub，
+   并让 primary_model 指向该条目；同时删掉该条目里 openai 专用的
+   base_url、api_key、request_timeout、max_retries 四个字段，并把
+   checkpointer 的 type 改成 memory（与注释段一致；fresh clone 里
+   backend/data/ 尚不存在）。
 1) 安装依赖并选择本地配置
    cd /Users/main/my-agent-flow/backend
    uv sync
@@ -37,7 +47,7 @@
    预期生成 tmp/ch05/recall.txt，首行以 "OK: " 开头。
 
 常见问题：
-- 召回依赖：本篇默认使用离线 stub；如需向量召回，请在 config.yaml 启用相应后端。
+- 召回依赖：本篇默认使用离线 stub；如需向量召回，请在配置里启用相应后端。
 - 无法联网：确认使用了 config.local.yaml（stub provider），本篇不依赖外网。
 
 ## v1 参考
