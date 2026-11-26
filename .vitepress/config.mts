@@ -1,7 +1,7 @@
 import { defineConfig } from 'vitepress'
 import { withMermaid } from 'vitepress-plugin-mermaid'
 import type { HeadConfig } from 'vitepress'
-import { langchainSidebar, langgraphSidebar, vibeSidebar, pythonSidebar, agentFlowSidebar, evoFlowSidebar, myAgentFlowSidebar, agentLearningSidebar, agentPart1Sidebar, agentPart2Sidebar, agentPart3Sidebar, agentPart4Sidebar, agentPart5Sidebar, agentPart6Sidebar } from './sidebars'
+import { langchainSidebar, langgraphSidebar, vibeSidebar, pythonSidebar, agentFlowSidebar, evoFlowSidebar, myAgentFlowSidebar, myAgentFlowV2Sidebar, agentLearningSidebar, agentPart1Sidebar, agentPart2Sidebar, agentPart3Sidebar, agentPart4Sidebar, agentPart5Sidebar, agentPart6Sidebar } from './sidebars'
 
 const site = 'https://G0-000.github.io'
 const homeUrl = site + '/agent-book/'
@@ -109,7 +109,7 @@ export default withMermaid(defineConfig({
         text: 'Harness',
         items: [
           { text: 'my-agent-flow', link: '/my-agent-flow/index' },
-          { text: 'v2 学习版', link: '/my-agent-flow/v2/README' },
+          { text: 'my-agent-flow-v2', link: '/my-agent-flow-v2/README' },
         ],
       },
       {
@@ -131,6 +131,7 @@ export default withMermaid(defineConfig({
       '/agent-flow/': agentFlowSidebar,
       '/evo-flow/': evoFlowSidebar,
       '/my-agent-flow/': myAgentFlowSidebar,
+      '/my-agent-flow-v2/': myAgentFlowV2Sidebar,
       // 从零开始学 Agent：总览/前言/附录显示全书目录；各篇与章节只显示对应篇（键按段数排序匹配，用精确页键+目录前缀键）
       '/agent-learning/SUMMARY': agentLearningSidebar,
       '/agent-learning/index': agentLearningSidebar,

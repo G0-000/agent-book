@@ -64,6 +64,11 @@ const projectItems = [
     desc: '0→1 复刻 EvoFlow 的施工文档：13 个部分共 76 篇，逐章对照真实源码，含验收口径与进度台账。',
     link: '/my-agent-flow/index',
   },
+  {
+    title: 'my-agent-flow-v2',
+    desc: '按功能主线重排的学习版：11 篇 53 章，篇→章→节，每章先最小闭环再补完整功能。',
+    link: '/my-agent-flow-v2/README',
+  },
 ]</script>
 
 <template>

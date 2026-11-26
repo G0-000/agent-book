@@ -1,4 +1,6 @@
-# Agent 学习版 v2
+# my-agent-flow-v2 · Agent 学习版
+
+> 独立项目目录：`agent-book/my-agent-flow-v2/`；不再挂在 `my-agent-flow/v2/` 下。
 
 > 状态：📋 篇/章骨架已生成；02.1 与 05.2 已写成样板正文。v1 的 13 部分保留为实现手册，不删除。
 

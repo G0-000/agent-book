@@ -215,7 +215,7 @@ export const myAgentFlowSidebar: DefaultTheme.SidebarItem[] = [
     ],
   },
   {
-    text: '文档正文（v1 手册 + v2 学习版）',
+    text: '文档正文（v1 实现手册）',
     collapsed: false,
     // 首页/README/PROGRESS 已在上方单独登记，这里从自动扫描结果里剔掉，避免重复
     items: docCodeTree(myAgentFlowRoot, '/my-agent-flow', numericPrefixSort).filter(
@@ -225,6 +225,26 @@ export const myAgentFlowSidebar: DefaultTheme.SidebarItem[] = [
         item.text !== 'README' &&
         item.text !== 'PROGRESS' &&
         item.text !== '溯源',
+    ),
+  },
+]
+
+// my-agent-flow-v2：按功能主线重排的独立项目，不挂在 v1 目录下。
+const myAgentFlowV2Root = fileURLToPath(new URL('../my-agent-flow-v2', import.meta.url))
+
+export const myAgentFlowV2Sidebar: DefaultTheme.SidebarItem[] = [
+  {
+    text: 'my-agent-flow-v2',
+    items: [
+      { text: '学习版首页', link: '/my-agent-flow-v2/README' },
+      { text: '十一篇总览', link: '/my-agent-flow-v2/00-总览' },
+    ],
+  },
+  {
+    text: '正文（11 篇 / 53 章）',
+    collapsed: false,
+    items: docCodeTree(myAgentFlowV2Root, '/my-agent-flow-v2', numericPrefixSort).filter(
+      (item) => item.text !== 'README' && item.text !== 'index',
     ),
   },
 ]
