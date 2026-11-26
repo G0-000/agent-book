@@ -1,6 +1,6 @@
 # 第 02.1 章　Context Window 与预算
 
-> 状态：✅ 样板章（正文按六节写完；代码为本地已实现组件，接线边界见 §6）。
+> 状态：✅ 样板章（正文按六节写完；预算组件已通过 `ContextManager` 接进图，接线边界见 §6）。
 > 所属：第 02 篇　上下文与短期记忆
 
 ## 1. 功能与知识点
@@ -78,7 +78,7 @@ flowchart TD
 | 2 | `context/tool_tokens.py` | 工具输出 token 计数与字符/ token 换算 | `count_tool_tokens` |
 | 3 | `tools/tool_output_truncation.py` | 中间截断、带原始计数的格式化头 | `truncate_text_to_token_budget`、`formatted_truncate_tool_output` |
 | 4 | `tools/large_result_store.py` | 超阈值落盘、信封、清理 | `maybe_persist`、`is_persisted_output_content` |
-| 5 | 调用方 | 目前未接模型循环与工具中间件 | 见 §6 |
+| 5 | `context/short_term.py` | 每轮按预算选策略并在图上生效 | `ContextManager.prepare` |
 
 ### 3.1 阈值与回填
 
@@ -180,7 +180,7 @@ uv run pytest tests/chapters/test_ch03_04_budget.py -q
 
 ## 5. 完整化
 
-1. **接入模型循环**：每轮调用前 `estimate_tokens` → `should_compact`；压缩后按 `refill_target` 回填。当前没有调用方，不能声称已自动压缩。
+1. **接入模型循环（已做最小版）**：`ContextManager.prepare()` 每轮用 `estimate_tokens` 选 full/滑窗/摘要；超过阈值时按 `refill_target` 回填。剩余缺口是 system/工具 schema/历史的分层预算。
 2. **分层预算**：system prompt、工具定义、历史消息、工具结果各留配额；先保 system 与最近一轮，再压缩旧历史。
 3. **工具中间件**：在工具返回处统一走 `formatted_truncate_tool_output` 或 `maybe_persist`，避免每个工具自己截断。
 4. **上下文引用登记**：落盘信封登记到 `context_ref_lru`，让模型按需回读并淘汰旧引用；当前 `thread_id` 参数被 `del`，尚未实现。
@@ -193,7 +193,7 @@ uv run pytest tests/chapters/test_ch03_04_budget.py -q
 
 ### 本章不做什么
 
-- `context/budget.py` 当前是纯函数，没有被 `build_graph`、模型节点或中间件调用。
+- `context/budget.py` 已被 `context/short_term.py` 的 `ContextManager` 调用，并在 `build_graph` 每轮调模型前生效；但只做历史总预算，没有分层配额。
 - `maybe_persist` 当前没有被工具执行器引用；落盘是组件能力，不是端到端已生效。
 - 估算不是精确 tokenizer；它的目标是“宁可高估”，不能拿它做计费。
 - 本章不实现摘要压缩算法；只定义触发阈值与回填预算，摘要属于 02.3。

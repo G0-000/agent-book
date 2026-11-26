@@ -109,7 +109,7 @@ EvoFlow 的记忆不是「把整段对话塞进向量库」，而是几条有不
 ```bash
 cd /Users/main/my-agent-flow/backend
 uv run pytest tests/chapters/test_ch04_*.py -q   # 19 passed
-uv run pytest tests/chapters -q                 # 112 passed
+uv run pytest tests/chapters -q                 # 124 passed
 uv run ruff check packages tests                # All checks passed
 ```
 
