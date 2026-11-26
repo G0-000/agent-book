@@ -1,6 +1,7 @@
 # 第 01.5 章　工具调用循环
 
-> 状态：📋 章节设计卡；正文待按六节填充。  
+> 状态：🟡 代码已接最小循环；正文待按六节填充。  
+> 代码：`agents/lead_agent/graph.py` 的 `tools` 节点 + `ToolMessage` 回灌 + 最大轮次；`/api/chat` 已注册 `echo`。测试 `tests/chapters/test_ch01_05_tool_loop.py`（3 个用例）。
 > 所属：第 01 篇　最小可运行 Agent
 
 ## 1. 功能与知识点
