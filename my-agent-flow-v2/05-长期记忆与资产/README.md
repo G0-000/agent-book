@@ -20,6 +20,26 @@
 | [05.4](04-异步抽取与更新队列/README.md) | 异步抽取与更新队列 | 防抖、异步任务、LLM 抽取、JSON schema、失败隔离 | 假 LLM 抽取 → 入队 → 写回 | ✅ 正文 |
 | [05.5](05-产物、事项与反思/README.md) | 产物、事项与反思 | artifact 契约、item/task 边界、稳定 id、反射解析 | 创建产物/事项 → 列表 → 更新/删除 | ✅ 正文 |
 
+## 运行与验收
+
+- 代码仓：/Users/main/my-agent-flow/backend
+- 本地配置：backend/config.local.yaml 已指向 vendor: stub
+
+步骤：
+1) 安装依赖并选择本地配置
+   cd /Users/main/my-agent-flow/backend
+   uv sync
+   export MYAGENTFLOW_CONFIG_PATH="$(pwd)/config.local.yaml"
+2) 运行本篇测试
+   uv run pytest -q tests/chapters/test_ch05_*.py
+3) 可选演示脚本（当脚本存在时）
+   uv run python scripts/ch05_memory_demo.py
+   预期生成 tmp/ch05/recall.txt，首行以 "OK: " 开头。
+
+常见问题：
+- 召回依赖：本篇默认使用离线 stub；如需向量召回，请在 config.yaml 启用相应后端。
+- 无法联网：确认使用了 config.local.yaml（stub provider），本篇不依赖外网。
+
 ## v1 参考
 
 - [04-记忆与长期资产](../../my-agent-flow/04-记忆与长期资产/README.md)

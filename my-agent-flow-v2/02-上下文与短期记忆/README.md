@@ -19,6 +19,28 @@
 | [02.3](03-压缩、自动续写与再注入/README.md) | 压缩、自动续写与再注入 | 压缩边界、摘要保真、状态恢复 | 长 thread → 压缩 → 下一轮仍记得关键事实 | ✅ 正文，已接 |
 | [02.4](04-上下文注入与提示注入防御/README.md) | 上下文注入与提示注入防御 | 不可信数据、分隔符、指令层级、内容扫描 | 恶意记忆/工具输出被标记且不执行 | ✅ 正文 |
 
+## 运行与验收
+
+本篇可在本机离线跑通（使用 stub provider）。
+
+- 代码仓：/Users/main/my-agent-flow/backend
+- 本地配置：backend/config.local.yaml 已指向 vendor: stub
+
+步骤：
+1) 安装依赖并选择本地配置
+   cd /Users/main/my-agent-flow/backend
+   uv sync
+   export MYAGENTFLOW_CONFIG_PATH="$(pwd)/config.local.yaml"
+2) 运行本篇测试
+   uv run pytest -q tests/chapters/test_ch02_*.py
+3) 可选演示脚本（当脚本存在时）
+   uv run python scripts/ch02_context_demo.py
+   预期生成 tmp/ch02/summary.txt，首行以 "OK: " 开头。
+
+常见问题：
+- ImportError：先执行 uv sync 再重试；确保在 backend 目录下运行。
+- 无法联网：确认使用了 config.local.yaml（stub provider），本篇不依赖外网。
+
 ## v1 参考
 
 - [03-工具深化与上下文控制](../../my-agent-flow/03-工具深化与上下文控制/README.md)

@@ -22,6 +22,26 @@
 | [03.6](06-MCP、插件与 Skills/README.md) | MCP、插件与 Skills | 能力发现、schema 协商、OAuth、生命周期 | 连接假 MCP → 列工具 → 调一个 | ✅ 正文 |
 | [03.7](07-权限、沙箱与审批/README.md) | 权限、沙箱与审批 | 最小权限、审批门、危险操作、审计 | 危险操作必须审批；拒绝后无副作用 | ✅ 正文 |
 
+## 运行与验收
+
+- 代码仓：/Users/main/my-agent-flow/backend
+- 本地配置：backend/config.local.yaml 已指向 vendor: stub
+
+步骤：
+1) 安装依赖并选择本地配置
+   cd /Users/main/my-agent-flow/backend
+   uv sync
+   export MYAGENTFLOW_CONFIG_PATH="$(pwd)/config.local.yaml"
+2) 运行本篇测试
+   uv run pytest -q tests/chapters/test_ch03_*.py
+3) 可选演示脚本（当脚本存在时）
+   uv run python scripts/ch03_tool_demo.py
+   预期生成 tmp/ch03/tool.txt，首行以 "OK: " 开头。
+
+常见问题：
+- 权限被拒：第三章涉及宿主边界与审批，按错误提示检查路径/命令白名单与审批开关。
+- 无法联网：确认使用了 config.local.yaml（stub provider），本篇不依赖外网。
+
 ## v1 参考
 
 - [03-工具深化与上下文控制](../../my-agent-flow/03-工具深化与上下文控制/README.md)
