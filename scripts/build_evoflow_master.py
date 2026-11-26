@@ -2,7 +2,7 @@
 """把 evoflow-学习规划 的全部子文档合并成一份总文档。
 
 用法：
-    python scripts/build_evoflow_master.py            # 输出到 my-agent-flow 仓库
+    python scripts/build_evoflow_master.py            # 输出到 agent-book/my-agent-flow
     python scripts/build_evoflow_master.py --stdout   # 只打印，不写文件
 
 设计要点：
@@ -21,7 +21,7 @@ import sys
 from pathlib import Path
 
 SRC = Path("/Users/main/agent-book/my-agent-flow")
-OUT = Path("/Users/main/my-agent-flow/EvoFlow-学习规划-总文档.md")
+OUT = Path("/Users/main/agent-book/my-agent-flow/EvoFlow-学习规划-总文档.md")
 LINK = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
 
 
